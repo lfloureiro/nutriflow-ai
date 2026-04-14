@@ -1,5 +1,7 @@
 from fastapi import APIRouter
 
+from backend.app.api.routes_recipes import router as recipes_router
+
 router = APIRouter()
 
 
@@ -11,3 +13,6 @@ def read_root():
 @router.get("/health")
 def health_check():
     return {"status": "ok"}
+
+
+router.include_router(recipes_router)
