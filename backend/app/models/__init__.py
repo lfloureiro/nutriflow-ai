@@ -1,0 +1,1 @@
+from backend.app.models.recipe import Recipe
