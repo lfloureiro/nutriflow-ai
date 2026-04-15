@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from backend.app.api.routes_ingredients import router as ingredients_router
 from backend.app.api.routes_meal_plan import router as meal_plan_router
 from backend.app.api.routes_recipes import router as recipes_router
+from backend.app.api.routes_shopping_list import router as shopping_list_router
 
 router = APIRouter()
 
@@ -20,3 +21,4 @@ def health_check():
 router.include_router(recipes_router)
 router.include_router(ingredients_router)
 router.include_router(meal_plan_router)
+router.include_router(shopping_list_router)
