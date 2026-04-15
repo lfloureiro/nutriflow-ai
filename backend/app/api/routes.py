@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from backend.app.api.routes_ingredients import router as ingredients_router
 from backend.app.api.routes_recipes import router as recipes_router
 
 router = APIRouter()
@@ -16,3 +17,4 @@ def health_check():
 
 
 router.include_router(recipes_router)
+router.include_router(ingredients_router)
