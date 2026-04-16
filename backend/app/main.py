@@ -5,8 +5,14 @@ from backend.app.api.routes import router
 from backend.app.core.config import settings
 from backend.app.db.base import Base
 from backend.app.db.session import engine
-from backend.app.models import Recipe, Ingredient, RecipeIngredient, MealPlanItem
-
+from backend.app.models import (
+    Recipe,
+    Ingredient,
+    RecipeIngredient,
+    MealPlanItem,
+    Household,
+    FamilyMember,
+)
 
 app = FastAPI(
     title=settings.app_name,
