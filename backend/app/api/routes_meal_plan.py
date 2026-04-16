@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, time, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
@@ -6,9 +6,53 @@ from sqlalchemy.orm import Session, joinedload
 from backend.app.db.session import get_db
 from backend.app.models.meal_plan_item import MealPlanItem
 from backend.app.models.recipe import Recipe
-from backend.app.schemas.meal_plan import MealPlanItemCreate, MealPlanItemRead
+from backend.app.schemas.meal_plan import (
+    MealPlanItemCreate,
+    MealPlanItemRead,
+    NextMealSlotRead,
+)
 
 router = APIRouter(prefix="/meal-plan", tags=["meal-plan"])
+
+MEAL_SLOT_ORDER = [
+    ("pequeno-almoco", time(8, 0)),
+    ("almoco", time(13, 0)),
+    ("lanche", time(17, 0)),
+    ("jantar", time(20, 0)),
+]
+
+
+def get_next_available_slot(db: Session) -> tuple[date, str]:
+    now = datetime.now()
+
+    existing_items = (
+        db.query(MealPlanItem)
+        .filter(MealPlanItem.plan_date >= now.date())
+        .all()
+    )
+
+    occupied_slots = {(item.plan_date, item.meal_type) for item in existing_items}
+
+    for day_offset in range(0, 30):
+        candidate_date = now.date() + timedelta(days=day_offset)
+
+        for meal_type, slot_time in MEAL_SLOT_ORDER:
+            candidate_datetime = datetime.combine(candidate_date, slot_time)
+
+            if candidate_datetime <= now:
+                continue
+
+            if (candidate_date, meal_type) not in occupied_slots:
+                return candidate_date, meal_type
+
+    fallback_date = now.date() + timedelta(days=31)
+    return fallback_date, "almoco"
+
+
+@router.get("/next-slot", response_model=NextMealSlotRead)
+def get_next_meal_slot(db: Session = Depends(get_db)):
+    plan_date, meal_type = get_next_available_slot(db)
+    return NextMealSlotRead(plan_date=plan_date, meal_type=meal_type)
 
 
 @router.get("/", response_model=list[MealPlanItemRead])
@@ -41,6 +85,20 @@ def create_meal_plan_item(
     meal_type_clean = data.meal_type.strip().lower()
     if not meal_type_clean:
         raise HTTPException(status_code=400, detail="O tipo de refeição é obrigatório.")
+
+    existing = (
+        db.query(MealPlanItem)
+        .filter(
+            MealPlanItem.plan_date == data.plan_date,
+            MealPlanItem.meal_type == meal_type_clean,
+        )
+        .first()
+    )
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail="Já existe uma refeição planeada para essa data e esse tipo de refeição.",
+        )
 
     item = MealPlanItem(
         plan_date=data.plan_date,

@@ -20,3 +20,8 @@ class MealPlanItemRead(BaseModel):
     recipe: RecipeRead
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class NextMealSlotRead(BaseModel):
+    plan_date: date
+    meal_type: str
