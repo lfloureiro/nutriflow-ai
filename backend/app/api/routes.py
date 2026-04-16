@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from backend.app.api.routes_feedback import router as feedback_router
 from backend.app.api.routes_households import router as households_router
 from backend.app.api.routes_ingredients import router as ingredients_router
 from backend.app.api.routes_meal_plan import router as meal_plan_router
@@ -24,3 +25,4 @@ router.include_router(ingredients_router)
 router.include_router(meal_plan_router)
 router.include_router(shopping_list_router)
 router.include_router(households_router)
+router.include_router(feedback_router)

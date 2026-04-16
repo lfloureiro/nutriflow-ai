@@ -17,3 +17,8 @@ class MealPlanItem(Base):
     recipe_id: Mapped[int] = mapped_column(ForeignKey("recipes.id"), nullable=False)
 
     recipe = relationship("Recipe")
+    feedback_entries = relationship(
+        "MealFeedback",
+        back_populates="meal_plan_item",
+        cascade="all, delete-orphan",
+    )

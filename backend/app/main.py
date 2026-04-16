@@ -12,6 +12,7 @@ from backend.app.models import (
     MealPlanItem,
     Household,
     FamilyMember,
+    MealFeedback,
 )
 
 app = FastAPI(
