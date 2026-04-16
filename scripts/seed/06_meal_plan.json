@@ -1,0 +1,23 @@
+{
+  "items": [
+    {
+      "plan_date": "2026-04-20",
+      "meal_type": "jantar",
+      "notes": "Segunda",
+      "recipe_id": 1
+    },
+    {
+      "plan_date": "2026-04-21",
+      "meal_type": "almoco",
+      "notes": "Terça",
+      "recipe_id": 2
+    },
+    {
+      "plan_date": "2026-04-21",
+      "meal_type": "jantar",
+      "notes": "Terça à noite",
+      "recipe_id": 3
+    }
+  ],
+  "skip_existing": true
+}

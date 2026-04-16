@@ -1,0 +1,9 @@
+{
+  "items": [
+    { "household_id": 1, "name": "Luis" },
+    { "household_id": 1, "name": "Patricia" },
+    { "household_id": 1, "name": "Tiago" },
+    { "household_id": 1, "name": "Diogo" }
+  ],
+  "skip_existing": true
+}

@@ -1,0 +1,15 @@
+{
+  "items": [
+    { "recipe_id": 1, "ingredient_id": 2, "quantity": "250", "unit": "g" },
+    { "recipe_id": 1, "ingredient_id": 1, "quantity": "2", "unit": "latas" },
+
+    { "recipe_id": 2, "ingredient_id": 1, "quantity": "1", "unit": "lata" },
+    { "recipe_id": 2, "ingredient_id": 4, "quantity": "2", "unit": "unidades" },
+
+    { "recipe_id": 3, "ingredient_id": 6, "quantity": "250", "unit": "g" },
+    { "recipe_id": 3, "ingredient_id": 7, "quantity": "250", "unit": "g" },
+    { "recipe_id": 3, "ingredient_id": 8, "quantity": "500", "unit": "g" },
+    { "recipe_id": 3, "ingredient_id": 5, "quantity": "1", "unit": "unidade" }
+  ],
+  "skip_existing": true
+}

@@ -1,0 +1,13 @@
+{
+  "items": [
+    { "name": "Atum" },
+    { "name": "Massa" },
+    { "name": "Milho" },
+    { "name": "Tomate" },
+    { "name": "Cebola" },
+    { "name": "Arroz" },
+    { "name": "Feijão" },
+    { "name": "Carne picada" }
+  ],
+  "skip_existing": true
+}

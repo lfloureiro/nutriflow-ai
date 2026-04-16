@@ -1,0 +1,17 @@
+{
+  "items": [
+    {
+      "name": "Massa com atum",
+      "description": "Receita base"
+    },
+    {
+      "name": "Salada de atum",
+      "description": "Receita rápida"
+    },
+    {
+      "name": "Chili Beans",
+      "description": "Chili com carne picada"
+    }
+  ],
+  "skip_existing": true
+}
