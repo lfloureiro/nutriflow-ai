@@ -8,6 +8,11 @@ class RecipeCreate(BaseModel):
     description: str | None = None
 
 
+class RecipeUpdate(BaseModel):
+    name: str | None = None
+    description: str | None = None
+
+
 class RecipeRead(BaseModel):
     id: int
     name: str

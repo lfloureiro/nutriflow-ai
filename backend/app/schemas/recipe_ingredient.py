@@ -9,6 +9,12 @@ class RecipeIngredientCreate(BaseModel):
     unit: str | None = None
 
 
+class RecipeIngredientUpdate(BaseModel):
+    ingredient_id: int | None = None
+    quantity: str | None = None
+    unit: str | None = None
+
+
 class RecipeIngredientRead(BaseModel):
     id: int
     quantity: str | None = None
