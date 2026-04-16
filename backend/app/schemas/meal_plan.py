@@ -12,6 +12,13 @@ class MealPlanItemCreate(BaseModel):
     recipe_id: int
 
 
+class MealPlanItemUpdate(BaseModel):
+    plan_date: date | None = None
+    meal_type: str | None = None
+    notes: str | None = None
+    recipe_id: int | None = None
+
+
 class MealPlanItemRead(BaseModel):
     id: int
     plan_date: date

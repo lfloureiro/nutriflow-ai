@@ -9,6 +9,7 @@ from backend.app.models.recipe import Recipe
 from backend.app.schemas.meal_plan import (
     MealPlanItemCreate,
     MealPlanItemRead,
+    MealPlanItemUpdate,
     NextMealSlotRead,
 )
 
@@ -119,3 +120,80 @@ def create_meal_plan_item(
     )
 
     return item
+
+
+@router.patch("/{meal_plan_item_id}", response_model=MealPlanItemRead)
+def update_meal_plan_item(
+    meal_plan_item_id: int,
+    data: MealPlanItemUpdate,
+    db: Session = Depends(get_db),
+):
+    item = db.query(MealPlanItem).filter(MealPlanItem.id == meal_plan_item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Refeição planeada não encontrada.")
+
+    new_plan_date = data.plan_date if data.plan_date is not None else item.plan_date
+
+    if data.meal_type is not None:
+        meal_type_clean = data.meal_type.strip().lower()
+        if not meal_type_clean:
+            raise HTTPException(status_code=400, detail="O tipo de refeição é obrigatório.")
+        new_meal_type = meal_type_clean
+    else:
+        new_meal_type = item.meal_type
+
+    new_recipe_id = data.recipe_id if data.recipe_id is not None else item.recipe_id
+
+    if data.recipe_id is not None:
+        recipe = db.query(Recipe).filter(Recipe.id == data.recipe_id).first()
+        if not recipe:
+            raise HTTPException(status_code=404, detail="Receita não encontrada.")
+
+    existing = (
+        db.query(MealPlanItem)
+        .filter(
+            MealPlanItem.plan_date == new_plan_date,
+            MealPlanItem.meal_type == new_meal_type,
+            MealPlanItem.id != meal_plan_item_id,
+        )
+        .first()
+    )
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail="Já existe uma refeição planeada para essa data e esse tipo de refeição.",
+        )
+
+    item.plan_date = new_plan_date
+    item.meal_type = new_meal_type
+    item.recipe_id = new_recipe_id
+
+    if "notes" in data.model_fields_set:
+        item.notes = data.notes
+
+    db.commit()
+    db.refresh(item)
+
+    item = (
+        db.query(MealPlanItem)
+        .options(joinedload(MealPlanItem.recipe))
+        .filter(MealPlanItem.id == item.id)
+        .first()
+    )
+
+    return item
+
+
+@router.delete("/{meal_plan_item_id}")
+def delete_meal_plan_item(
+    meal_plan_item_id: int,
+    db: Session = Depends(get_db),
+):
+    item = db.query(MealPlanItem).filter(MealPlanItem.id == meal_plan_item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Refeição planeada não encontrada.")
+
+    db.delete(item)
+    db.commit()
+
+    return {"message": "Refeição planeada apagada com sucesso."}

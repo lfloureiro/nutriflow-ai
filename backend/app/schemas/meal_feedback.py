@@ -14,6 +14,12 @@ class MealFeedbackCreate(BaseModel):
     note: str | None = None
 
 
+class MealFeedbackUpdate(BaseModel):
+    family_member_id: int | None = None
+    reaction: ReactionType | None = None
+    note: str | None = None
+
+
 class MealFeedbackRead(BaseModel):
     id: int
     meal_plan_item_id: int

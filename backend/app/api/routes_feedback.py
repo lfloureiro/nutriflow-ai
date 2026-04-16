@@ -9,6 +9,7 @@ from backend.app.models.recipe import Recipe
 from backend.app.schemas.meal_feedback import (
     MealFeedbackCreate,
     MealFeedbackRead,
+    MealFeedbackUpdate,
     RecipeFeedbackSummaryRead,
 )
 
@@ -78,6 +79,76 @@ def create_meal_feedback(
     )
 
     return feedback
+
+
+@router.patch("/{feedback_id}", response_model=MealFeedbackRead)
+def update_meal_feedback(
+    feedback_id: int,
+    data: MealFeedbackUpdate,
+    db: Session = Depends(get_db),
+):
+    feedback = db.query(MealFeedback).filter(MealFeedback.id == feedback_id).first()
+    if not feedback:
+        raise HTTPException(status_code=404, detail="Feedback não encontrado.")
+
+    new_family_member_id = (
+        data.family_member_id if data.family_member_id is not None else feedback.family_member_id
+    )
+
+    if data.family_member_id is not None:
+        member = db.query(FamilyMember).filter(FamilyMember.id == data.family_member_id).first()
+        if not member:
+            raise HTTPException(status_code=404, detail="Membro da família não encontrado.")
+
+    existing = (
+        db.query(MealFeedback)
+        .filter(
+            MealFeedback.meal_plan_item_id == feedback.meal_plan_item_id,
+            MealFeedback.family_member_id == new_family_member_id,
+            MealFeedback.id != feedback_id,
+        )
+        .first()
+    )
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail="Esse membro já deu feedback para esta refeição.",
+        )
+
+    feedback.family_member_id = new_family_member_id
+
+    if data.reaction is not None:
+        feedback.reaction = data.reaction
+
+    if "note" in data.model_fields_set:
+        feedback.note = data.note
+
+    db.commit()
+    db.refresh(feedback)
+
+    feedback = (
+        db.query(MealFeedback)
+        .options(joinedload(MealFeedback.family_member))
+        .filter(MealFeedback.id == feedback.id)
+        .first()
+    )
+
+    return feedback
+
+
+@router.delete("/{feedback_id}")
+def delete_meal_feedback(
+    feedback_id: int,
+    db: Session = Depends(get_db),
+):
+    feedback = db.query(MealFeedback).filter(MealFeedback.id == feedback_id).first()
+    if not feedback:
+        raise HTTPException(status_code=404, detail="Feedback não encontrado.")
+
+    db.delete(feedback)
+    db.commit()
+
+    return {"message": "Feedback apagado com sucesso."}
 
 
 @router.get("/recipes/{recipe_id}/summary", response_model=RecipeFeedbackSummaryRead)
