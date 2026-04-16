@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { API_BASE_URL } from "./config";
 import { styles } from "./components/styles";
 import type {
+  FamilyMember,
+  Household,
   Ingredient,
   MealPlanItem,
   Recipe,
+  RecipeFeedbackSummary,
   ShoppingListItem,
 } from "./components/types";
 import { RecipeForm } from "./components/forms/RecipeForm";
@@ -14,6 +17,9 @@ import { MealPlanForm } from "./components/forms/MealPlanForm";
 import { RecipeList } from "./components/lists/RecipeList";
 import { MealPlanList } from "./components/lists/MealPlanList";
 import { ShoppingListView } from "./components/lists/ShoppingListView";
+import { HouseholdView } from "./components/lists/HouseholdView";
+import { MealFeedbackForm } from "./components/forms/MealFeedbackForm";
+import { RecipeScoresView } from "./components/lists/RecipeScoresView";
 import { Modal } from "./components/Modal";
 
 type ActiveModal =
@@ -21,13 +27,16 @@ type ActiveModal =
   | "meal-plan"
   | "manage-recipes"
   | "weekly-plan"
-  | "shopping-list";
+  | "shopping-list"
+  | "family-feedback";
 
 function App() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [mealPlan, setMealPlan] = useState<MealPlanItem[]>([]);
   const [shoppingList, setShoppingList] = useState<ShoppingListItem[]>([]);
+  const [households, setHouseholds] = useState<Household[]>([]);
+  const [recipeSummaries, setRecipeSummaries] = useState<RecipeFeedbackSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,24 +45,31 @@ function App() {
 
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
 
+  const familyMembers: FamilyMember[] = useMemo(
+    () => households.flatMap((household) => household.members),
+    [households]
+  );
+
   async function loadData() {
     try {
       setLoading(true);
       setError(null);
 
-      const [recipesRes, ingredientsRes, mealPlanRes, shoppingListRes] =
+      const [recipesRes, ingredientsRes, mealPlanRes, shoppingListRes, householdsRes] =
         await Promise.all([
           fetch(`${API_BASE_URL}/recipes/`),
           fetch(`${API_BASE_URL}/ingredients/`),
           fetch(`${API_BASE_URL}/meal-plan/`),
           fetch(`${API_BASE_URL}/shopping-list/generate`),
+          fetch(`${API_BASE_URL}/households/`),
         ]);
 
       if (
         !recipesRes.ok ||
         !ingredientsRes.ok ||
         !mealPlanRes.ok ||
-        !shoppingListRes.ok
+        !shoppingListRes.ok ||
+        !householdsRes.ok
       ) {
         throw new Error("Falha ao carregar dados da API.");
       }
@@ -62,11 +78,34 @@ function App() {
       const ingredientsData = await ingredientsRes.json();
       const mealPlanData = await mealPlanRes.json();
       const shoppingListData = await shoppingListRes.json();
+      const householdsData = await householdsRes.json();
+
+      const householdsDetailData = await Promise.all(
+        householdsData.map(async (household: { id: number }) => {
+          const res = await fetch(`${API_BASE_URL}/households/${household.id}`);
+          if (!res.ok) {
+            throw new Error("Falha ao carregar detalhe do agregado.");
+          }
+          return res.json();
+        })
+      );
+
+      const recipeSummaryData = await Promise.all(
+        recipesData.map(async (recipe: { id: number }) => {
+          const res = await fetch(`${API_BASE_URL}/feedback/recipes/${recipe.id}/summary`);
+          if (!res.ok) {
+            throw new Error("Falha ao carregar resumo de feedback.");
+          }
+          return res.json();
+        })
+      );
 
       setRecipes(recipesData);
       setIngredients(ingredientsData);
       setMealPlan(mealPlanData);
       setShoppingList(shoppingListData);
+      setHouseholds(householdsDetailData);
+      setRecipeSummaries(recipeSummaryData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado.");
     } finally {
@@ -119,6 +158,11 @@ function App() {
               <div style={styles.statValue}>{shoppingList.length}</div>
               <div style={styles.statLabel}>Itens na lista de compras</div>
             </div>
+
+            <div style={styles.statCard}>
+              <div style={styles.statValue}>{familyMembers.length}</div>
+              <div style={styles.statLabel}>Membros da família</div>
+            </div>
           </div>
 
           <div style={styles.actionGrid}>
@@ -157,6 +201,17 @@ function App() {
               <div style={styles.actionTitle}>Ver lista de compras</div>
               <div style={styles.actionText}>
                 Consultar a lista agregada com origem dos ingredientes.
+              </div>
+            </div>
+
+            <div
+              style={styles.actionCard}
+              onClick={() => openModal("family-feedback")}
+            >
+              <div style={styles.actionTitle}>Família e feedback</div>
+              <div style={styles.actionText}>
+                Ver os membros da família, registar feedback por refeição e acompanhar
+                os primeiros scores de aceitação.
               </div>
             </div>
           </div>
@@ -212,6 +267,24 @@ function App() {
       {activeModal === "shopping-list" && (
         <Modal title="Lista de compras" onClose={closeModal}>
           <ShoppingListView shoppingList={shoppingList} />
+        </Modal>
+      )}
+
+      {activeModal === "family-feedback" && (
+        <Modal title="Família e feedback" onClose={closeModal}>
+          <div style={styles.grid}>
+            <HouseholdView households={households} />
+
+            <MealFeedbackForm
+              mealPlan={mealPlan}
+              members={familyMembers}
+              onSuccess={loadData}
+              setFormMessage={setFormMessage}
+              setFormError={setFormError}
+            />
+
+            <RecipeScoresView summaries={recipeSummaries} />
+          </div>
         </Modal>
       )}
     </div>

@@ -31,3 +31,33 @@ export type ShoppingListItem = {
   unit: string | null;
   sources: ShoppingListSource[];
 };
+
+export type FamilyMember = {
+  id: number;
+  name: string;
+  household_id: number;
+};
+
+export type Household = {
+  id: number;
+  name: string;
+  members: FamilyMember[];
+};
+
+export type MealFeedback = {
+  id: number;
+  meal_plan_item_id: number;
+  reaction: "gostou" | "neutro" | "nao_gostou";
+  note: string | null;
+  family_member: FamilyMember;
+};
+
+export type RecipeFeedbackSummary = {
+  recipe_id: number;
+  recipe_name: string;
+  total_feedback: number;
+  liked_count: number;
+  neutral_count: number;
+  disliked_count: number;
+  acceptance_score: number;
+};
