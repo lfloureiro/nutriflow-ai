@@ -1,25 +1,70 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { API_BASE_URL } from "../../config";
-import type { Recipe } from "../types";
+import type { MealPlanItem, Recipe } from "../types";
 import { styles } from "../styles";
 
 type Props = {
   recipes: Recipe[];
+  mealPlan: MealPlanItem[];
   onSuccess: () => Promise<void>;
   setFormMessage: (value: string | null) => void;
   setFormError: (value: string | null) => void;
 };
 
-export function MealPlanForm({ recipes, onSuccess, setFormMessage, setFormError }: Props) {
+export function MealPlanForm({
+  recipes,
+  mealPlan,
+  onSuccess,
+  setFormMessage,
+  setFormError,
+}: Props) {
   const [mealPlanDate, setMealPlanDate] = useState("");
   const [mealPlanType, setMealPlanType] = useState("jantar");
   const [mealPlanNotes, setMealPlanNotes] = useState("");
   const [mealPlanRecipeId, setMealPlanRecipeId] = useState("");
+  const [loadingSuggestion, setLoadingSuggestion] = useState(true);
+
+  useEffect(() => {
+    async function loadNextSlot() {
+      try {
+        setLoadingSuggestion(true);
+
+        const res = await fetch(`${API_BASE_URL}/meal-plan/next-slot`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.detail || "Erro ao obter a próxima refeição.");
+        }
+
+        setMealPlanDate(data.plan_date);
+        setMealPlanType(data.meal_type);
+      } catch (err) {
+        setFormError(err instanceof Error ? err.message : "Erro inesperado.");
+      } finally {
+        setLoadingSuggestion(false);
+      }
+    }
+
+    loadNextSlot();
+  }, [setFormError]);
+
+  const duplicateExists = useMemo(() => {
+    return mealPlan.some(
+      (item) => item.plan_date === mealPlanDate && item.meal_type === mealPlanType
+    );
+  }, [mealPlan, mealPlanDate, mealPlanType]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setFormMessage(null);
     setFormError(null);
+
+    if (duplicateExists) {
+      setFormError(
+        "Já existe uma refeição planeada para essa data e esse tipo de refeição."
+      );
+      return;
+    }
 
     try {
       const recipeId = Number(mealPlanRecipeId);
@@ -54,7 +99,16 @@ export function MealPlanForm({ recipes, onSuccess, setFormMessage, setFormError 
 
   return (
     <section style={styles.card}>
-      <h2 style={styles.formTitle}>Adicionar ao plano semanal</h2>
+      <h2 style={styles.formTitle}>Planear próxima refeição</h2>
+
+      {loadingSuggestion ? (
+        <p style={styles.info}>A obter a próxima refeição disponível...</p>
+      ) : (
+        <p style={styles.info}>
+          A data e o tipo de refeição foram sugeridos automaticamente. Podes ajustar antes de gravar.
+        </p>
+      )}
+
       <form style={styles.form} onSubmit={handleSubmit}>
         <input
           style={styles.input}
@@ -93,6 +147,12 @@ export function MealPlanForm({ recipes, onSuccess, setFormMessage, setFormError 
           value={mealPlanNotes}
           onChange={(e) => setMealPlanNotes(e.target.value)}
         />
+
+        {duplicateExists && (
+          <p style={styles.warning}>
+            Aviso: já existe uma refeição planeada para esta data e este tipo de refeição.
+          </p>
+        )}
 
         <button style={styles.button} type="submit">
           Adicionar ao plano

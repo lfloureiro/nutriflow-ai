@@ -8,6 +8,7 @@ export const styles = {
   } as const,
   header: {
     marginBottom: "24px",
+    textAlign: "center",
   } as const,
   title: {
     fontSize: "56px",
@@ -66,10 +67,20 @@ export const styles = {
   error: {
     color: "#f43f5e",
     marginTop: "12px",
+    textAlign: "center",
   } as const,
   success: {
     color: "#22c55e",
     marginTop: "12px",
+    textAlign: "center",
+  } as const,
+  warning: {
+    color: "#f59e0b",
+    marginTop: "8px",
+  } as const,
+  info: {
+    color: "#93c5fd",
+    marginTop: "8px",
   } as const,
   empty: {
     color: "#9ca3af",
@@ -106,5 +117,93 @@ export const styles = {
     fontSize: "20px",
     fontWeight: 700,
     marginBottom: "12px",
+  } as const,
+
+  statsGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+    gap: "16px",
+    marginBottom: "28px",
+  } as const,
+  statCard: {
+    background: "#111827",
+    border: "1px solid #374151",
+    borderRadius: "12px",
+    padding: "18px",
+    textAlign: "center",
+  } as const,
+  statValue: {
+    fontSize: "32px",
+    fontWeight: 700,
+    marginBottom: "6px",
+  } as const,
+  statLabel: {
+    fontSize: "14px",
+    color: "#b8c1cc",
+  } as const,
+
+  actionGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+    gap: "20px",
+  } as const,
+  actionCard: {
+    background: "#111827",
+    border: "1px solid #374151",
+    borderRadius: "14px",
+    padding: "22px",
+    textAlign: "left",
+    cursor: "pointer",
+  } as const,
+  actionTitle: {
+    fontSize: "22px",
+    fontWeight: 700,
+    marginBottom: "10px",
+  } as const,
+  actionText: {
+    color: "#cbd5e1",
+    fontSize: "15px",
+    lineHeight: 1.5,
+  } as const,
+
+  overlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0, 0, 0, 0.65)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "24px",
+    zIndex: 1000,
+  } as const,
+  modal: {
+    width: "100%",
+    maxWidth: "1100px",
+    maxHeight: "90vh",
+    overflowY: "auto",
+    background: "#0b1220",
+    border: "1px solid #374151",
+    borderRadius: "16px",
+    padding: "24px",
+  } as const,
+  modalHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "16px",
+    marginBottom: "20px",
+  } as const,
+  modalTitle: {
+    fontSize: "28px",
+    fontWeight: 700,
+    margin: 0,
+  } as const,
+  closeButton: {
+    padding: "10px 14px",
+    borderRadius: "8px",
+    border: "1px solid #374151",
+    background: "#111827",
+    color: "#f9fafb",
+    cursor: "pointer",
   } as const,
 };

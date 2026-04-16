@@ -14,6 +14,14 @@ import { MealPlanForm } from "./components/forms/MealPlanForm";
 import { RecipeList } from "./components/lists/RecipeList";
 import { MealPlanList } from "./components/lists/MealPlanList";
 import { ShoppingListView } from "./components/lists/ShoppingListView";
+import { Modal } from "./components/Modal";
+
+type ActiveModal =
+  | null
+  | "meal-plan"
+  | "manage-recipes"
+  | "weekly-plan"
+  | "shopping-list";
 
 function App() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -26,19 +34,27 @@ function App() {
   const [formMessage, setFormMessage] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
+  const [activeModal, setActiveModal] = useState<ActiveModal>(null);
+
   async function loadData() {
     try {
       setLoading(true);
       setError(null);
 
-      const [recipesRes, ingredientsRes, mealPlanRes, shoppingListRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/recipes/`),
-        fetch(`${API_BASE_URL}/ingredients/`),
-        fetch(`${API_BASE_URL}/meal-plan/`),
-        fetch(`${API_BASE_URL}/shopping-list/generate`),
-      ]);
+      const [recipesRes, ingredientsRes, mealPlanRes, shoppingListRes] =
+        await Promise.all([
+          fetch(`${API_BASE_URL}/recipes/`),
+          fetch(`${API_BASE_URL}/ingredients/`),
+          fetch(`${API_BASE_URL}/meal-plan/`),
+          fetch(`${API_BASE_URL}/shopping-list/generate`),
+        ]);
 
-      if (!recipesRes.ok || !ingredientsRes.ok || !mealPlanRes.ok || !shoppingListRes.ok) {
+      if (
+        !recipesRes.ok ||
+        !ingredientsRes.ok ||
+        !mealPlanRes.ok ||
+        !shoppingListRes.ok
+      ) {
         throw new Error("Falha ao carregar dados da API.");
       }
 
@@ -62,14 +78,24 @@ function App() {
     loadData();
   }, []);
 
+  function openModal(modal: ActiveModal) {
+    setFormMessage(null);
+    setFormError(null);
+    setActiveModal(modal);
+  }
+
+  function closeModal() {
+    setActiveModal(null);
+  }
+
   return (
     <div style={styles.page}>
       <header style={styles.header}>
         <div style={styles.title}>NutriFlow AI</div>
-        <div style={styles.subtitle}>Protótipo inicial do planeamento alimentar.</div>
-        <button style={styles.button} onClick={loadData}>
-          Atualizar
-        </button>
+        <div style={styles.subtitle}>
+          Protótipo inicial do planeamento alimentar.
+        </div>
+
         {loading && <p>A carregar dados...</p>}
         {error && <p style={styles.error}>Erro: {error}</p>}
         {formMessage && <p style={styles.success}>{formMessage}</p>}
@@ -78,6 +104,79 @@ function App() {
 
       {!loading && !error && (
         <>
+          <div style={styles.statsGrid}>
+            <div style={styles.statCard}>
+              <div style={styles.statValue}>{recipes.length}</div>
+              <div style={styles.statLabel}>Receitas</div>
+            </div>
+
+            <div style={styles.statCard}>
+              <div style={styles.statValue}>{mealPlan.length}</div>
+              <div style={styles.statLabel}>Refeições planeadas</div>
+            </div>
+
+            <div style={styles.statCard}>
+              <div style={styles.statValue}>{shoppingList.length}</div>
+              <div style={styles.statLabel}>Itens na lista de compras</div>
+            </div>
+          </div>
+
+          <div style={styles.actionGrid}>
+            <div style={styles.actionCard} onClick={() => openModal("meal-plan")}>
+              <div style={styles.actionTitle}>Planear próxima refeição</div>
+              <div style={styles.actionText}>
+                Sugere automaticamente a próxima data e tipo de refeição livres,
+                permitindo ajuste antes de guardar.
+              </div>
+            </div>
+
+            <div
+              style={styles.actionCard}
+              onClick={() => openModal("manage-recipes")}
+            >
+              <div style={styles.actionTitle}>Gerir receitas</div>
+              <div style={styles.actionText}>
+                Criar receitas, ingredientes e associar ingredientes às receitas.
+              </div>
+            </div>
+
+            <div
+              style={styles.actionCard}
+              onClick={() => openModal("weekly-plan")}
+            >
+              <div style={styles.actionTitle}>Ver plano semanal</div>
+              <div style={styles.actionText}>
+                Consultar as refeições já planeadas para os próximos dias.
+              </div>
+            </div>
+
+            <div
+              style={styles.actionCard}
+              onClick={() => openModal("shopping-list")}
+            >
+              <div style={styles.actionTitle}>Ver lista de compras</div>
+              <div style={styles.actionText}>
+                Consultar a lista agregada com origem dos ingredientes.
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {activeModal === "meal-plan" && (
+        <Modal title="Planear próxima refeição" onClose={closeModal}>
+          <MealPlanForm
+            recipes={recipes}
+            mealPlan={mealPlan}
+            onSuccess={loadData}
+            setFormMessage={setFormMessage}
+            setFormError={setFormError}
+          />
+        </Modal>
+      )}
+
+      {activeModal === "manage-recipes" && (
+        <Modal title="Gerir receitas e ingredientes" onClose={closeModal}>
           <div style={styles.grid}>
             <RecipeForm
               onSuccess={loadData}
@@ -99,22 +198,21 @@ function App() {
               setFormError={setFormError}
             />
 
-            <MealPlanForm
-              recipes={recipes}
-              onSuccess={loadData}
-              setFormMessage={setFormMessage}
-              setFormError={setFormError}
-            />
-          </div>
-
-          <div style={{ height: "24px" }} />
-
-          <div style={styles.grid}>
             <RecipeList recipes={recipes} />
-            <MealPlanList mealPlan={mealPlan} />
-            <ShoppingListView shoppingList={shoppingList} />
           </div>
-        </>
+        </Modal>
+      )}
+
+      {activeModal === "weekly-plan" && (
+        <Modal title="Plano semanal" onClose={closeModal}>
+          <MealPlanList mealPlan={mealPlan} />
+        </Modal>
+      )}
+
+      {activeModal === "shopping-list" && (
+        <Modal title="Lista de compras" onClose={closeModal}>
+          <ShoppingListView shoppingList={shoppingList} />
+        </Modal>
       )}
     </div>
   );
