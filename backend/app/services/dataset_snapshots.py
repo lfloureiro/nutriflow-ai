@@ -14,6 +14,7 @@ from backend.app.models.meal_feedback import MealFeedback
 from backend.app.models.meal_plan_item import MealPlanItem
 from backend.app.models.recipe import Recipe
 from backend.app.models.recipe_ingredient import RecipeIngredient
+from backend.app.models.recipe_preference import RecipePreference
 from backend.app.schemas.dataset_snapshot import DatasetSnapshotMetaRead
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -26,7 +27,11 @@ REQUIRED_DATA_KEYS = [
     "recipes",
     "recipe_ingredients",
     "meal_plan",
+]
+
+OPTIONAL_DATA_KEYS = [
     "feedback",
+    "recipe_preferences",
 ]
 
 
@@ -86,41 +91,28 @@ def build_snapshot_metadata(
     )
 
 
+def parse_datetime_value(value: str | None) -> datetime:
+    if not value:
+        return datetime.now(timezone.utc)
+
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return datetime.now(timezone.utc)
+
+
 def serialize_dataset(db: Session) -> dict[str, list[dict[str, Any]]]:
-    households = (
-        db.query(Household)
-        .order_by(Household.id.asc())
-        .all()
-    )
-    family_members = (
-        db.query(FamilyMember)
-        .order_by(FamilyMember.id.asc())
-        .all()
-    )
-    ingredients = (
-        db.query(Ingredient)
-        .order_by(Ingredient.id.asc())
-        .all()
-    )
-    recipes = (
-        db.query(Recipe)
-        .order_by(Recipe.id.asc())
-        .all()
-    )
+    households = db.query(Household).order_by(Household.id.asc()).all()
+    family_members = db.query(FamilyMember).order_by(FamilyMember.id.asc()).all()
+    ingredients = db.query(Ingredient).order_by(Ingredient.id.asc()).all()
+    recipes = db.query(Recipe).order_by(Recipe.id.asc()).all()
     recipe_ingredients = (
-        db.query(RecipeIngredient)
-        .order_by(RecipeIngredient.id.asc())
-        .all()
+        db.query(RecipeIngredient).order_by(RecipeIngredient.id.asc()).all()
     )
-    meal_plan_items = (
-        db.query(MealPlanItem)
-        .order_by(MealPlanItem.id.asc())
-        .all()
-    )
-    feedback_items = (
-        db.query(MealFeedback)
-        .order_by(MealFeedback.id.asc())
-        .all()
+    meal_plan_items = db.query(MealPlanItem).order_by(MealPlanItem.id.asc()).all()
+    feedback_items = db.query(MealFeedback).order_by(MealFeedback.id.asc()).all()
+    preference_items = (
+        db.query(RecipePreference).order_by(RecipePreference.id.asc()).all()
     )
 
     return {
@@ -167,6 +159,7 @@ def serialize_dataset(db: Session) -> dict[str, list[dict[str, Any]]]:
         "meal_plan": [
             {
                 "id": item.id,
+                "household_id": item.household_id,
                 "plan_date": item.plan_date.isoformat(),
                 "meal_type": item.meal_type,
                 "notes": item.notes,
@@ -184,19 +177,38 @@ def serialize_dataset(db: Session) -> dict[str, list[dict[str, Any]]]:
             }
             for item in feedback_items
         ],
+        "recipe_preferences": [
+            {
+                "id": item.id,
+                "household_id": item.household_id,
+                "family_member_id": item.family_member_id,
+                "recipe_id": item.recipe_id,
+                "rating": item.rating,
+                "note": item.note,
+                "updated_at": item.updated_at.isoformat(),
+            }
+            for item in preference_items
+        ],
     }
 
 
 def count_dataset(dataset: dict[str, list[dict[str, Any]]]) -> dict[str, int]:
-    return {
+    result = {
         "households": len(dataset["households"]),
         "family_members": len(dataset["family_members"]),
         "ingredients": len(dataset["ingredients"]),
         "recipes": len(dataset["recipes"]),
         "recipe_ingredients": len(dataset["recipe_ingredients"]),
         "meal_plan": len(dataset["meal_plan"]),
-        "feedback": len(dataset["feedback"]),
     }
+
+    if "feedback" in dataset:
+        result["feedback"] = len(dataset["feedback"])
+
+    if "recipe_preferences" in dataset:
+        result["recipe_preferences"] = len(dataset["recipe_preferences"])
+
+    return result
 
 
 def export_dataset_snapshot(
@@ -282,9 +294,14 @@ def validate_snapshot_dataset(dataset: dict[str, Any]) -> None:
         if not isinstance(dataset[key], list):
             raise ValueError(f"A secção '{key}' do snapshot é inválida.")
 
+    for key in OPTIONAL_DATA_KEYS:
+        if key in dataset and not isinstance(dataset[key], list):
+            raise ValueError(f"A secção '{key}' do snapshot é inválida.")
+
 
 def clear_all_data(db: Session) -> None:
     db.query(MealFeedback).delete(synchronize_session=False)
+    db.query(RecipePreference).delete(synchronize_session=False)
     db.query(MealPlanItem).delete(synchronize_session=False)
     db.query(RecipeIngredient).delete(synchronize_session=False)
     db.query(FamilyMember).delete(synchronize_session=False)
@@ -293,7 +310,24 @@ def clear_all_data(db: Session) -> None:
     db.query(Ingredient).delete(synchronize_session=False)
 
 
+def resolve_legacy_household_id(dataset: dict[str, list[dict[str, Any]]]) -> int | None:
+    meal_plan_rows = dataset["meal_plan"]
+
+    if all("household_id" in row for row in meal_plan_rows):
+        return None
+
+    household_rows = dataset["households"]
+    if len(household_rows) == 1:
+        return int(household_rows[0]["id"])
+
+    raise ValueError(
+        "O snapshot usa meal_plan antigo sem household_id. Com vários agregados isso é ambíguo e não pode ser restaurado automaticamente."
+    )
+
+
 def restore_dataset_rows(db: Session, dataset: dict[str, list[dict[str, Any]]]) -> None:
+    legacy_household_id = resolve_legacy_household_id(dataset)
+
     for row in dataset["households"]:
         db.add(
             Household(
@@ -348,6 +382,7 @@ def restore_dataset_rows(db: Session, dataset: dict[str, list[dict[str, Any]]]) 
         db.add(
             MealPlanItem(
                 id=row["id"],
+                household_id=row.get("household_id", legacy_household_id),
                 plan_date=date.fromisoformat(row["plan_date"]),
                 meal_type=row["meal_type"],
                 notes=row.get("notes"),
@@ -356,7 +391,7 @@ def restore_dataset_rows(db: Session, dataset: dict[str, list[dict[str, Any]]]) 
         )
     db.flush()
 
-    for row in dataset["feedback"]:
+    for row in dataset.get("feedback", []):
         db.add(
             MealFeedback(
                 id=row["id"],
@@ -364,6 +399,20 @@ def restore_dataset_rows(db: Session, dataset: dict[str, list[dict[str, Any]]]) 
                 family_member_id=row["family_member_id"],
                 reaction=row["reaction"],
                 note=row.get("note"),
+            )
+        )
+    db.flush()
+
+    for row in dataset.get("recipe_preferences", []):
+        db.add(
+            RecipePreference(
+                id=row["id"],
+                household_id=row["household_id"],
+                family_member_id=row["family_member_id"],
+                recipe_id=row["recipe_id"],
+                rating=row["rating"],
+                note=row.get("note"),
+                updated_at=parse_datetime_value(row.get("updated_at")),
             )
         )
     db.flush()

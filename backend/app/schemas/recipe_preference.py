@@ -1,6 +1,14 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class RecipePreferenceFamilyMemberRead(BaseModel):
+    id: int
+    name: str
+    household_id: int
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RecipePreferenceUpsert(BaseModel):
@@ -15,10 +23,9 @@ class RecipePreferenceRead(BaseModel):
     rating: int
     note: str | None
     updated_at: datetime
-    family_member: dict
+    family_member: RecipePreferenceFamilyMemberRead
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RecipePreferenceSummaryRead(BaseModel):
@@ -28,3 +35,5 @@ class RecipePreferenceSummaryRead(BaseModel):
     ratings_count: int
     average_rating: float
     ratings: list[RecipePreferenceRead]
+
+    model_config = ConfigDict(from_attributes=True)
