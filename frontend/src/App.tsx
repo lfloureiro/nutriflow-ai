@@ -110,8 +110,8 @@ function App() {
       )
         ? selectedHouseholdId
         : householdsDetailData.length > 0
-        ? String(householdsDetailData[0].id)
-        : "";
+          ? String(householdsDetailData[0].id)
+          : "";
 
     setRecipes(recipesData);
     setIngredients(ingredientsData);
@@ -216,20 +216,50 @@ function App() {
       {!loading && !error && (
         <>
           <div style={styles.statsGrid}>
-            <div style={styles.statCard}>
+            <button
+              type="button"
+              onClick={() => openModal("manage-recipes")}
+              style={{
+                ...styles.statCard,
+                cursor: "pointer",
+                textAlign: "center",
+              }}
+              aria-label="Abrir gestão de receitas"
+              title="Abrir gestão de receitas"
+            >
               <div style={styles.statValue}>{recipes.length}</div>
               <div style={styles.statLabel}>Receitas</div>
-            </div>
+            </button>
 
-            <div style={styles.statCard}>
+            <button
+              type="button"
+              onClick={() => openModal("weekly-plan")}
+              style={{
+                ...styles.statCard,
+                cursor: "pointer",
+                textAlign: "center",
+              }}
+              aria-label="Abrir plano semanal"
+              title="Abrir plano semanal"
+            >
               <div style={styles.statValue}>{mealPlan.length}</div>
               <div style={styles.statLabel}>Refeições planeadas</div>
-            </div>
+            </button>
 
-            <div style={styles.statCard}>
+            <button
+              type="button"
+              onClick={() => openModal("shopping-list")}
+              style={{
+                ...styles.statCard,
+                cursor: "pointer",
+                textAlign: "center",
+              }}
+              aria-label="Abrir lista de compras"
+              title="Abrir lista de compras"
+            >
               <div style={styles.statValue}>{shoppingList.length}</div>
               <div style={styles.statLabel}>Itens na lista de compras</div>
-            </div>
+            </button>
           </div>
 
           <div style={{ height: "16px" }} />
