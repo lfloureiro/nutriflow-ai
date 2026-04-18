@@ -27,6 +27,8 @@ import { SnapshotBackupPanel } from "./components/forms/SnapshotBackupPanel";
 import { SnapshotRestorePanel } from "./components/forms/SnapshotRestorePanel";
 import { RecipeToolsMenu } from "./components/forms/RecipeToolsMenu";
 import { FamilyFeedbackMenu } from "./components/forms/FamilyFeedbackMenu";
+import { HouseholdManageView } from "./components/lists/HouseholdManageView";
+import { FamilyMemberManageView } from "./components/lists/FamilyMemberManageView";
 
 type ActiveModal =
   | null
@@ -45,7 +47,10 @@ type ActiveModal =
   | "data-import"
   | "family-households"
   | "family-meal-feedback"
-  | "family-recipe-scores";
+  | "family-recipe-scores"
+  | "family-household-manage"
+  | "family-member-manage"
+  ;
 
 function App() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -341,6 +346,26 @@ function App() {
       {activeModal === "family-households" && (
         <Modal title="Agregados e membros" onClose={closeModal}>
           <HouseholdView
+            onOpenHouseholds={() => openModal("family-household-manage")}
+            onOpenMembers={() => openModal("family-member-manage")}
+          />
+        </Modal>
+      )}
+
+      {activeModal === "family-household-manage" && (
+        <Modal title="Gerir agregados" onClose={closeModal}>
+          <HouseholdManageView
+            households={households}
+            onSuccess={loadData}
+            setFormMessage={setFormMessage}
+            setFormError={setFormError}
+          />
+        </Modal>
+      )}
+
+      {activeModal === "family-member-manage" && (
+        <Modal title="Gerir membros" onClose={closeModal}>
+          <FamilyMemberManageView
             households={households}
             onSuccess={loadData}
             setFormMessage={setFormMessage}

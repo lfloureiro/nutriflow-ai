@@ -242,8 +242,8 @@ def delete_household_member(
     )
     if has_feedback:
         raise HTTPException(
-          status_code=400,
-          detail="Não é possível apagar um membro que já tem feedback associado.",
+            status_code=400,
+            detail="Não é possível apagar um membro que já tem feedback associado.",
         )
 
     db.delete(member)
