@@ -15,3 +15,15 @@ class Household(Base):
         back_populates="household",
         cascade="all, delete-orphan",
     )
+
+    meal_plan_items = relationship(
+        "MealPlanItem",
+        back_populates="household",
+        cascade="all, delete-orphan",
+    )
+
+    recipe_preferences = relationship(
+        "RecipePreference",
+        back_populates="household",
+        cascade="all, delete-orphan",
+    )

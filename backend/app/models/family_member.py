@@ -17,3 +17,8 @@ class FamilyMember(Base):
         back_populates="family_member",
         cascade="all, delete-orphan",
     )
+    recipe_preferences = relationship(
+        "RecipePreference",
+        back_populates="family_member",
+        cascade="all, delete-orphan",
+    )

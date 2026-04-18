@@ -1,9 +1,10 @@
 from datetime import date
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
 
 from backend.app.db.session import get_db
+from backend.app.models.household import Household
 from backend.app.models.meal_plan_item import MealPlanItem
 from backend.app.models.recipe import Recipe
 from backend.app.models.recipe_ingredient import RecipeIngredient
@@ -31,10 +32,15 @@ def try_parse_number(value: str | None) -> float | None:
 
 @router.get("/generate", response_model=list[ShoppingListItemRead])
 def generate_shopping_list(
+    household_id: int = Query(...),
     start_date: date | None = Query(default=None),
     end_date: date | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
+    household = db.query(Household).filter(Household.id == household_id).first()
+    if not household:
+        raise HTTPException(status_code=404, detail="Agregado não encontrado.")
+
     query = (
         db.query(MealPlanItem)
         .options(
@@ -42,6 +48,7 @@ def generate_shopping_list(
             .joinedload(Recipe.ingredient_links)
             .joinedload(RecipeIngredient.ingredient)
         )
+        .filter(MealPlanItem.household_id == household_id)
     )
 
     if start_date:

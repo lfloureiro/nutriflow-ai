@@ -23,8 +23,12 @@ class RecipePreference(Base):
     recipe_id: Mapped[int] = mapped_column(ForeignKey("recipes.id"), nullable=False)
     rating: Mapped[int] = mapped_column(Integer, nullable=False)
     note: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+    )
 
-    household = relationship("Household")
-    family_member = relationship("FamilyMember")
-    recipe = relationship("Recipe")
+    household = relationship("Household", back_populates="recipe_preferences")
+    family_member = relationship("FamilyMember", back_populates="recipe_preferences")
+    recipe = relationship("Recipe", back_populates="preferences")

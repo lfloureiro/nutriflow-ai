@@ -1,34 +1,36 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { API_BASE_URL } from "./config";
 import { styles } from "./components/styles";
 import type {
-  FamilyMember,
   Household,
   Ingredient,
   MealPlanItem,
   Recipe,
-  RecipeFeedbackSummary,
   ShoppingListItem,
 } from "./components/types";
+
 import { RecipeForm } from "./components/forms/RecipeForm";
 import { IngredientForm } from "./components/forms/IngredientForm";
 import { RecipeIngredientForm } from "./components/forms/RecipeIngredientForm";
 import { MealPlanForm } from "./components/forms/MealPlanForm";
-import { RecipeList } from "./components/lists/RecipeList";
-import { MealPlanList } from "./components/lists/MealPlanList";
-import { ShoppingListView } from "./components/lists/ShoppingListView";
-import { HouseholdView } from "./components/lists/HouseholdView";
-import { MealFeedbackForm } from "./components/forms/MealFeedbackForm";
-import { RecipeScoresView } from "./components/lists/RecipeScoresView";
 import { BulkImportPanel } from "./components/forms/BulkImportPanel";
-import { Modal } from "./components/Modal";
 import { DataToolsMenu } from "./components/forms/DataToolsMenu";
 import { SnapshotBackupPanel } from "./components/forms/SnapshotBackupPanel";
 import { SnapshotRestorePanel } from "./components/forms/SnapshotRestorePanel";
 import { RecipeToolsMenu } from "./components/forms/RecipeToolsMenu";
-import { FamilyFeedbackMenu } from "./components/forms/FamilyFeedbackMenu";
+import { HouseholdContextSelector } from "./components/forms/HouseholdContextSelector";
+import { FamilyWorkspaceMenu } from "./components/forms/FamilyWorkspaceMenu";
+import { RecipeRatingsPanel } from "./components/forms/RecipeRatingsPanel";
+
+import { RecipeList } from "./components/lists/RecipeList";
+import { MealPlanList } from "./components/lists/MealPlanList";
+import { ShoppingListView } from "./components/lists/ShoppingListView";
+import { HouseholdView } from "./components/lists/HouseholdView";
 import { HouseholdManageView } from "./components/lists/HouseholdManageView";
 import { FamilyMemberManageView } from "./components/lists/FamilyMemberManageView";
+import { HouseholdRecipeScoresView } from "./components/lists/HouseholdRecipeScoresView";
+
+import { Modal } from "./components/Modal";
 
 type ActiveModal =
   | null
@@ -41,16 +43,15 @@ type ActiveModal =
   | "weekly-plan"
   | "shopping-list"
   | "family-feedback"
+  | "family-households"
+  | "family-household-manage"
+  | "family-member-manage"
+  | "family-ratings"
+  | "family-scores"
   | "data-tools"
   | "data-backup"
   | "data-restore"
-  | "data-import"
-  | "family-households"
-  | "family-meal-feedback"
-  | "family-recipe-scores"
-  | "family-household-manage"
-  | "family-member-manage"
-  ;
+  | "data-import";
 
 function App() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -58,7 +59,7 @@ function App() {
   const [mealPlan, setMealPlan] = useState<MealPlanItem[]>([]);
   const [shoppingList, setShoppingList] = useState<ShoppingListItem[]>([]);
   const [households, setHouseholds] = useState<Household[]>([]);
-  const [recipeSummaries, setRecipeSummaries] = useState<RecipeFeedbackSummary[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,68 +67,117 @@ function App() {
   const [formError, setFormError] = useState<string | null>(null);
 
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
+  const [selectedHouseholdId, setSelectedHouseholdId] = useState<string>("");
 
-  const familyMembers: FamilyMember[] = useMemo(
-    () => households.flatMap((household) => household.members),
-    [households]
+  const householdScopedRequestRef = useRef(0);
+
+  const selectedHousehold = useMemo(
+    () =>
+      households.find((household) => String(household.id) === selectedHouseholdId) ??
+      null,
+    [households, selectedHouseholdId]
   );
+
+  async function loadBaseData(): Promise<string> {
+    const [recipesRes, ingredientsRes, householdsRes] = await Promise.all([
+      fetch(`${API_BASE_URL}/recipes/`),
+      fetch(`${API_BASE_URL}/ingredients/`),
+      fetch(`${API_BASE_URL}/households/`),
+    ]);
+
+    if (!recipesRes.ok || !ingredientsRes.ok || !householdsRes.ok) {
+      throw new Error("Falha ao carregar dados base da API.");
+    }
+
+    const recipesData = await recipesRes.json();
+    const ingredientsData = await ingredientsRes.json();
+    const householdsData = await householdsRes.json();
+
+    const householdsDetailData = await Promise.all(
+      householdsData.map(async (household: { id: number }) => {
+        const res = await fetch(`${API_BASE_URL}/households/${household.id}`);
+        if (!res.ok) {
+          throw new Error("Falha ao carregar detalhe do agregado.");
+        }
+        return res.json();
+      })
+    );
+
+    const nextHouseholdId =
+      selectedHouseholdId &&
+      householdsDetailData.some(
+        (item: { id: number }) => String(item.id) === selectedHouseholdId
+      )
+        ? selectedHouseholdId
+        : householdsDetailData.length > 0
+        ? String(householdsDetailData[0].id)
+        : "";
+
+    setRecipes(recipesData);
+    setIngredients(ingredientsData);
+    setHouseholds(householdsDetailData);
+    setSelectedHouseholdId(nextHouseholdId);
+
+    return nextHouseholdId;
+  }
+
+  async function loadHouseholdScopedData(householdId: string) {
+    const requestId = ++householdScopedRequestRef.current;
+
+    if (!householdId) {
+      if (requestId === householdScopedRequestRef.current) {
+        setMealPlan([]);
+        setShoppingList([]);
+      }
+      return;
+    }
+
+    const [mealPlanRes, shoppingListRes] = await Promise.all([
+      fetch(`${API_BASE_URL}/meal-plan/?household_id=${householdId}`),
+      fetch(`${API_BASE_URL}/shopping-list/generate?household_id=${householdId}`),
+    ]);
+
+    if (!mealPlanRes.ok || !shoppingListRes.ok) {
+      throw new Error("Falha ao carregar dados do agregado ativo.");
+    }
+
+    const mealPlanData = await mealPlanRes.json();
+    const shoppingListData = await shoppingListRes.json();
+
+    if (requestId !== householdScopedRequestRef.current) {
+      return;
+    }
+
+    setMealPlan(mealPlanData);
+    setShoppingList(shoppingListData);
+  }
 
   async function loadData() {
     try {
       setLoading(true);
       setError(null);
 
-      const [recipesRes, ingredientsRes, mealPlanRes, shoppingListRes, householdsRes] =
-        await Promise.all([
-          fetch(`${API_BASE_URL}/recipes/`),
-          fetch(`${API_BASE_URL}/ingredients/`),
-          fetch(`${API_BASE_URL}/meal-plan/`),
-          fetch(`${API_BASE_URL}/shopping-list/generate`),
-          fetch(`${API_BASE_URL}/households/`),
-        ]);
+      const householdId = await loadBaseData();
+      await loadHouseholdScopedData(householdId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro inesperado.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
-      if (
-        !recipesRes.ok ||
-        !ingredientsRes.ok ||
-        !mealPlanRes.ok ||
-        !shoppingListRes.ok ||
-        !householdsRes.ok
-      ) {
-        throw new Error("Falha ao carregar dados da API.");
-      }
+  async function handleChangeHousehold(value: string) {
+    try {
+      setLoading(true);
+      setError(null);
+      setFormMessage(null);
+      setFormError(null);
 
-      const recipesData = await recipesRes.json();
-      const ingredientsData = await ingredientsRes.json();
-      const mealPlanData = await mealPlanRes.json();
-      const shoppingListData = await shoppingListRes.json();
-      const householdsData = await householdsRes.json();
+      setSelectedHouseholdId(value);
+      setMealPlan([]);
+      setShoppingList([]);
 
-      const householdsDetailData = await Promise.all(
-        householdsData.map(async (household: { id: number }) => {
-          const res = await fetch(`${API_BASE_URL}/households/${household.id}`);
-          if (!res.ok) {
-            throw new Error("Falha ao carregar detalhe do agregado.");
-          }
-          return res.json();
-        })
-      );
-
-      const recipeSummaryData = await Promise.all(
-        recipesData.map(async (recipe: { id: number }) => {
-          const res = await fetch(`${API_BASE_URL}/feedback/recipes/${recipe.id}/summary`);
-          if (!res.ok) {
-            throw new Error("Falha ao carregar resumo de feedback.");
-          }
-          return res.json();
-        })
-      );
-
-      setRecipes(recipesData);
-      setIngredients(ingredientsData);
-      setMealPlan(mealPlanData);
-      setShoppingList(shoppingListData);
-      setHouseholds(householdsDetailData);
-      setRecipeSummaries(recipeSummaryData);
+      await loadHouseholdScopedData(value);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado.");
     } finally {
@@ -180,12 +230,17 @@ function App() {
               <div style={styles.statValue}>{shoppingList.length}</div>
               <div style={styles.statLabel}>Itens na lista de compras</div>
             </div>
-
-            <div style={styles.statCard}>
-              <div style={styles.statValue}>{familyMembers.length}</div>
-              <div style={styles.statLabel}>Membros da família</div>
-            </div>
           </div>
+
+          <div style={{ height: "16px" }} />
+
+          <HouseholdContextSelector
+            households={households}
+            selectedHouseholdId={selectedHouseholdId}
+            onChange={handleChangeHousehold}
+          />
+
+          <div style={{ height: "16px" }} />
 
           <div style={styles.actionGrid}>
             <div style={styles.actionCard} onClick={() => openModal("meal-plan")}>
@@ -212,7 +267,7 @@ function App() {
             >
               <div style={styles.actionTitle}>Ver plano semanal</div>
               <div style={styles.actionText}>
-                Consultar as refeições já planeadas para os próximos dias.
+                Consultar as refeições já planeadas para o agregado ativo.
               </div>
             </div>
 
@@ -222,7 +277,7 @@ function App() {
             >
               <div style={styles.actionTitle}>Ver lista de compras</div>
               <div style={styles.actionText}>
-                Consultar a lista agregada com origem dos ingredientes.
+                Consultar a lista agregada do agregado ativo.
               </div>
             </div>
 
@@ -230,10 +285,9 @@ function App() {
               style={styles.actionCard}
               onClick={() => openModal("family-feedback")}
             >
-              <div style={styles.actionTitle}>Família e feedback</div>
+              <div style={styles.actionTitle}>Família e preferências</div>
               <div style={styles.actionText}>
-                Ver os membros da família, registar feedback por refeição e acompanhar
-                os primeiros scores de aceitação.
+                Gerir agregados, avaliar receitas de 0 a 5 e consultar scores por agregado.
               </div>
             </div>
 
@@ -253,8 +307,9 @@ function App() {
       {activeModal === "meal-plan" && (
         <Modal title="Planear próxima refeição" onClose={closeModal}>
           <MealPlanForm
+            householdId={selectedHouseholdId}
+            householdName={selectedHousehold?.name ?? null}
             recipes={recipes}
-            mealPlan={mealPlan}
             onSuccess={loadData}
             setFormMessage={setFormMessage}
             setFormError={setFormError}
@@ -334,11 +389,12 @@ function App() {
       )}
 
       {activeModal === "family-feedback" && (
-        <Modal title="Família e feedback" onClose={closeModal}>
-          <FamilyFeedbackMenu
+        <Modal title="Família e preferências" onClose={closeModal}>
+          <FamilyWorkspaceMenu
+            household={selectedHousehold}
             onOpenHouseholds={() => openModal("family-households")}
-            onOpenMealFeedback={() => openModal("family-meal-feedback")}
-            onOpenRecipeScores={() => openModal("family-recipe-scores")}
+            onOpenRatings={() => openModal("family-ratings")}
+            onOpenScores={() => openModal("family-scores")}
           />
         </Modal>
       )}
@@ -374,11 +430,11 @@ function App() {
         </Modal>
       )}
 
-      {activeModal === "family-meal-feedback" && (
-        <Modal title="Feedback por refeição" onClose={closeModal}>
-          <MealFeedbackForm
-            mealPlan={mealPlan}
-            members={familyMembers}
+      {activeModal === "family-ratings" && (
+        <Modal title="Avaliar receitas" onClose={closeModal}>
+          <RecipeRatingsPanel
+            household={selectedHousehold}
+            recipes={recipes}
             onSuccess={loadData}
             setFormMessage={setFormMessage}
             setFormError={setFormError}
@@ -386,9 +442,9 @@ function App() {
         </Modal>
       )}
 
-      {activeModal === "family-recipe-scores" && (
-        <Modal title="Scores por receita" onClose={closeModal}>
-          <RecipeScoresView summaries={recipeSummaries} />
+      {activeModal === "family-scores" && (
+        <Modal title="Scores da família" onClose={closeModal}>
+          <HouseholdRecipeScoresView household={selectedHousehold} />
         </Modal>
       )}
 

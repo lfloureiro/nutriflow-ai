@@ -4,13 +4,16 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
 
 from backend.app.db.session import get_db
+from backend.app.models.household import Household
 from backend.app.models.meal_plan_item import MealPlanItem
 from backend.app.models.recipe import Recipe
 from backend.app.schemas.meal_plan import (
-    MealPlanItemCreate,
     MealPlanItemRead,
-    MealPlanItemUpdate,
     NextMealSlotRead,
+)
+from backend.app.schemas.meal_plan_manage import (
+    MealPlanItemCreateScoped,
+    MealPlanItemUpdateScoped,
 )
 
 router = APIRouter(prefix="/meal-plan", tags=["meal-plan"])
@@ -23,12 +26,15 @@ MEAL_SLOT_ORDER = [
 ]
 
 
-def get_next_available_slot(db: Session) -> tuple[date, str]:
+def get_next_available_slot(db: Session, household_id: int) -> tuple[date, str]:
     now = datetime.now()
 
     existing_items = (
         db.query(MealPlanItem)
-        .filter(MealPlanItem.plan_date >= now.date())
+        .filter(
+            MealPlanItem.household_id == household_id,
+            MealPlanItem.plan_date >= now.date(),
+        )
         .all()
     )
 
@@ -51,18 +57,34 @@ def get_next_available_slot(db: Session) -> tuple[date, str]:
 
 
 @router.get("/next-slot", response_model=NextMealSlotRead)
-def get_next_meal_slot(db: Session = Depends(get_db)):
-    plan_date, meal_type = get_next_available_slot(db)
+def get_next_meal_slot(
+    household_id: int = Query(...),
+    db: Session = Depends(get_db),
+):
+    household = db.query(Household).filter(Household.id == household_id).first()
+    if not household:
+        raise HTTPException(status_code=404, detail="Agregado não encontrado.")
+
+    plan_date, meal_type = get_next_available_slot(db, household_id)
     return NextMealSlotRead(plan_date=plan_date, meal_type=meal_type)
 
 
 @router.get("/", response_model=list[MealPlanItemRead])
 def list_meal_plan(
+    household_id: int = Query(...),
     start_date: date | None = Query(default=None),
     end_date: date | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
-    query = db.query(MealPlanItem).options(joinedload(MealPlanItem.recipe))
+    household = db.query(Household).filter(Household.id == household_id).first()
+    if not household:
+        raise HTTPException(status_code=404, detail="Agregado não encontrado.")
+
+    query = (
+        db.query(MealPlanItem)
+        .options(joinedload(MealPlanItem.recipe))
+        .filter(MealPlanItem.household_id == household_id)
+    )
 
     if start_date:
         query = query.filter(MealPlanItem.plan_date >= start_date)
@@ -76,9 +98,13 @@ def list_meal_plan(
 
 @router.post("/", response_model=MealPlanItemRead, status_code=201)
 def create_meal_plan_item(
-    data: MealPlanItemCreate,
+    data: MealPlanItemCreateScoped,
     db: Session = Depends(get_db),
 ):
+    household = db.query(Household).filter(Household.id == data.household_id).first()
+    if not household:
+        raise HTTPException(status_code=404, detail="Agregado não encontrado.")
+
     recipe = db.query(Recipe).filter(Recipe.id == data.recipe_id).first()
     if not recipe:
         raise HTTPException(status_code=404, detail="Receita não encontrada.")
@@ -87,10 +113,19 @@ def create_meal_plan_item(
     if not meal_type_clean:
         raise HTTPException(status_code=400, detail="O tipo de refeição é obrigatório.")
 
+    item = MealPlanItem(
+        household_id=data.household_id,
+        plan_date=date.fromisoformat(data.plan_date),
+        meal_type=meal_type_clean,
+        notes=data.notes,
+        recipe_id=data.recipe_id,
+    )
+
     existing = (
         db.query(MealPlanItem)
         .filter(
-            MealPlanItem.plan_date == data.plan_date,
+            MealPlanItem.household_id == data.household_id,
+            MealPlanItem.plan_date == item.plan_date,
             MealPlanItem.meal_type == meal_type_clean,
         )
         .first()
@@ -98,15 +133,8 @@ def create_meal_plan_item(
     if existing:
         raise HTTPException(
             status_code=400,
-            detail="Já existe uma refeição planeada para essa data e esse tipo de refeição.",
+            detail="Já existe uma refeição planeada para essa data e esse tipo de refeição neste agregado.",
         )
-
-    item = MealPlanItem(
-        plan_date=data.plan_date,
-        meal_type=meal_type_clean,
-        notes=data.notes,
-        recipe_id=data.recipe_id,
-    )
 
     db.add(item)
     db.commit()
@@ -125,14 +153,15 @@ def create_meal_plan_item(
 @router.patch("/{meal_plan_item_id}", response_model=MealPlanItemRead)
 def update_meal_plan_item(
     meal_plan_item_id: int,
-    data: MealPlanItemUpdate,
+    data: MealPlanItemUpdateScoped,
     db: Session = Depends(get_db),
 ):
     item = db.query(MealPlanItem).filter(MealPlanItem.id == meal_plan_item_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Refeição planeada não encontrada.")
 
-    new_plan_date = data.plan_date if data.plan_date is not None else item.plan_date
+    new_household_id = data.household_id if data.household_id is not None else item.household_id
+    new_plan_date = date.fromisoformat(data.plan_date) if data.plan_date is not None else item.plan_date
 
     if data.meal_type is not None:
         meal_type_clean = data.meal_type.strip().lower()
@@ -144,6 +173,10 @@ def update_meal_plan_item(
 
     new_recipe_id = data.recipe_id if data.recipe_id is not None else item.recipe_id
 
+    household = db.query(Household).filter(Household.id == new_household_id).first()
+    if not household:
+        raise HTTPException(status_code=404, detail="Agregado não encontrado.")
+
     if data.recipe_id is not None:
         recipe = db.query(Recipe).filter(Recipe.id == data.recipe_id).first()
         if not recipe:
@@ -152,6 +185,7 @@ def update_meal_plan_item(
     existing = (
         db.query(MealPlanItem)
         .filter(
+            MealPlanItem.household_id == new_household_id,
             MealPlanItem.plan_date == new_plan_date,
             MealPlanItem.meal_type == new_meal_type,
             MealPlanItem.id != meal_plan_item_id,
@@ -161,9 +195,10 @@ def update_meal_plan_item(
     if existing:
         raise HTTPException(
             status_code=400,
-            detail="Já existe uma refeição planeada para essa data e esse tipo de refeição.",
+            detail="Já existe uma refeição planeada para essa data e esse tipo de refeição neste agregado.",
         )
 
+    item.household_id = new_household_id
     item.plan_date = new_plan_date
     item.meal_type = new_meal_type
     item.recipe_id = new_recipe_id
