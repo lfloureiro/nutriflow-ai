@@ -4,8 +4,10 @@ from sqlalchemy.orm import Session, joinedload
 from backend.app.db.session import get_db
 from backend.app.models.family_member import FamilyMember
 from backend.app.models.household import Household
+from backend.app.models.meal_feedback import MealFeedback
 from backend.app.schemas.family_member import FamilyMemberCreate, FamilyMemberRead
 from backend.app.schemas.household import HouseholdCreate, HouseholdRead, HouseholdDetail
+from backend.app.schemas.household_manage import HouseholdUpdate, FamilyMemberUpdate
 
 router = APIRouter(prefix="/households", tags=["households"])
 
@@ -33,6 +35,63 @@ def create_household(data: HouseholdCreate, db: Session = Depends(get_db)):
     db.refresh(household)
 
     return household
+
+
+@router.patch("/{household_id}", response_model=HouseholdRead)
+def update_household(
+    household_id: int,
+    data: HouseholdUpdate,
+    db: Session = Depends(get_db),
+):
+    household = db.query(Household).filter(Household.id == household_id).first()
+    if not household:
+        raise HTTPException(status_code=404, detail="Agregado não encontrado.")
+
+    if data.name is not None:
+        name_clean = data.name.strip()
+        if not name_clean:
+            raise HTTPException(status_code=400, detail="O nome do agregado é obrigatório.")
+
+        existing = (
+            db.query(Household)
+            .filter(Household.name == name_clean, Household.id != household_id)
+            .first()
+        )
+        if existing:
+            raise HTTPException(status_code=400, detail="Esse agregado já existe.")
+
+        household.name = name_clean
+
+    db.commit()
+    db.refresh(household)
+
+    return household
+
+
+@router.delete("/{household_id}")
+def delete_household(
+    household_id: int,
+    db: Session = Depends(get_db),
+):
+    household = db.query(Household).filter(Household.id == household_id).first()
+    if not household:
+        raise HTTPException(status_code=404, detail="Agregado não encontrado.")
+
+    has_members = (
+        db.query(FamilyMember)
+        .filter(FamilyMember.household_id == household_id)
+        .first()
+    )
+    if has_members:
+        raise HTTPException(
+            status_code=400,
+            detail="Não é possível apagar um agregado que ainda tem membros.",
+        )
+
+    db.delete(household)
+    db.commit()
+
+    return {"message": "Agregado apagado com sucesso."}
 
 
 @router.get("/{household_id}", response_model=HouseholdDetail)
@@ -103,3 +162,91 @@ def create_household_member(
     db.refresh(member)
 
     return member
+
+
+@router.patch("/{household_id}/members/{member_id}", response_model=FamilyMemberRead)
+def update_household_member(
+    household_id: int,
+    member_id: int,
+    data: FamilyMemberUpdate,
+    db: Session = Depends(get_db),
+):
+    household = db.query(Household).filter(Household.id == household_id).first()
+    if not household:
+        raise HTTPException(status_code=404, detail="Agregado não encontrado.")
+
+    member = (
+        db.query(FamilyMember)
+        .filter(
+            FamilyMember.id == member_id,
+            FamilyMember.household_id == household_id,
+        )
+        .first()
+    )
+    if not member:
+        raise HTTPException(status_code=404, detail="Membro não encontrado.")
+
+    if data.name is not None:
+        name_clean = data.name.strip()
+        if not name_clean:
+            raise HTTPException(status_code=400, detail="O nome do membro é obrigatório.")
+
+        existing = (
+            db.query(FamilyMember)
+            .filter(
+                FamilyMember.household_id == household_id,
+                FamilyMember.name == name_clean,
+                FamilyMember.id != member_id,
+            )
+            .first()
+        )
+        if existing:
+            raise HTTPException(
+                status_code=400,
+                detail="Esse membro já existe neste agregado.",
+            )
+
+        member.name = name_clean
+
+    db.commit()
+    db.refresh(member)
+
+    return member
+
+
+@router.delete("/{household_id}/members/{member_id}")
+def delete_household_member(
+    household_id: int,
+    member_id: int,
+    db: Session = Depends(get_db),
+):
+    household = db.query(Household).filter(Household.id == household_id).first()
+    if not household:
+        raise HTTPException(status_code=404, detail="Agregado não encontrado.")
+
+    member = (
+        db.query(FamilyMember)
+        .filter(
+            FamilyMember.id == member_id,
+            FamilyMember.household_id == household_id,
+        )
+        .first()
+    )
+    if not member:
+        raise HTTPException(status_code=404, detail="Membro não encontrado.")
+
+    has_feedback = (
+        db.query(MealFeedback)
+        .filter(MealFeedback.family_member_id == member_id)
+        .first()
+    )
+    if has_feedback:
+        raise HTTPException(
+          status_code=400,
+          detail="Não é possível apagar um membro que já tem feedback associado.",
+        )
+
+    db.delete(member)
+    db.commit()
+
+    return {"message": "Membro apagado com sucesso."}

@@ -26,6 +26,7 @@ import { DataToolsMenu } from "./components/forms/DataToolsMenu";
 import { SnapshotBackupPanel } from "./components/forms/SnapshotBackupPanel";
 import { SnapshotRestorePanel } from "./components/forms/SnapshotRestorePanel";
 import { RecipeToolsMenu } from "./components/forms/RecipeToolsMenu";
+import { FamilyFeedbackMenu } from "./components/forms/FamilyFeedbackMenu";
 
 type ActiveModal =
   | null
@@ -41,7 +42,10 @@ type ActiveModal =
   | "data-tools"
   | "data-backup"
   | "data-restore"
-  | "data-import";
+  | "data-import"
+  | "family-households"
+  | "family-meal-feedback"
+  | "family-recipe-scores";
 
 function App() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -326,19 +330,40 @@ function App() {
 
       {activeModal === "family-feedback" && (
         <Modal title="Família e feedback" onClose={closeModal}>
-          <div style={styles.grid}>
-            <HouseholdView households={households} />
+          <FamilyFeedbackMenu
+            onOpenHouseholds={() => openModal("family-households")}
+            onOpenMealFeedback={() => openModal("family-meal-feedback")}
+            onOpenRecipeScores={() => openModal("family-recipe-scores")}
+          />
+        </Modal>
+      )}
 
-            <MealFeedbackForm
-              mealPlan={mealPlan}
-              members={familyMembers}
-              onSuccess={loadData}
-              setFormMessage={setFormMessage}
-              setFormError={setFormError}
-            />
+      {activeModal === "family-households" && (
+        <Modal title="Agregados e membros" onClose={closeModal}>
+          <HouseholdView
+            households={households}
+            onSuccess={loadData}
+            setFormMessage={setFormMessage}
+            setFormError={setFormError}
+          />
+        </Modal>
+      )}
 
-            <RecipeScoresView summaries={recipeSummaries} />
-          </div>
+      {activeModal === "family-meal-feedback" && (
+        <Modal title="Feedback por refeição" onClose={closeModal}>
+          <MealFeedbackForm
+            mealPlan={mealPlan}
+            members={familyMembers}
+            onSuccess={loadData}
+            setFormMessage={setFormMessage}
+            setFormError={setFormError}
+          />
+        </Modal>
+      )}
+
+      {activeModal === "family-recipe-scores" && (
+        <Modal title="Scores por receita" onClose={closeModal}>
+          <RecipeScoresView summaries={recipeSummaries} />
         </Modal>
       )}
 
