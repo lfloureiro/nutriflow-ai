@@ -6,6 +6,7 @@ from backend.app.api.routes_feedback import router as feedback_router
 from backend.app.api.routes_households import router as households_router
 from backend.app.api.routes_ingredients import router as ingredients_router
 from backend.app.api.routes_meal_plan import router as meal_plan_router
+from backend.app.api.routes_recipe_preferences import router as recipe_preferences_router
 from backend.app.api.routes_recipes import router as recipes_router
 from backend.app.api.routes_shopping_list import router as shopping_list_router
 
@@ -30,3 +31,4 @@ router.include_router(households_router)
 router.include_router(feedback_router)
 router.include_router(bulk_router)
 router.include_router(dataset_snapshots_router)
+router.include_router(recipe_preferences_router)
