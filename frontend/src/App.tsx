@@ -20,6 +20,7 @@ import { ShoppingListView } from "./components/lists/ShoppingListView";
 import { HouseholdView } from "./components/lists/HouseholdView";
 import { MealFeedbackForm } from "./components/forms/MealFeedbackForm";
 import { RecipeScoresView } from "./components/lists/RecipeScoresView";
+import { BulkImportPanel } from "./components/forms/BulkImportPanel";
 import { Modal } from "./components/Modal";
 
 type ActiveModal =
@@ -28,7 +29,8 @@ type ActiveModal =
   | "manage-recipes"
   | "weekly-plan"
   | "shopping-list"
-  | "family-feedback";
+  | "family-feedback"
+  | "data-tools";
 
 function App() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -214,6 +216,16 @@ function App() {
                 os primeiros scores de aceitação.
               </div>
             </div>
+
+            <div
+              style={styles.actionCard}
+              onClick={() => openModal("data-tools")}
+            >
+              <div style={styles.actionTitle}>Dados e importação</div>
+              <div style={styles.actionText}>
+                Carregar o dataset base e executar importações bulk por JSON.
+              </div>
+            </div>
           </div>
         </>
       )}
@@ -285,6 +297,16 @@ function App() {
 
             <RecipeScoresView summaries={recipeSummaries} />
           </div>
+        </Modal>
+      )}
+
+      {activeModal === "data-tools" && (
+        <Modal title="Dados e importação" onClose={closeModal}>
+          <BulkImportPanel
+            onSuccess={loadData}
+            setFormMessage={setFormMessage}
+            setFormError={setFormError}
+          />
         </Modal>
       )}
     </div>
