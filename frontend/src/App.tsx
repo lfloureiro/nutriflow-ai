@@ -22,6 +22,9 @@ import { MealFeedbackForm } from "./components/forms/MealFeedbackForm";
 import { RecipeScoresView } from "./components/lists/RecipeScoresView";
 import { BulkImportPanel } from "./components/forms/BulkImportPanel";
 import { Modal } from "./components/Modal";
+import { DataToolsMenu } from "./components/forms/DataToolsMenu";
+import { SnapshotBackupPanel } from "./components/forms/SnapshotBackupPanel";
+import { SnapshotRestorePanel } from "./components/forms/SnapshotRestorePanel";
 
 type ActiveModal =
   | null
@@ -30,7 +33,10 @@ type ActiveModal =
   | "weekly-plan"
   | "shopping-list"
   | "family-feedback"
-  | "data-tools";
+  | "data-tools"
+  | "data-backup"
+  | "data-restore"
+  | "data-import";
 
 function App() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -223,7 +229,7 @@ function App() {
             >
               <div style={styles.actionTitle}>Dados e importação</div>
               <div style={styles.actionText}>
-                Carregar o dataset base e executar importações bulk por JSON.
+                Gerir snapshots de dados e executar importações bulk por JSON.
               </div>
             </div>
           </div>
@@ -272,7 +278,11 @@ function App() {
 
       {activeModal === "weekly-plan" && (
         <Modal title="Plano semanal" onClose={closeModal}>
-          <MealPlanList mealPlan={mealPlan} />
+          <MealPlanList
+            mealPlan={mealPlan}
+            recipes={recipes}
+            onSuccess={loadData}
+          />
         </Modal>
       )}
 
@@ -302,6 +312,36 @@ function App() {
 
       {activeModal === "data-tools" && (
         <Modal title="Dados e importação" onClose={closeModal}>
+          <DataToolsMenu
+            onOpenBackup={() => openModal("data-backup")}
+            onOpenRestore={() => openModal("data-restore")}
+            onOpenImport={() => openModal("data-import")}
+          />
+        </Modal>
+      )}
+
+      {activeModal === "data-backup" && (
+        <Modal title="Guardar snapshot" onClose={closeModal}>
+          <SnapshotBackupPanel
+            onSuccess={loadData}
+            setFormMessage={setFormMessage}
+            setFormError={setFormError}
+          />
+        </Modal>
+      )}
+
+      {activeModal === "data-restore" && (
+        <Modal title="Repor snapshot" onClose={closeModal}>
+          <SnapshotRestorePanel
+            onSuccess={loadData}
+            setFormMessage={setFormMessage}
+            setFormError={setFormError}
+          />
+        </Modal>
+      )}
+
+      {activeModal === "data-import" && (
+        <Modal title="Importação bulk JSON" onClose={closeModal}>
           <BulkImportPanel
             onSuccess={loadData}
             setFormMessage={setFormMessage}

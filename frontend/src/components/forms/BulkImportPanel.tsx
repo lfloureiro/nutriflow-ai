@@ -132,129 +132,6 @@ const importOptions: Record<
   },
 };
 
-const seedRequests = [
-  {
-    endpoint: "/bulk/households/import",
-    payload: {
-      items: [{ name: "Família Loureiro" }],
-      skip_existing: true,
-    },
-  },
-  {
-    endpoint: "/bulk/family-members/import",
-    payload: {
-      items: [
-        { household_id: 1, name: "Luis" },
-        { household_id: 1, name: "Patricia" },
-        { household_id: 1, name: "Tiago" },
-        { household_id: 1, name: "Diogo" },
-      ],
-      skip_existing: true,
-    },
-  },
-  {
-    endpoint: "/bulk/ingredients/import",
-    payload: {
-      items: [
-        { name: "Atum" },
-        { name: "Massa" },
-        { name: "Milho" },
-        { name: "Tomate" },
-        { name: "Cebola" },
-        { name: "Arroz" },
-        { name: "Feijão" },
-        { name: "Carne picada" },
-      ],
-      skip_existing: true,
-    },
-  },
-  {
-    endpoint: "/bulk/recipes/import",
-    payload: {
-      items: [
-        { name: "Massa com atum", description: "Receita base" },
-        { name: "Salada de atum", description: "Receita rápida" },
-        { name: "Chili Beans", description: "Chili com carne picada" },
-      ],
-      skip_existing: true,
-    },
-  },
-  {
-    endpoint: "/bulk/recipe-ingredients/import",
-    payload: {
-      items: [
-        { recipe_id: 1, ingredient_id: 2, quantity: "250", unit: "g" },
-        { recipe_id: 1, ingredient_id: 1, quantity: "2", unit: "latas" },
-        { recipe_id: 2, ingredient_id: 1, quantity: "1", unit: "lata" },
-        { recipe_id: 2, ingredient_id: 4, quantity: "2", unit: "unidades" },
-        { recipe_id: 3, ingredient_id: 6, quantity: "250", unit: "g" },
-        { recipe_id: 3, ingredient_id: 7, quantity: "250", unit: "g" },
-        { recipe_id: 3, ingredient_id: 8, quantity: "500", unit: "g" },
-        { recipe_id: 3, ingredient_id: 5, quantity: "1", unit: "unidade" },
-      ],
-      skip_existing: true,
-    },
-  },
-  {
-    endpoint: "/bulk/meal-plan/import",
-    payload: {
-      items: [
-        {
-          plan_date: "2026-04-20",
-          meal_type: "jantar",
-          notes: "Segunda",
-          recipe_id: 1,
-        },
-        {
-          plan_date: "2026-04-21",
-          meal_type: "almoco",
-          notes: "Terça",
-          recipe_id: 2,
-        },
-        {
-          plan_date: "2026-04-21",
-          meal_type: "jantar",
-          notes: "Terça à noite",
-          recipe_id: 3,
-        },
-      ],
-      skip_existing: true,
-    },
-  },
-  {
-    endpoint: "/bulk/feedback/import",
-    payload: {
-      items: [
-        {
-          meal_plan_item_id: 1,
-          family_member_id: 1,
-          reaction: "gostou",
-          note: "Quero repetir",
-        },
-        {
-          meal_plan_item_id: 1,
-          family_member_id: 2,
-          reaction: "neutro",
-          note: "Aceitável",
-        },
-        {
-          meal_plan_item_id: 2,
-          family_member_id: 3,
-          reaction: "nao_gostou",
-          note: "Não gostou do tomate",
-        },
-        {
-          meal_plan_item_id: 3,
-          family_member_id: 4,
-          reaction: "gostou",
-          note: "Gostou bastante",
-        },
-      ],
-      skip_existing: true,
-    },
-  },
-];
-
 export function BulkImportPanel({
   onSuccess,
   setFormMessage,
@@ -307,52 +184,12 @@ export function BulkImportPanel({
     }
   }
 
-  async function handleLoadSeed() {
-    setFormMessage(null);
-    setFormError(null);
-
-    try {
-      setLoading(true);
-
-      for (const request of seedRequests) {
-        const res = await fetch(`${API_BASE_URL}${request.endpoint}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(request.payload),
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(
-            typeof data.detail === "string"
-              ? data.detail
-              : `Erro ao carregar seed em ${request.endpoint}`
-          );
-        }
-      }
-
-      setFormMessage("Dataset base carregado com sucesso.");
-      await onSuccess();
-    } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Erro inesperado.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
     <section style={styles.card}>
-      <h2 style={styles.sectionTitle}>Importação e seed</h2>
-
-      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "16px" }}>
-        <button style={styles.button} onClick={handleLoadSeed} disabled={loading}>
-          Carregar dataset base
-        </button>
-      </div>
+      <h2 style={styles.sectionTitle}>Importação bulk por JSON</h2>
 
       <p style={styles.info}>
-        Podes carregar o dataset completo ou executar importações bulk por recurso.
+        Executa importações bulk manuais por recurso.
       </p>
 
       <div style={{ height: "12px" }} />
@@ -362,6 +199,7 @@ export function BulkImportPanel({
           style={styles.select}
           value={selectedOption}
           onChange={(e) => handleOptionChange(e.target.value as ImportOptionKey)}
+          disabled={loading}
         >
           {Object.entries(importOptions).map(([key, option]) => (
             <option key={key} value={key}>
@@ -379,6 +217,7 @@ export function BulkImportPanel({
           }}
           value={payload}
           onChange={(e) => setPayload(e.target.value)}
+          disabled={loading}
         />
 
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
