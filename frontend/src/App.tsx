@@ -25,11 +25,16 @@ import { Modal } from "./components/Modal";
 import { DataToolsMenu } from "./components/forms/DataToolsMenu";
 import { SnapshotBackupPanel } from "./components/forms/SnapshotBackupPanel";
 import { SnapshotRestorePanel } from "./components/forms/SnapshotRestorePanel";
+import { RecipeToolsMenu } from "./components/forms/RecipeToolsMenu";
 
 type ActiveModal =
   | null
   | "meal-plan"
   | "manage-recipes"
+  | "recipe-create"
+  | "ingredient-manage"
+  | "recipe-ingredient-link"
+  | "recipe-list"
   | "weekly-plan"
   | "shopping-list"
   | "family-feedback"
@@ -250,29 +255,56 @@ function App() {
 
       {activeModal === "manage-recipes" && (
         <Modal title="Gerir receitas e ingredientes" onClose={closeModal}>
-          <div style={styles.grid}>
-            <RecipeForm
-              onSuccess={loadData}
-              setFormMessage={setFormMessage}
-              setFormError={setFormError}
-            />
+          <RecipeToolsMenu
+            onOpenCreateRecipe={() => openModal("recipe-create")}
+            onOpenManageIngredients={() => openModal("ingredient-manage")}
+            onOpenLinkIngredient={() => openModal("recipe-ingredient-link")}
+            onOpenRecipeList={() => openModal("recipe-list")}
+          />
+        </Modal>
+      )}
 
-            <IngredientForm
-              onSuccess={loadData}
-              setFormMessage={setFormMessage}
-              setFormError={setFormError}
-            />
+      {activeModal === "recipe-create" && (
+        <Modal title="Nova receita" onClose={closeModal}>
+          <RecipeForm
+            onSuccess={loadData}
+            setFormMessage={setFormMessage}
+            setFormError={setFormError}
+          />
+        </Modal>
+      )}
 
-            <RecipeIngredientForm
-              recipes={recipes}
-              ingredients={ingredients}
-              onSuccess={loadData}
-              setFormMessage={setFormMessage}
-              setFormError={setFormError}
-            />
+      {activeModal === "ingredient-manage" && (
+        <Modal title="Gerir ingredientes" onClose={closeModal}>
+          <IngredientForm
+            ingredients={ingredients}
+            onSuccess={loadData}
+            setFormMessage={setFormMessage}
+            setFormError={setFormError}
+          />
+        </Modal>
+      )}
 
-            <RecipeList recipes={recipes} />
-          </div>
+      {activeModal === "recipe-ingredient-link" && (
+        <Modal title="Associar ingrediente a receita" onClose={closeModal}>
+          <RecipeIngredientForm
+            recipes={recipes}
+            ingredients={ingredients}
+            onSuccess={loadData}
+            setFormMessage={setFormMessage}
+            setFormError={setFormError}
+          />
+        </Modal>
+      )}
+
+      {activeModal === "recipe-list" && (
+        <Modal title="Receitas" onClose={closeModal}>
+          <RecipeList
+            recipes={recipes}
+            onSuccess={loadData}
+            setFormMessage={setFormMessage}
+            setFormError={setFormError}
+          />
         </Modal>
       )}
 
