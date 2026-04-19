@@ -1,0 +1,3676 @@
+{
+  "meta": {
+    "snapshot_name": "ultimo snapshot",
+    "description": null,
+    "created_at": "2026-04-19T12:29:35.645454+00:00",
+    "alembic_revision": "2c91c7d4a8f1"
+  },
+  "data": {
+    "households": [
+      {
+        "id": 1,
+        "name": "Família Loureiro"
+      },
+      {
+        "id": 2,
+        "name": "Família Diniz"
+      },
+      {
+        "id": 3,
+        "name": "Família Martins"
+      }
+    ],
+    "family_members": [
+      {
+        "id": 1,
+        "name": "Luis",
+        "household_id": 1
+      },
+      {
+        "id": 2,
+        "name": "Patricia",
+        "household_id": 1
+      },
+      {
+        "id": 3,
+        "name": "Tiago",
+        "household_id": 1
+      },
+      {
+        "id": 4,
+        "name": "Diogo",
+        "household_id": 1
+      },
+      {
+        "id": 5,
+        "name": "Ana",
+        "household_id": 2
+      },
+      {
+        "id": 6,
+        "name": "Bruno",
+        "household_id": 2
+      },
+      {
+        "id": 7,
+        "name": "Inês",
+        "household_id": 2
+      },
+      {
+        "id": 8,
+        "name": "Miguel",
+        "household_id": 2
+      },
+      {
+        "id": 9,
+        "name": "Carla",
+        "household_id": 3
+      },
+      {
+        "id": 10,
+        "name": "Rui",
+        "household_id": 3
+      },
+      {
+        "id": 11,
+        "name": "Leonor",
+        "household_id": 3
+      }
+    ],
+    "ingredients": [
+      {
+        "id": 1,
+        "name": "Esparguete"
+      },
+      {
+        "id": 2,
+        "name": "Carne picada de vaca"
+      },
+      {
+        "id": 3,
+        "name": "Cebola"
+      },
+      {
+        "id": 4,
+        "name": "Alho"
+      },
+      {
+        "id": 5,
+        "name": "Tomate pelado"
+      },
+      {
+        "id": 6,
+        "name": "Polpa de tomate"
+      },
+      {
+        "id": 7,
+        "name": "Cenoura"
+      },
+      {
+        "id": 8,
+        "name": "Azeite"
+      },
+      {
+        "id": 9,
+        "name": "Feijão encarnado"
+      },
+      {
+        "id": 10,
+        "name": "Milho"
+      },
+      {
+        "id": 11,
+        "name": "Arroz"
+      },
+      {
+        "id": 12,
+        "name": "Peito de frango"
+      },
+      {
+        "id": 13,
+        "name": "Leite de coco"
+      },
+      {
+        "id": 14,
+        "name": "Pasta de caril suave"
+      },
+      {
+        "id": 15,
+        "name": "Ervilhas"
+      },
+      {
+        "id": 16,
+        "name": "Arroz basmati"
+      },
+      {
+        "id": 17,
+        "name": "Placas de lasanha"
+      },
+      {
+        "id": 18,
+        "name": "Leite"
+      },
+      {
+        "id": 19,
+        "name": "Queijo ralado"
+      },
+      {
+        "id": 20,
+        "name": "Lombo de salmão"
+      },
+      {
+        "id": 21,
+        "name": "Batata"
+      },
+      {
+        "id": 22,
+        "name": "Curgete"
+      },
+      {
+        "id": 23,
+        "name": "Cebola roxa"
+      },
+      {
+        "id": 24,
+        "name": "Limão"
+      },
+      {
+        "id": 25,
+        "name": "Brócolos"
+      },
+      {
+        "id": 26,
+        "name": "Frango desfiado"
+      },
+      {
+        "id": 27,
+        "name": "Caldo de galinha"
+      },
+      {
+        "id": 28,
+        "name": "Pão ralado"
+      },
+      {
+        "id": 29,
+        "name": "Ovos"
+      },
+      {
+        "id": 30,
+        "name": "Bacalhau desfiado"
+      },
+      {
+        "id": 31,
+        "name": "Natas"
+      },
+      {
+        "id": 32,
+        "name": "Vitela para estufar"
+      },
+      {
+        "id": 33,
+        "name": "Lentilhas"
+      },
+      {
+        "id": 34,
+        "name": "Aipo"
+      },
+      {
+        "id": 35,
+        "name": "Espinafres"
+      },
+      {
+        "id": 36,
+        "name": "Pimento vermelho"
+      },
+      {
+        "id": 37,
+        "name": "Pimento amarelo"
+      },
+      {
+        "id": 38,
+        "name": "Cominhos"
+      },
+      {
+        "id": 39,
+        "name": "Massa curta"
+      },
+      {
+        "id": 40,
+        "name": "Atum em lata"
+      },
+      {
+        "id": 41,
+        "name": "Tomate cherry"
+      },
+      {
+        "id": 42,
+        "name": "Grão-de-bico"
+      },
+      {
+        "id": 43,
+        "name": "Pepino"
+      },
+      {
+        "id": 44,
+        "name": "Wraps"
+      },
+      {
+        "id": 45,
+        "name": "Iogurte natural"
+      },
+      {
+        "id": 46,
+        "name": "Alface"
+      },
+      {
+        "id": 47,
+        "name": "Massa quebrada"
+      },
+      {
+        "id": 48,
+        "name": "Feta"
+      },
+      {
+        "id": 49,
+        "name": "Feijão preto"
+      },
+      {
+        "id": 50,
+        "name": "Frango inteiro"
+      },
+      {
+        "id": 51,
+        "name": "Alecrim"
+      },
+      {
+        "id": 52,
+        "name": "Cogumelos"
+      },
+      {
+        "id": 53,
+        "name": "Mostarda"
+      },
+      {
+        "id": 54,
+        "name": "Pimentão-doce"
+      }
+    ],
+    "recipes": [
+      {
+        "id": 1,
+        "name": "Esparguete à bolonhesa",
+        "description": "Clássico familiar de carne picada e tomate, dimensionado para 4 pessoas."
+      },
+      {
+        "id": 2,
+        "name": "Chili con carne",
+        "description": "Chili de carne com feijão e arroz, ideal para 4 pessoas."
+      },
+      {
+        "id": 3,
+        "name": "Caril suave de frango",
+        "description": "Caril de frango com arroz basmati, pensado para 4 pessoas."
+      },
+      {
+        "id": 4,
+        "name": "Lasanha de carne",
+        "description": "Lasanha de carne e tomate, tabuleiro para 4 a 5 pessoas."
+      },
+      {
+        "id": 5,
+        "name": "Salmão no forno com legumes",
+        "description": "Salmão assado com curgete, cenoura e batata para 4 pessoas."
+      },
+      {
+        "id": 6,
+        "name": "Arroz de frango no forno",
+        "description": "Arroz de forno com frango e legumes, para 4 pessoas."
+      },
+      {
+        "id": 7,
+        "name": "Almôndegas com molho de tomate",
+        "description": "Almôndegas em molho de tomate, servidas com esparguete, para 4 pessoas."
+      },
+      {
+        "id": 8,
+        "name": "Bacalhau com natas",
+        "description": "Versão familiar de bacalhau com natas para 4 pessoas."
+      },
+      {
+        "id": 9,
+        "name": "Jardineira de vitela",
+        "description": "Estufado de vitela com batata e legumes, para 4 pessoas."
+      },
+      {
+        "id": 10,
+        "name": "Sopa de lentilhas e legumes",
+        "description": "Sopa completa de lentilhas com cenoura, aipo e tomate, para 4 pessoas."
+      },
+      {
+        "id": 11,
+        "name": "Shakshuka",
+        "description": "Ovos escalfados em molho de tomate e pimento, para 3 a 4 pessoas."
+      },
+      {
+        "id": 12,
+        "name": "Massa com atum e tomate",
+        "description": "Massa rápida com atum, tomate e ervilhas, para 4 pessoas."
+      },
+      {
+        "id": 13,
+        "name": "Salada de grão com atum",
+        "description": "Salada fria de grão, atum e legumes, para 4 pessoas."
+      },
+      {
+        "id": 14,
+        "name": "Fajitas de frango",
+        "description": "Fajitas de frango com pimentos e wraps, para 4 pessoas."
+      },
+      {
+        "id": 15,
+        "name": "Tarte de legumes e feta",
+        "description": "Tarte salgada com espinafres, curgete e feta, para 4 pessoas."
+      },
+      {
+        "id": 16,
+        "name": "Chili vegetariano",
+        "description": "Chili de feijão e milho, versão vegetariana para 4 pessoas."
+      },
+      {
+        "id": 17,
+        "name": "Frango assado com batatas",
+        "description": "Frango assado no forno com batata e cenoura, para 4 pessoas."
+      },
+      {
+        "id": 18,
+        "name": "Strogonoff de frango",
+        "description": "Frango em molho cremoso com cogumelos e arroz, para 4 pessoas."
+      },
+      {
+        "id": 19,
+        "name": "Arroz de legumes com ovo",
+        "description": "Arroz salteado de legumes com ovo, para 4 pessoas."
+      },
+      {
+        "id": 20,
+        "name": "Quiche de espinafres e cogumelos",
+        "description": "Quiche vegetal com espinafres, cogumelos e queijo, para 4 pessoas."
+      }
+    ],
+    "recipe_ingredients": [
+      {
+        "id": 1,
+        "recipe_id": 1,
+        "ingredient_id": 1,
+        "quantity": "400",
+        "unit": "g"
+      },
+      {
+        "id": 2,
+        "recipe_id": 1,
+        "ingredient_id": 2,
+        "quantity": "500",
+        "unit": "g"
+      },
+      {
+        "id": 3,
+        "recipe_id": 1,
+        "ingredient_id": 3,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 4,
+        "recipe_id": 1,
+        "ingredient_id": 4,
+        "quantity": "2",
+        "unit": "dentes"
+      },
+      {
+        "id": 5,
+        "recipe_id": 1,
+        "ingredient_id": 5,
+        "quantity": "400",
+        "unit": "g"
+      },
+      {
+        "id": 6,
+        "recipe_id": 1,
+        "ingredient_id": 6,
+        "quantity": "200",
+        "unit": "g"
+      },
+      {
+        "id": 7,
+        "recipe_id": 1,
+        "ingredient_id": 7,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 8,
+        "recipe_id": 1,
+        "ingredient_id": 8,
+        "quantity": "2",
+        "unit": "c. sopa"
+      },
+      {
+        "id": 9,
+        "recipe_id": 2,
+        "ingredient_id": 2,
+        "quantity": "500",
+        "unit": "g"
+      },
+      {
+        "id": 10,
+        "recipe_id": 2,
+        "ingredient_id": 9,
+        "quantity": "400",
+        "unit": "g"
+      },
+      {
+        "id": 11,
+        "recipe_id": 2,
+        "ingredient_id": 5,
+        "quantity": "400",
+        "unit": "g"
+      },
+      {
+        "id": 12,
+        "recipe_id": 2,
+        "ingredient_id": 3,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 13,
+        "recipe_id": 2,
+        "ingredient_id": 4,
+        "quantity": "2",
+        "unit": "dentes"
+      },
+      {
+        "id": 14,
+        "recipe_id": 2,
+        "ingredient_id": 10,
+        "quantity": "150",
+        "unit": "g"
+      },
+      {
+        "id": 15,
+        "recipe_id": 2,
+        "ingredient_id": 11,
+        "quantity": "300",
+        "unit": "g"
+      },
+      {
+        "id": 16,
+        "recipe_id": 2,
+        "ingredient_id": 8,
+        "quantity": "2",
+        "unit": "c. sopa"
+      },
+      {
+        "id": 17,
+        "recipe_id": 3,
+        "ingredient_id": 12,
+        "quantity": "600",
+        "unit": "g"
+      },
+      {
+        "id": 18,
+        "recipe_id": 3,
+        "ingredient_id": 3,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 19,
+        "recipe_id": 3,
+        "ingredient_id": 4,
+        "quantity": "2",
+        "unit": "dentes"
+      },
+      {
+        "id": 20,
+        "recipe_id": 3,
+        "ingredient_id": 13,
+        "quantity": "400",
+        "unit": "ml"
+      },
+      {
+        "id": 21,
+        "recipe_id": 3,
+        "ingredient_id": 14,
+        "quantity": "2",
+        "unit": "c. sopa"
+      },
+      {
+        "id": 22,
+        "recipe_id": 3,
+        "ingredient_id": 15,
+        "quantity": "150",
+        "unit": "g"
+      },
+      {
+        "id": 23,
+        "recipe_id": 3,
+        "ingredient_id": 16,
+        "quantity": "300",
+        "unit": "g"
+      },
+      {
+        "id": 24,
+        "recipe_id": 3,
+        "ingredient_id": 8,
+        "quantity": "1",
+        "unit": "c. sopa"
+      },
+      {
+        "id": 25,
+        "recipe_id": 4,
+        "ingredient_id": 17,
+        "quantity": "250",
+        "unit": "g"
+      },
+      {
+        "id": 26,
+        "recipe_id": 4,
+        "ingredient_id": 2,
+        "quantity": "500",
+        "unit": "g"
+      },
+      {
+        "id": 27,
+        "recipe_id": 4,
+        "ingredient_id": 3,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 28,
+        "recipe_id": 4,
+        "ingredient_id": 4,
+        "quantity": "2",
+        "unit": "dentes"
+      },
+      {
+        "id": 29,
+        "recipe_id": 4,
+        "ingredient_id": 5,
+        "quantity": "400",
+        "unit": "g"
+      },
+      {
+        "id": 30,
+        "recipe_id": 4,
+        "ingredient_id": 6,
+        "quantity": "200",
+        "unit": "g"
+      },
+      {
+        "id": 31,
+        "recipe_id": 4,
+        "ingredient_id": 18,
+        "quantity": "700",
+        "unit": "ml"
+      },
+      {
+        "id": 32,
+        "recipe_id": 4,
+        "ingredient_id": 19,
+        "quantity": "200",
+        "unit": "g"
+      },
+      {
+        "id": 33,
+        "recipe_id": 5,
+        "ingredient_id": 20,
+        "quantity": "700",
+        "unit": "g"
+      },
+      {
+        "id": 34,
+        "recipe_id": 5,
+        "ingredient_id": 21,
+        "quantity": "800",
+        "unit": "g"
+      },
+      {
+        "id": 35,
+        "recipe_id": 5,
+        "ingredient_id": 22,
+        "quantity": "2",
+        "unit": "un"
+      },
+      {
+        "id": 36,
+        "recipe_id": 5,
+        "ingredient_id": 7,
+        "quantity": "2",
+        "unit": "un"
+      },
+      {
+        "id": 37,
+        "recipe_id": 5,
+        "ingredient_id": 23,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 38,
+        "recipe_id": 5,
+        "ingredient_id": 24,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 39,
+        "recipe_id": 5,
+        "ingredient_id": 8,
+        "quantity": "2",
+        "unit": "c. sopa"
+      },
+      {
+        "id": 40,
+        "recipe_id": 5,
+        "ingredient_id": 25,
+        "quantity": "300",
+        "unit": "g"
+      },
+      {
+        "id": 41,
+        "recipe_id": 6,
+        "ingredient_id": 26,
+        "quantity": "500",
+        "unit": "g"
+      },
+      {
+        "id": 42,
+        "recipe_id": 6,
+        "ingredient_id": 11,
+        "quantity": "350",
+        "unit": "g"
+      },
+      {
+        "id": 43,
+        "recipe_id": 6,
+        "ingredient_id": 3,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 44,
+        "recipe_id": 6,
+        "ingredient_id": 4,
+        "quantity": "2",
+        "unit": "dentes"
+      },
+      {
+        "id": 45,
+        "recipe_id": 6,
+        "ingredient_id": 7,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 46,
+        "recipe_id": 6,
+        "ingredient_id": 15,
+        "quantity": "150",
+        "unit": "g"
+      },
+      {
+        "id": 47,
+        "recipe_id": 6,
+        "ingredient_id": 27,
+        "quantity": "800",
+        "unit": "ml"
+      },
+      {
+        "id": 48,
+        "recipe_id": 6,
+        "ingredient_id": 8,
+        "quantity": "2",
+        "unit": "c. sopa"
+      },
+      {
+        "id": 49,
+        "recipe_id": 7,
+        "ingredient_id": 2,
+        "quantity": "500",
+        "unit": "g"
+      },
+      {
+        "id": 50,
+        "recipe_id": 7,
+        "ingredient_id": 28,
+        "quantity": "80",
+        "unit": "g"
+      },
+      {
+        "id": 51,
+        "recipe_id": 7,
+        "ingredient_id": 29,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 52,
+        "recipe_id": 7,
+        "ingredient_id": 3,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 53,
+        "recipe_id": 7,
+        "ingredient_id": 4,
+        "quantity": "2",
+        "unit": "dentes"
+      },
+      {
+        "id": 54,
+        "recipe_id": 7,
+        "ingredient_id": 5,
+        "quantity": "400",
+        "unit": "g"
+      },
+      {
+        "id": 55,
+        "recipe_id": 7,
+        "ingredient_id": 1,
+        "quantity": "350",
+        "unit": "g"
+      },
+      {
+        "id": 56,
+        "recipe_id": 7,
+        "ingredient_id": 8,
+        "quantity": "2",
+        "unit": "c. sopa"
+      },
+      {
+        "id": 57,
+        "recipe_id": 8,
+        "ingredient_id": 30,
+        "quantity": "500",
+        "unit": "g"
+      },
+      {
+        "id": 58,
+        "recipe_id": 8,
+        "ingredient_id": 21,
+        "quantity": "700",
+        "unit": "g"
+      },
+      {
+        "id": 59,
+        "recipe_id": 8,
+        "ingredient_id": 3,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 60,
+        "recipe_id": 8,
+        "ingredient_id": 4,
+        "quantity": "2",
+        "unit": "dentes"
+      },
+      {
+        "id": 61,
+        "recipe_id": 8,
+        "ingredient_id": 31,
+        "quantity": "200",
+        "unit": "ml"
+      },
+      {
+        "id": 62,
+        "recipe_id": 8,
+        "ingredient_id": 18,
+        "quantity": "300",
+        "unit": "ml"
+      },
+      {
+        "id": 63,
+        "recipe_id": 8,
+        "ingredient_id": 19,
+        "quantity": "120",
+        "unit": "g"
+      },
+      {
+        "id": 64,
+        "recipe_id": 8,
+        "ingredient_id": 8,
+        "quantity": "2",
+        "unit": "c. sopa"
+      },
+      {
+        "id": 65,
+        "recipe_id": 9,
+        "ingredient_id": 32,
+        "quantity": "700",
+        "unit": "g"
+      },
+      {
+        "id": 66,
+        "recipe_id": 9,
+        "ingredient_id": 21,
+        "quantity": "700",
+        "unit": "g"
+      },
+      {
+        "id": 67,
+        "recipe_id": 9,
+        "ingredient_id": 7,
+        "quantity": "3",
+        "unit": "un"
+      },
+      {
+        "id": 68,
+        "recipe_id": 9,
+        "ingredient_id": 15,
+        "quantity": "200",
+        "unit": "g"
+      },
+      {
+        "id": 69,
+        "recipe_id": 9,
+        "ingredient_id": 3,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 70,
+        "recipe_id": 9,
+        "ingredient_id": 4,
+        "quantity": "2",
+        "unit": "dentes"
+      },
+      {
+        "id": 71,
+        "recipe_id": 9,
+        "ingredient_id": 5,
+        "quantity": "200",
+        "unit": "g"
+      },
+      {
+        "id": 72,
+        "recipe_id": 9,
+        "ingredient_id": 8,
+        "quantity": "2",
+        "unit": "c. sopa"
+      },
+      {
+        "id": 73,
+        "recipe_id": 10,
+        "ingredient_id": 33,
+        "quantity": "300",
+        "unit": "g"
+      },
+      {
+        "id": 74,
+        "recipe_id": 10,
+        "ingredient_id": 3,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 75,
+        "recipe_id": 10,
+        "ingredient_id": 4,
+        "quantity": "2",
+        "unit": "dentes"
+      },
+      {
+        "id": 76,
+        "recipe_id": 10,
+        "ingredient_id": 7,
+        "quantity": "2",
+        "unit": "un"
+      },
+      {
+        "id": 77,
+        "recipe_id": 10,
+        "ingredient_id": 34,
+        "quantity": "2",
+        "unit": "talos"
+      },
+      {
+        "id": 78,
+        "recipe_id": 10,
+        "ingredient_id": 5,
+        "quantity": "200",
+        "unit": "g"
+      },
+      {
+        "id": 79,
+        "recipe_id": 10,
+        "ingredient_id": 35,
+        "quantity": "150",
+        "unit": "g"
+      },
+      {
+        "id": 80,
+        "recipe_id": 10,
+        "ingredient_id": 8,
+        "quantity": "1",
+        "unit": "c. sopa"
+      },
+      {
+        "id": 81,
+        "recipe_id": 11,
+        "ingredient_id": 29,
+        "quantity": "6",
+        "unit": "un"
+      },
+      {
+        "id": 82,
+        "recipe_id": 11,
+        "ingredient_id": 5,
+        "quantity": "400",
+        "unit": "g"
+      },
+      {
+        "id": 83,
+        "recipe_id": 11,
+        "ingredient_id": 36,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 84,
+        "recipe_id": 11,
+        "ingredient_id": 37,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 85,
+        "recipe_id": 11,
+        "ingredient_id": 3,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 86,
+        "recipe_id": 11,
+        "ingredient_id": 4,
+        "quantity": "2",
+        "unit": "dentes"
+      },
+      {
+        "id": 87,
+        "recipe_id": 11,
+        "ingredient_id": 38,
+        "quantity": "1",
+        "unit": "c. chá"
+      },
+      {
+        "id": 88,
+        "recipe_id": 11,
+        "ingredient_id": 8,
+        "quantity": "1",
+        "unit": "c. sopa"
+      },
+      {
+        "id": 89,
+        "recipe_id": 12,
+        "ingredient_id": 39,
+        "quantity": "400",
+        "unit": "g"
+      },
+      {
+        "id": 90,
+        "recipe_id": 12,
+        "ingredient_id": 40,
+        "quantity": "3",
+        "unit": "latas"
+      },
+      {
+        "id": 91,
+        "recipe_id": 12,
+        "ingredient_id": 41,
+        "quantity": "250",
+        "unit": "g"
+      },
+      {
+        "id": 92,
+        "recipe_id": 12,
+        "ingredient_id": 3,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 93,
+        "recipe_id": 12,
+        "ingredient_id": 4,
+        "quantity": "2",
+        "unit": "dentes"
+      },
+      {
+        "id": 94,
+        "recipe_id": 12,
+        "ingredient_id": 15,
+        "quantity": "150",
+        "unit": "g"
+      },
+      {
+        "id": 95,
+        "recipe_id": 12,
+        "ingredient_id": 8,
+        "quantity": "1",
+        "unit": "c. sopa"
+      },
+      {
+        "id": 96,
+        "recipe_id": 12,
+        "ingredient_id": 19,
+        "quantity": "80",
+        "unit": "g"
+      },
+      {
+        "id": 97,
+        "recipe_id": 13,
+        "ingredient_id": 42,
+        "quantity": "400",
+        "unit": "g"
+      },
+      {
+        "id": 98,
+        "recipe_id": 13,
+        "ingredient_id": 40,
+        "quantity": "2",
+        "unit": "latas"
+      },
+      {
+        "id": 99,
+        "recipe_id": 13,
+        "ingredient_id": 41,
+        "quantity": "250",
+        "unit": "g"
+      },
+      {
+        "id": 100,
+        "recipe_id": 13,
+        "ingredient_id": 43,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 101,
+        "recipe_id": 13,
+        "ingredient_id": 36,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 102,
+        "recipe_id": 13,
+        "ingredient_id": 23,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 103,
+        "recipe_id": 13,
+        "ingredient_id": 8,
+        "quantity": "2",
+        "unit": "c. sopa"
+      },
+      {
+        "id": 104,
+        "recipe_id": 13,
+        "ingredient_id": 24,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 105,
+        "recipe_id": 14,
+        "ingredient_id": 12,
+        "quantity": "600",
+        "unit": "g"
+      },
+      {
+        "id": 106,
+        "recipe_id": 14,
+        "ingredient_id": 44,
+        "quantity": "8",
+        "unit": "un"
+      },
+      {
+        "id": 107,
+        "recipe_id": 14,
+        "ingredient_id": 36,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 108,
+        "recipe_id": 14,
+        "ingredient_id": 37,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 109,
+        "recipe_id": 14,
+        "ingredient_id": 3,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 110,
+        "recipe_id": 14,
+        "ingredient_id": 45,
+        "quantity": "150",
+        "unit": "g"
+      },
+      {
+        "id": 111,
+        "recipe_id": 14,
+        "ingredient_id": 46,
+        "quantity": "150",
+        "unit": "g"
+      },
+      {
+        "id": 112,
+        "recipe_id": 14,
+        "ingredient_id": 8,
+        "quantity": "1",
+        "unit": "c. sopa"
+      },
+      {
+        "id": 113,
+        "recipe_id": 15,
+        "ingredient_id": 47,
+        "quantity": "1",
+        "unit": "rolo"
+      },
+      {
+        "id": 114,
+        "recipe_id": 15,
+        "ingredient_id": 35,
+        "quantity": "200",
+        "unit": "g"
+      },
+      {
+        "id": 115,
+        "recipe_id": 15,
+        "ingredient_id": 22,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 116,
+        "recipe_id": 15,
+        "ingredient_id": 48,
+        "quantity": "150",
+        "unit": "g"
+      },
+      {
+        "id": 117,
+        "recipe_id": 15,
+        "ingredient_id": 29,
+        "quantity": "4",
+        "unit": "un"
+      },
+      {
+        "id": 118,
+        "recipe_id": 15,
+        "ingredient_id": 18,
+        "quantity": "150",
+        "unit": "ml"
+      },
+      {
+        "id": 119,
+        "recipe_id": 15,
+        "ingredient_id": 3,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 120,
+        "recipe_id": 15,
+        "ingredient_id": 8,
+        "quantity": "1",
+        "unit": "c. sopa"
+      },
+      {
+        "id": 121,
+        "recipe_id": 16,
+        "ingredient_id": 49,
+        "quantity": "400",
+        "unit": "g"
+      },
+      {
+        "id": 122,
+        "recipe_id": 16,
+        "ingredient_id": 9,
+        "quantity": "400",
+        "unit": "g"
+      },
+      {
+        "id": 123,
+        "recipe_id": 16,
+        "ingredient_id": 10,
+        "quantity": "150",
+        "unit": "g"
+      },
+      {
+        "id": 124,
+        "recipe_id": 16,
+        "ingredient_id": 5,
+        "quantity": "400",
+        "unit": "g"
+      },
+      {
+        "id": 125,
+        "recipe_id": 16,
+        "ingredient_id": 3,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 126,
+        "recipe_id": 16,
+        "ingredient_id": 4,
+        "quantity": "2",
+        "unit": "dentes"
+      },
+      {
+        "id": 127,
+        "recipe_id": 16,
+        "ingredient_id": 36,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 128,
+        "recipe_id": 16,
+        "ingredient_id": 11,
+        "quantity": "300",
+        "unit": "g"
+      },
+      {
+        "id": 129,
+        "recipe_id": 17,
+        "ingredient_id": 50,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 130,
+        "recipe_id": 17,
+        "ingredient_id": 21,
+        "quantity": "1000",
+        "unit": "g"
+      },
+      {
+        "id": 131,
+        "recipe_id": 17,
+        "ingredient_id": 7,
+        "quantity": "3",
+        "unit": "un"
+      },
+      {
+        "id": 132,
+        "recipe_id": 17,
+        "ingredient_id": 3,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 133,
+        "recipe_id": 17,
+        "ingredient_id": 4,
+        "quantity": "4",
+        "unit": "dentes"
+      },
+      {
+        "id": 134,
+        "recipe_id": 17,
+        "ingredient_id": 24,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 135,
+        "recipe_id": 17,
+        "ingredient_id": 8,
+        "quantity": "2",
+        "unit": "c. sopa"
+      },
+      {
+        "id": 136,
+        "recipe_id": 17,
+        "ingredient_id": 51,
+        "quantity": "2",
+        "unit": "ramos"
+      },
+      {
+        "id": 137,
+        "recipe_id": 18,
+        "ingredient_id": 12,
+        "quantity": "600",
+        "unit": "g"
+      },
+      {
+        "id": 138,
+        "recipe_id": 18,
+        "ingredient_id": 52,
+        "quantity": "250",
+        "unit": "g"
+      },
+      {
+        "id": 139,
+        "recipe_id": 18,
+        "ingredient_id": 3,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 140,
+        "recipe_id": 18,
+        "ingredient_id": 31,
+        "quantity": "200",
+        "unit": "ml"
+      },
+      {
+        "id": 141,
+        "recipe_id": 18,
+        "ingredient_id": 53,
+        "quantity": "1",
+        "unit": "c. sopa"
+      },
+      {
+        "id": 142,
+        "recipe_id": 18,
+        "ingredient_id": 11,
+        "quantity": "300",
+        "unit": "g"
+      },
+      {
+        "id": 143,
+        "recipe_id": 18,
+        "ingredient_id": 8,
+        "quantity": "1",
+        "unit": "c. sopa"
+      },
+      {
+        "id": 144,
+        "recipe_id": 18,
+        "ingredient_id": 54,
+        "quantity": "1",
+        "unit": "c. chá"
+      },
+      {
+        "id": 145,
+        "recipe_id": 19,
+        "ingredient_id": 11,
+        "quantity": "350",
+        "unit": "g"
+      },
+      {
+        "id": 146,
+        "recipe_id": 19,
+        "ingredient_id": 29,
+        "quantity": "4",
+        "unit": "un"
+      },
+      {
+        "id": 147,
+        "recipe_id": 19,
+        "ingredient_id": 7,
+        "quantity": "2",
+        "unit": "un"
+      },
+      {
+        "id": 148,
+        "recipe_id": 19,
+        "ingredient_id": 15,
+        "quantity": "150",
+        "unit": "g"
+      },
+      {
+        "id": 149,
+        "recipe_id": 19,
+        "ingredient_id": 10,
+        "quantity": "150",
+        "unit": "g"
+      },
+      {
+        "id": 150,
+        "recipe_id": 19,
+        "ingredient_id": 3,
+        "quantity": "1",
+        "unit": "un"
+      },
+      {
+        "id": 151,
+        "recipe_id": 19,
+        "ingredient_id": 4,
+        "quantity": "2",
+        "unit": "dentes"
+      },
+      {
+        "id": 152,
+        "recipe_id": 19,
+        "ingredient_id": 8,
+        "quantity": "1",
+        "unit": "c. sopa"
+      },
+      {
+        "id": 153,
+        "recipe_id": 20,
+        "ingredient_id": 47,
+        "quantity": "1",
+        "unit": "rolo"
+      },
+      {
+        "id": 154,
+        "recipe_id": 20,
+        "ingredient_id": 35,
+        "quantity": "200",
+        "unit": "g"
+      },
+      {
+        "id": 155,
+        "recipe_id": 20,
+        "ingredient_id": 52,
+        "quantity": "250",
+        "unit": "g"
+      },
+      {
+        "id": 156,
+        "recipe_id": 20,
+        "ingredient_id": 29,
+        "quantity": "4",
+        "unit": "un"
+      },
+      {
+        "id": 157,
+        "recipe_id": 20,
+        "ingredient_id": 31,
+        "quantity": "200",
+        "unit": "ml"
+      },
+      {
+        "id": 158,
+        "recipe_id": 20,
+        "ingredient_id": 18,
+        "quantity": "100",
+        "unit": "ml"
+      },
+      {
+        "id": 159,
+        "recipe_id": 20,
+        "ingredient_id": 19,
+        "quantity": "120",
+        "unit": "g"
+      },
+      {
+        "id": 160,
+        "recipe_id": 20,
+        "ingredient_id": 3,
+        "quantity": "1",
+        "unit": "un"
+      }
+    ],
+    "meal_plan": [
+      {
+        "id": 1,
+        "household_id": 1,
+        "plan_date": "2026-04-20",
+        "meal_type": "jantar",
+        "notes": "Segunda",
+        "recipe_id": 1
+      },
+      {
+        "id": 2,
+        "household_id": 1,
+        "plan_date": "2026-04-21",
+        "meal_type": "almoco",
+        "notes": "Terça almoço",
+        "recipe_id": 12
+      },
+      {
+        "id": 3,
+        "household_id": 1,
+        "plan_date": "2026-04-22",
+        "meal_type": "jantar",
+        "notes": "Terça jantar",
+        "recipe_id": 17
+      },
+      {
+        "id": 4,
+        "household_id": 1,
+        "plan_date": "2026-04-23",
+        "meal_type": "jantar",
+        "notes": "Quinta",
+        "recipe_id": 3
+      },
+      {
+        "id": 5,
+        "household_id": 1,
+        "plan_date": "2026-04-24",
+        "meal_type": "almoco",
+        "notes": "Sábado almoço",
+        "recipe_id": 13
+      },
+      {
+        "id": 6,
+        "household_id": 1,
+        "plan_date": "2026-04-25",
+        "meal_type": "jantar",
+        "notes": "Domingo",
+        "recipe_id": 4
+      },
+      {
+        "id": 7,
+        "household_id": 2,
+        "plan_date": "2026-04-20",
+        "meal_type": "jantar",
+        "notes": "Segunda",
+        "recipe_id": 6
+      },
+      {
+        "id": 8,
+        "household_id": 2,
+        "plan_date": "2026-04-21",
+        "meal_type": "almoco",
+        "notes": "Terça almoço",
+        "recipe_id": 20
+      },
+      {
+        "id": 9,
+        "household_id": 2,
+        "plan_date": "2026-04-22",
+        "meal_type": "jantar",
+        "notes": "Quarta",
+        "recipe_id": 14
+      },
+      {
+        "id": 10,
+        "household_id": 2,
+        "plan_date": "2026-04-23",
+        "meal_type": "almoco",
+        "notes": "Sexta almoço",
+        "recipe_id": 11
+      },
+      {
+        "id": 11,
+        "household_id": 2,
+        "plan_date": "2026-04-24",
+        "meal_type": "jantar",
+        "notes": "Sábado",
+        "recipe_id": 18
+      },
+      {
+        "id": 12,
+        "household_id": 2,
+        "plan_date": "2026-04-25",
+        "meal_type": "jantar",
+        "notes": "Domingo",
+        "recipe_id": 16
+      },
+      {
+        "id": 13,
+        "household_id": 3,
+        "plan_date": "2026-04-20",
+        "meal_type": "jantar",
+        "notes": "Segunda",
+        "recipe_id": 10
+      },
+      {
+        "id": 14,
+        "household_id": 3,
+        "plan_date": "2026-04-21",
+        "meal_type": "almoco",
+        "notes": "Terça almoço",
+        "recipe_id": 5
+      },
+      {
+        "id": 15,
+        "household_id": 3,
+        "plan_date": "2026-04-22",
+        "meal_type": "jantar",
+        "notes": "Quarta",
+        "recipe_id": 8
+      },
+      {
+        "id": 16,
+        "household_id": 3,
+        "plan_date": "2026-04-23",
+        "meal_type": "almoco",
+        "notes": "Sexta almoço",
+        "recipe_id": 19
+      },
+      {
+        "id": 17,
+        "household_id": 3,
+        "plan_date": "2026-04-24",
+        "meal_type": "jantar",
+        "notes": "Sábado",
+        "recipe_id": 9
+      },
+      {
+        "id": 18,
+        "household_id": 3,
+        "plan_date": "2026-04-25",
+        "meal_type": "jantar",
+        "notes": "Domingo",
+        "recipe_id": 7
+      },
+      {
+        "id": 19,
+        "household_id": 1,
+        "plan_date": "2026-04-19",
+        "meal_type": "jantar",
+        "notes": null,
+        "recipe_id": 18
+      },
+      {
+        "id": 20,
+        "household_id": 1,
+        "plan_date": "2026-05-17",
+        "meal_type": "jantar",
+        "notes": "Teste HH1",
+        "recipe_id": 1
+      },
+      {
+        "id": 21,
+        "household_id": 2,
+        "plan_date": "2026-05-17",
+        "meal_type": "jantar",
+        "notes": "Teste HH2 mesmo slot",
+        "recipe_id": 1
+      }
+    ],
+    "feedback": [],
+    "recipe_preferences": [
+      {
+        "id": 1,
+        "household_id": 1,
+        "family_member_id": 1,
+        "recipe_id": 1,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 2,
+        "household_id": 1,
+        "family_member_id": 1,
+        "recipe_id": 2,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 3,
+        "household_id": 1,
+        "family_member_id": 1,
+        "recipe_id": 3,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 4,
+        "household_id": 1,
+        "family_member_id": 1,
+        "recipe_id": 4,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 5,
+        "household_id": 1,
+        "family_member_id": 1,
+        "recipe_id": 5,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 6,
+        "household_id": 1,
+        "family_member_id": 1,
+        "recipe_id": 6,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 7,
+        "household_id": 1,
+        "family_member_id": 1,
+        "recipe_id": 7,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 8,
+        "household_id": 1,
+        "family_member_id": 1,
+        "recipe_id": 8,
+        "rating": 5,
+        "note": "Favorita da família",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 9,
+        "household_id": 1,
+        "family_member_id": 1,
+        "recipe_id": 9,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 10,
+        "household_id": 1,
+        "family_member_id": 1,
+        "recipe_id": 10,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 11,
+        "household_id": 1,
+        "family_member_id": 1,
+        "recipe_id": 11,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 12,
+        "household_id": 1,
+        "family_member_id": 1,
+        "recipe_id": 12,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 13,
+        "household_id": 1,
+        "family_member_id": 1,
+        "recipe_id": 13,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 14,
+        "household_id": 1,
+        "family_member_id": 1,
+        "recipe_id": 14,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 15,
+        "household_id": 1,
+        "family_member_id": 1,
+        "recipe_id": 15,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 16,
+        "household_id": 1,
+        "family_member_id": 1,
+        "recipe_id": 16,
+        "rating": 2,
+        "note": "Pouco apreciada",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 17,
+        "household_id": 1,
+        "family_member_id": 1,
+        "recipe_id": 17,
+        "rating": 5,
+        "note": "Favorita da família",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 18,
+        "household_id": 1,
+        "family_member_id": 1,
+        "recipe_id": 18,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 19,
+        "household_id": 1,
+        "family_member_id": 1,
+        "recipe_id": 19,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 20,
+        "household_id": 1,
+        "family_member_id": 1,
+        "recipe_id": 20,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 21,
+        "household_id": 1,
+        "family_member_id": 2,
+        "recipe_id": 1,
+        "rating": 5,
+        "note": "Favorita da família",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 22,
+        "household_id": 1,
+        "family_member_id": 2,
+        "recipe_id": 2,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 23,
+        "household_id": 1,
+        "family_member_id": 2,
+        "recipe_id": 3,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 24,
+        "household_id": 1,
+        "family_member_id": 2,
+        "recipe_id": 4,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 25,
+        "household_id": 1,
+        "family_member_id": 2,
+        "recipe_id": 5,
+        "rating": 5,
+        "note": "Favorita da família",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 26,
+        "household_id": 1,
+        "family_member_id": 2,
+        "recipe_id": 6,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 27,
+        "household_id": 1,
+        "family_member_id": 2,
+        "recipe_id": 7,
+        "rating": 2,
+        "note": "Pouco apreciada",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 28,
+        "household_id": 1,
+        "family_member_id": 2,
+        "recipe_id": 8,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 29,
+        "household_id": 1,
+        "family_member_id": 2,
+        "recipe_id": 9,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 30,
+        "household_id": 1,
+        "family_member_id": 2,
+        "recipe_id": 10,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 31,
+        "household_id": 1,
+        "family_member_id": 2,
+        "recipe_id": 11,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 32,
+        "household_id": 1,
+        "family_member_id": 2,
+        "recipe_id": 12,
+        "rating": 3,
+        "note": "Aceitável",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 33,
+        "household_id": 1,
+        "family_member_id": 2,
+        "recipe_id": 13,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 34,
+        "household_id": 1,
+        "family_member_id": 2,
+        "recipe_id": 14,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 35,
+        "household_id": 1,
+        "family_member_id": 2,
+        "recipe_id": 15,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 36,
+        "household_id": 1,
+        "family_member_id": 2,
+        "recipe_id": 16,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 37,
+        "household_id": 1,
+        "family_member_id": 2,
+        "recipe_id": 17,
+        "rating": 5,
+        "note": "Favorita da família",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 38,
+        "household_id": 1,
+        "family_member_id": 2,
+        "recipe_id": 18,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 39,
+        "household_id": 1,
+        "family_member_id": 2,
+        "recipe_id": 19,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 40,
+        "household_id": 1,
+        "family_member_id": 2,
+        "recipe_id": 20,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 41,
+        "household_id": 1,
+        "family_member_id": 3,
+        "recipe_id": 1,
+        "rating": 5,
+        "note": "Favorita da família",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 42,
+        "household_id": 1,
+        "family_member_id": 3,
+        "recipe_id": 2,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 43,
+        "household_id": 1,
+        "family_member_id": 3,
+        "recipe_id": 3,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 44,
+        "household_id": 1,
+        "family_member_id": 3,
+        "recipe_id": 4,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 45,
+        "household_id": 1,
+        "family_member_id": 3,
+        "recipe_id": 5,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 46,
+        "household_id": 1,
+        "family_member_id": 3,
+        "recipe_id": 6,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 47,
+        "household_id": 1,
+        "family_member_id": 3,
+        "recipe_id": 7,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 48,
+        "household_id": 1,
+        "family_member_id": 3,
+        "recipe_id": 8,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 49,
+        "household_id": 1,
+        "family_member_id": 3,
+        "recipe_id": 9,
+        "rating": 3,
+        "note": "Aceitável",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 50,
+        "household_id": 1,
+        "family_member_id": 3,
+        "recipe_id": 10,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 51,
+        "household_id": 1,
+        "family_member_id": 3,
+        "recipe_id": 11,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 52,
+        "household_id": 1,
+        "family_member_id": 3,
+        "recipe_id": 12,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 53,
+        "household_id": 1,
+        "family_member_id": 3,
+        "recipe_id": 13,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 54,
+        "household_id": 1,
+        "family_member_id": 3,
+        "recipe_id": 14,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 55,
+        "household_id": 1,
+        "family_member_id": 3,
+        "recipe_id": 15,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 56,
+        "household_id": 1,
+        "family_member_id": 3,
+        "recipe_id": 16,
+        "rating": 1,
+        "note": "Evitar para este membro",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 57,
+        "household_id": 1,
+        "family_member_id": 3,
+        "recipe_id": 17,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 58,
+        "household_id": 1,
+        "family_member_id": 3,
+        "recipe_id": 18,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 59,
+        "household_id": 1,
+        "family_member_id": 3,
+        "recipe_id": 19,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 60,
+        "household_id": 1,
+        "family_member_id": 3,
+        "recipe_id": 20,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 61,
+        "household_id": 1,
+        "family_member_id": 4,
+        "recipe_id": 1,
+        "rating": 5,
+        "note": "Favorita da família",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 62,
+        "household_id": 1,
+        "family_member_id": 4,
+        "recipe_id": 2,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 63,
+        "household_id": 1,
+        "family_member_id": 4,
+        "recipe_id": 3,
+        "rating": 5,
+        "note": "Favorita da família",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 64,
+        "household_id": 1,
+        "family_member_id": 4,
+        "recipe_id": 4,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 65,
+        "household_id": 1,
+        "family_member_id": 4,
+        "recipe_id": 5,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 66,
+        "household_id": 1,
+        "family_member_id": 4,
+        "recipe_id": 6,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 67,
+        "household_id": 1,
+        "family_member_id": 4,
+        "recipe_id": 7,
+        "rating": 3,
+        "note": "Aceitável",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 68,
+        "household_id": 1,
+        "family_member_id": 4,
+        "recipe_id": 8,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 69,
+        "household_id": 1,
+        "family_member_id": 4,
+        "recipe_id": 9,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 70,
+        "household_id": 1,
+        "family_member_id": 4,
+        "recipe_id": 10,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 71,
+        "household_id": 1,
+        "family_member_id": 4,
+        "recipe_id": 11,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 72,
+        "household_id": 1,
+        "family_member_id": 4,
+        "recipe_id": 12,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 73,
+        "household_id": 1,
+        "family_member_id": 4,
+        "recipe_id": 13,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 74,
+        "household_id": 1,
+        "family_member_id": 4,
+        "recipe_id": 14,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 75,
+        "household_id": 1,
+        "family_member_id": 4,
+        "recipe_id": 15,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 76,
+        "household_id": 1,
+        "family_member_id": 4,
+        "recipe_id": 16,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 77,
+        "household_id": 1,
+        "family_member_id": 4,
+        "recipe_id": 17,
+        "rating": 5,
+        "note": "Favorita da família",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 78,
+        "household_id": 1,
+        "family_member_id": 4,
+        "recipe_id": 18,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 79,
+        "household_id": 1,
+        "family_member_id": 4,
+        "recipe_id": 19,
+        "rating": 3,
+        "note": "Aceitável",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 80,
+        "household_id": 1,
+        "family_member_id": 4,
+        "recipe_id": 20,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 81,
+        "household_id": 2,
+        "family_member_id": 5,
+        "recipe_id": 1,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 82,
+        "household_id": 2,
+        "family_member_id": 5,
+        "recipe_id": 2,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 83,
+        "household_id": 2,
+        "family_member_id": 5,
+        "recipe_id": 3,
+        "rating": 2,
+        "note": "Pouco apreciada",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 84,
+        "household_id": 2,
+        "family_member_id": 5,
+        "recipe_id": 4,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 85,
+        "household_id": 2,
+        "family_member_id": 5,
+        "recipe_id": 5,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 86,
+        "household_id": 2,
+        "family_member_id": 5,
+        "recipe_id": 6,
+        "rating": 5,
+        "note": "Favorita da família",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 87,
+        "household_id": 2,
+        "family_member_id": 5,
+        "recipe_id": 7,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 88,
+        "household_id": 2,
+        "family_member_id": 5,
+        "recipe_id": 8,
+        "rating": 1,
+        "note": "Evitar para este membro",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 89,
+        "household_id": 2,
+        "family_member_id": 5,
+        "recipe_id": 9,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 90,
+        "household_id": 2,
+        "family_member_id": 5,
+        "recipe_id": 10,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 91,
+        "household_id": 2,
+        "family_member_id": 5,
+        "recipe_id": 11,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 92,
+        "household_id": 2,
+        "family_member_id": 5,
+        "recipe_id": 12,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 93,
+        "household_id": 2,
+        "family_member_id": 5,
+        "recipe_id": 13,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 94,
+        "household_id": 2,
+        "family_member_id": 5,
+        "recipe_id": 14,
+        "rating": 5,
+        "note": "Favorita da família",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 95,
+        "household_id": 2,
+        "family_member_id": 5,
+        "recipe_id": 15,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 96,
+        "household_id": 2,
+        "family_member_id": 5,
+        "recipe_id": 16,
+        "rating": 3,
+        "note": "Aceitável",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 97,
+        "household_id": 2,
+        "family_member_id": 5,
+        "recipe_id": 17,
+        "rating": 3,
+        "note": "Aceitável",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 98,
+        "household_id": 2,
+        "family_member_id": 5,
+        "recipe_id": 18,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 99,
+        "household_id": 2,
+        "family_member_id": 5,
+        "recipe_id": 19,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 100,
+        "household_id": 2,
+        "family_member_id": 5,
+        "recipe_id": 20,
+        "rating": 3,
+        "note": "Aceitável",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 101,
+        "household_id": 2,
+        "family_member_id": 6,
+        "recipe_id": 1,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 102,
+        "household_id": 2,
+        "family_member_id": 6,
+        "recipe_id": 2,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 103,
+        "household_id": 2,
+        "family_member_id": 6,
+        "recipe_id": 3,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 104,
+        "household_id": 2,
+        "family_member_id": 6,
+        "recipe_id": 4,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 105,
+        "household_id": 2,
+        "family_member_id": 6,
+        "recipe_id": 5,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 106,
+        "household_id": 2,
+        "family_member_id": 6,
+        "recipe_id": 6,
+        "rating": 5,
+        "note": "Favorita da família",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 107,
+        "household_id": 2,
+        "family_member_id": 6,
+        "recipe_id": 7,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 108,
+        "household_id": 2,
+        "family_member_id": 6,
+        "recipe_id": 8,
+        "rating": 1,
+        "note": "Evitar para este membro",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 109,
+        "household_id": 2,
+        "family_member_id": 6,
+        "recipe_id": 9,
+        "rating": 3,
+        "note": "Aceitável",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 110,
+        "household_id": 2,
+        "family_member_id": 6,
+        "recipe_id": 10,
+        "rating": 1,
+        "note": "Evitar para este membro",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 111,
+        "household_id": 2,
+        "family_member_id": 6,
+        "recipe_id": 11,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 112,
+        "household_id": 2,
+        "family_member_id": 6,
+        "recipe_id": 12,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 113,
+        "household_id": 2,
+        "family_member_id": 6,
+        "recipe_id": 13,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 114,
+        "household_id": 2,
+        "family_member_id": 6,
+        "recipe_id": 14,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 115,
+        "household_id": 2,
+        "family_member_id": 6,
+        "recipe_id": 15,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 116,
+        "household_id": 2,
+        "family_member_id": 6,
+        "recipe_id": 16,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 117,
+        "household_id": 2,
+        "family_member_id": 6,
+        "recipe_id": 17,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 118,
+        "household_id": 2,
+        "family_member_id": 6,
+        "recipe_id": 18,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 119,
+        "household_id": 2,
+        "family_member_id": 6,
+        "recipe_id": 19,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 120,
+        "household_id": 2,
+        "family_member_id": 6,
+        "recipe_id": 20,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 121,
+        "household_id": 2,
+        "family_member_id": 7,
+        "recipe_id": 1,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 122,
+        "household_id": 2,
+        "family_member_id": 7,
+        "recipe_id": 2,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 123,
+        "household_id": 2,
+        "family_member_id": 7,
+        "recipe_id": 3,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 124,
+        "household_id": 2,
+        "family_member_id": 7,
+        "recipe_id": 4,
+        "rating": 3,
+        "note": "Aceitável",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 125,
+        "household_id": 2,
+        "family_member_id": 7,
+        "recipe_id": 5,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 126,
+        "household_id": 2,
+        "family_member_id": 7,
+        "recipe_id": 6,
+        "rating": 5,
+        "note": "Favorita da família",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 127,
+        "household_id": 2,
+        "family_member_id": 7,
+        "recipe_id": 7,
+        "rating": 2,
+        "note": "Pouco apreciada",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 128,
+        "household_id": 2,
+        "family_member_id": 7,
+        "recipe_id": 8,
+        "rating": 0,
+        "note": "Evitar para este membro",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 129,
+        "household_id": 2,
+        "family_member_id": 7,
+        "recipe_id": 9,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 130,
+        "household_id": 2,
+        "family_member_id": 7,
+        "recipe_id": 10,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 131,
+        "household_id": 2,
+        "family_member_id": 7,
+        "recipe_id": 11,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 132,
+        "household_id": 2,
+        "family_member_id": 7,
+        "recipe_id": 12,
+        "rating": 3,
+        "note": "Aceitável",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 133,
+        "household_id": 2,
+        "family_member_id": 7,
+        "recipe_id": 13,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 134,
+        "household_id": 2,
+        "family_member_id": 7,
+        "recipe_id": 14,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 135,
+        "household_id": 2,
+        "family_member_id": 7,
+        "recipe_id": 15,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 136,
+        "household_id": 2,
+        "family_member_id": 7,
+        "recipe_id": 16,
+        "rating": 3,
+        "note": "Aceitável",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 137,
+        "household_id": 2,
+        "family_member_id": 7,
+        "recipe_id": 17,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 138,
+        "household_id": 2,
+        "family_member_id": 7,
+        "recipe_id": 18,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 139,
+        "household_id": 2,
+        "family_member_id": 7,
+        "recipe_id": 19,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 140,
+        "household_id": 2,
+        "family_member_id": 7,
+        "recipe_id": 20,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 141,
+        "household_id": 2,
+        "family_member_id": 8,
+        "recipe_id": 1,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 142,
+        "household_id": 2,
+        "family_member_id": 8,
+        "recipe_id": 2,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 143,
+        "household_id": 2,
+        "family_member_id": 8,
+        "recipe_id": 3,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 144,
+        "household_id": 2,
+        "family_member_id": 8,
+        "recipe_id": 4,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 145,
+        "household_id": 2,
+        "family_member_id": 8,
+        "recipe_id": 5,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 146,
+        "household_id": 2,
+        "family_member_id": 8,
+        "recipe_id": 6,
+        "rating": 5,
+        "note": "Favorita da família",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 147,
+        "household_id": 2,
+        "family_member_id": 8,
+        "recipe_id": 7,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 148,
+        "household_id": 2,
+        "family_member_id": 8,
+        "recipe_id": 8,
+        "rating": 1,
+        "note": "Evitar para este membro",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 149,
+        "household_id": 2,
+        "family_member_id": 8,
+        "recipe_id": 9,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 150,
+        "household_id": 2,
+        "family_member_id": 8,
+        "recipe_id": 10,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 151,
+        "household_id": 2,
+        "family_member_id": 8,
+        "recipe_id": 11,
+        "rating": 3,
+        "note": "Aceitável",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 152,
+        "household_id": 2,
+        "family_member_id": 8,
+        "recipe_id": 12,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 153,
+        "household_id": 2,
+        "family_member_id": 8,
+        "recipe_id": 13,
+        "rating": 2,
+        "note": "Pouco apreciada",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 154,
+        "household_id": 2,
+        "family_member_id": 8,
+        "recipe_id": 14,
+        "rating": 5,
+        "note": "Favorita da família",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 155,
+        "household_id": 2,
+        "family_member_id": 8,
+        "recipe_id": 15,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 156,
+        "household_id": 2,
+        "family_member_id": 8,
+        "recipe_id": 16,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 157,
+        "household_id": 2,
+        "family_member_id": 8,
+        "recipe_id": 17,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 158,
+        "household_id": 2,
+        "family_member_id": 8,
+        "recipe_id": 18,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 159,
+        "household_id": 2,
+        "family_member_id": 8,
+        "recipe_id": 19,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 160,
+        "household_id": 2,
+        "family_member_id": 8,
+        "recipe_id": 20,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 161,
+        "household_id": 3,
+        "family_member_id": 9,
+        "recipe_id": 1,
+        "rating": 5,
+        "note": "Favorita da família",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 162,
+        "household_id": 3,
+        "family_member_id": 9,
+        "recipe_id": 2,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 163,
+        "household_id": 3,
+        "family_member_id": 9,
+        "recipe_id": 3,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 164,
+        "household_id": 3,
+        "family_member_id": 9,
+        "recipe_id": 4,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 165,
+        "household_id": 3,
+        "family_member_id": 9,
+        "recipe_id": 5,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 166,
+        "household_id": 3,
+        "family_member_id": 9,
+        "recipe_id": 6,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 167,
+        "household_id": 3,
+        "family_member_id": 9,
+        "recipe_id": 7,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 168,
+        "household_id": 3,
+        "family_member_id": 9,
+        "recipe_id": 8,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 169,
+        "household_id": 3,
+        "family_member_id": 9,
+        "recipe_id": 9,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 170,
+        "household_id": 3,
+        "family_member_id": 9,
+        "recipe_id": 10,
+        "rating": 5,
+        "note": "Favorita da família",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 171,
+        "household_id": 3,
+        "family_member_id": 9,
+        "recipe_id": 11,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 172,
+        "household_id": 3,
+        "family_member_id": 9,
+        "recipe_id": 12,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 173,
+        "household_id": 3,
+        "family_member_id": 9,
+        "recipe_id": 13,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 174,
+        "household_id": 3,
+        "family_member_id": 9,
+        "recipe_id": 14,
+        "rating": 2,
+        "note": "Pouco apreciada",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 175,
+        "household_id": 3,
+        "family_member_id": 9,
+        "recipe_id": 15,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 176,
+        "household_id": 3,
+        "family_member_id": 9,
+        "recipe_id": 16,
+        "rating": 3,
+        "note": "Aceitável",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 177,
+        "household_id": 3,
+        "family_member_id": 9,
+        "recipe_id": 17,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 178,
+        "household_id": 3,
+        "family_member_id": 9,
+        "recipe_id": 18,
+        "rating": 3,
+        "note": "Aceitável",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 179,
+        "household_id": 3,
+        "family_member_id": 9,
+        "recipe_id": 19,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 180,
+        "household_id": 3,
+        "family_member_id": 9,
+        "recipe_id": 20,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 181,
+        "household_id": 3,
+        "family_member_id": 10,
+        "recipe_id": 1,
+        "rating": 3,
+        "note": "Aceitável",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 182,
+        "household_id": 3,
+        "family_member_id": 10,
+        "recipe_id": 2,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 183,
+        "household_id": 3,
+        "family_member_id": 10,
+        "recipe_id": 3,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 184,
+        "household_id": 3,
+        "family_member_id": 10,
+        "recipe_id": 4,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 185,
+        "household_id": 3,
+        "family_member_id": 10,
+        "recipe_id": 5,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 186,
+        "household_id": 3,
+        "family_member_id": 10,
+        "recipe_id": 6,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 187,
+        "household_id": 3,
+        "family_member_id": 10,
+        "recipe_id": 7,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 188,
+        "household_id": 3,
+        "family_member_id": 10,
+        "recipe_id": 8,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 189,
+        "household_id": 3,
+        "family_member_id": 10,
+        "recipe_id": 9,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 190,
+        "household_id": 3,
+        "family_member_id": 10,
+        "recipe_id": 10,
+        "rating": 5,
+        "note": "Favorita da família",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 191,
+        "household_id": 3,
+        "family_member_id": 10,
+        "recipe_id": 11,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 192,
+        "household_id": 3,
+        "family_member_id": 10,
+        "recipe_id": 12,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 193,
+        "household_id": 3,
+        "family_member_id": 10,
+        "recipe_id": 13,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 194,
+        "household_id": 3,
+        "family_member_id": 10,
+        "recipe_id": 14,
+        "rating": 2,
+        "note": "Pouco apreciada",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 195,
+        "household_id": 3,
+        "family_member_id": 10,
+        "recipe_id": 15,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 196,
+        "household_id": 3,
+        "family_member_id": 10,
+        "recipe_id": 16,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 197,
+        "household_id": 3,
+        "family_member_id": 10,
+        "recipe_id": 17,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 198,
+        "household_id": 3,
+        "family_member_id": 10,
+        "recipe_id": 18,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 199,
+        "household_id": 3,
+        "family_member_id": 10,
+        "recipe_id": 19,
+        "rating": 2,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 200,
+        "household_id": 3,
+        "family_member_id": 10,
+        "recipe_id": 20,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 201,
+        "household_id": 3,
+        "family_member_id": 11,
+        "recipe_id": 1,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 202,
+        "household_id": 3,
+        "family_member_id": 11,
+        "recipe_id": 2,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 203,
+        "household_id": 3,
+        "family_member_id": 11,
+        "recipe_id": 3,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 204,
+        "household_id": 3,
+        "family_member_id": 11,
+        "recipe_id": 4,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 205,
+        "household_id": 3,
+        "family_member_id": 11,
+        "recipe_id": 5,
+        "rating": 5,
+        "note": "Favorita da família",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 206,
+        "household_id": 3,
+        "family_member_id": 11,
+        "recipe_id": 6,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 207,
+        "household_id": 3,
+        "family_member_id": 11,
+        "recipe_id": 7,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 208,
+        "household_id": 3,
+        "family_member_id": 11,
+        "recipe_id": 8,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 209,
+        "household_id": 3,
+        "family_member_id": 11,
+        "recipe_id": 9,
+        "rating": 2,
+        "note": "Pouco apreciada",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 210,
+        "household_id": 3,
+        "family_member_id": 11,
+        "recipe_id": 10,
+        "rating": 5,
+        "note": "Favorita da família",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 211,
+        "household_id": 3,
+        "family_member_id": 11,
+        "recipe_id": 11,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 212,
+        "household_id": 3,
+        "family_member_id": 11,
+        "recipe_id": 12,
+        "rating": 3,
+        "note": "Aceitável",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 213,
+        "household_id": 3,
+        "family_member_id": 11,
+        "recipe_id": 13,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 214,
+        "household_id": 3,
+        "family_member_id": 11,
+        "recipe_id": 14,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 215,
+        "household_id": 3,
+        "family_member_id": 11,
+        "recipe_id": 15,
+        "rating": 4,
+        "note": "Boa para repetir",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 216,
+        "household_id": 3,
+        "family_member_id": 11,
+        "recipe_id": 16,
+        "rating": 5,
+        "note": "Favorita da família",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 217,
+        "household_id": 3,
+        "family_member_id": 11,
+        "recipe_id": 17,
+        "rating": 3,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 218,
+        "household_id": 3,
+        "family_member_id": 11,
+        "recipe_id": 18,
+        "rating": 3,
+        "note": "Aceitável",
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 219,
+        "household_id": 3,
+        "family_member_id": 11,
+        "recipe_id": 19,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      },
+      {
+        "id": 220,
+        "household_id": 3,
+        "family_member_id": 11,
+        "recipe_id": 20,
+        "rating": 4,
+        "note": null,
+        "updated_at": "2026-04-18T12:00:00"
+      }
+    ]
+  }
+}

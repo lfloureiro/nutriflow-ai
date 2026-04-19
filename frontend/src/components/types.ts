@@ -30,6 +30,7 @@ export type ShoppingListItem = {
   quantity: string | null;
   unit: string | null;
   sources: ShoppingListSource[];
+  in_cart: boolean;
 };
 
 export type FamilyMember = {

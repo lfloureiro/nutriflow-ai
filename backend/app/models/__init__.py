@@ -6,3 +6,4 @@ from backend.app.models.household import Household
 from backend.app.models.family_member import FamilyMember
 from backend.app.models.meal_feedback import MealFeedback
 from backend.app.models.recipe_preference import RecipePreference
+from backend.app.models.shopping_list_item_state import ShoppingListItemState

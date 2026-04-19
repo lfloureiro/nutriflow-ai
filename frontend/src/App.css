@@ -665,6 +665,16 @@
   border-radius: 16px;
   border: 1px solid #243041;
   background: #0b1220;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.nf-shopping-card--in-cart {
+  background: rgba(20, 83, 45, 0.18);
+  border-color: rgba(34, 197, 94, 0.35);
+  opacity: 0.92;
 }
 
 .nf-shopping-card-head {
@@ -680,6 +690,49 @@
   line-height: 1.1;
   color: #f8fafc;
   text-align: right;
+}
+
+.nf-shopping-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.nf-shopping-state {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fbbf24;
+}
+
+.nf-shopping-state--done {
+  color: #86efac;
+}
+
+.nf-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.nf-filter-chip {
+  min-height: 34px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid #334155;
+  background: #0b1220;
+  color: #cbd5e1;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.nf-filter-chip--active {
+  border-color: #60a5fa;
+  background: rgba(30, 41, 59, 0.95);
+  color: #eff6ff;
 }
 
 .nf-modal-shell {
@@ -775,7 +828,8 @@
   .nf-score-card-head,
   .nf-record-card-head,
   .nf-shopping-card-head,
-  .nf-date-group-head {
+  .nf-date-group-head,
+  .nf-shopping-actions {
     flex-direction: column;
     align-items: flex-start;
   }

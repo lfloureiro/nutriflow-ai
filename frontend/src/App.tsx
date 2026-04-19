@@ -586,7 +586,11 @@ function App() {
 
         {activeModal === "shopping-list" && (
           <Modal title="Lista de compras" onClose={closeModal}>
-            <ShoppingListView shoppingList={shoppingList} />
+            <ShoppingListView
+              householdId={selectedHouseholdId}
+              shoppingList={shoppingList}
+              onRefresh={() => loadHouseholdScopedData(selectedHouseholdId)}
+            />
           </Modal>
         )}
 

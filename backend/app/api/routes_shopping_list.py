@@ -1,15 +1,19 @@
-from datetime import date
+from datetime import UTC, date, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
 
 from backend.app.db.session import get_db
 from backend.app.models.household import Household
+from backend.app.models.ingredient import Ingredient
 from backend.app.models.meal_plan_item import MealPlanItem
 from backend.app.models.recipe import Recipe
 from backend.app.models.recipe_ingredient import RecipeIngredient
+from backend.app.models.shopping_list_item_state import ShoppingListItemState
 from backend.app.schemas.shopping_list import (
     ShoppingListItemRead,
+    ShoppingListItemStateRead,
+    ShoppingListItemStateUpsert,
     ShoppingListSourceRead,
 )
 
@@ -28,6 +32,12 @@ def try_parse_number(value: str | None) -> float | None:
         return float(value)
     except ValueError:
         return None
+
+
+def normalize_unit(value: str | None) -> str:
+    if value is None:
+        return ""
+    return value.strip()
 
 
 @router.get("/generate", response_model=list[ShoppingListItemRead])
@@ -59,17 +69,19 @@ def generate_shopping_list(
 
     meal_plan_items = query.order_by(MealPlanItem.plan_date.asc(), MealPlanItem.id.asc()).all()
 
-    grouped: dict[tuple[int, str | None], dict] = {}
+    grouped: dict[tuple[int, str], dict] = {}
 
     for item in meal_plan_items:
         for link in item.recipe.ingredient_links:
-            key = (link.ingredient.id, link.unit)
+            normalized_unit = normalize_unit(link.unit)
+            key = (link.ingredient.id, normalized_unit)
 
             if key not in grouped:
                 grouped[key] = {
                     "ingredient_id": link.ingredient.id,
                     "ingredient_name": link.ingredient.name,
                     "unit": link.unit,
+                    "normalized_unit": normalized_unit,
                     "raw_quantities": [],
                     "numeric_total": 0.0,
                     "all_numeric": True,
@@ -94,6 +106,17 @@ def generate_shopping_list(
                 )
             )
 
+    states = (
+        db.query(ShoppingListItemState)
+        .filter(ShoppingListItemState.household_id == household_id)
+        .all()
+    )
+
+    state_map = {
+        (state.ingredient_id, state.unit): state
+        for state in states
+    }
+
     result = []
 
     for _, data in sorted(grouped.items(), key=lambda x: x[1]["ingredient_name"].lower()):
@@ -108,6 +131,8 @@ def generate_shopping_list(
         elif data["raw_quantities"]:
             quantity = " + ".join(data["raw_quantities"])
 
+        state = state_map.get((data["ingredient_id"], data["normalized_unit"]))
+
         result.append(
             ShoppingListItemRead(
                 ingredient_id=data["ingredient_id"],
@@ -115,7 +140,58 @@ def generate_shopping_list(
                 quantity=quantity,
                 unit=data["unit"],
                 sources=data["sources"],
+                in_cart=state.in_cart if state else False,
             )
         )
 
     return result
+
+
+@router.put("/item-state", response_model=ShoppingListItemStateRead)
+def upsert_shopping_list_item_state(
+    data: ShoppingListItemStateUpsert,
+    db: Session = Depends(get_db),
+):
+    household = db.query(Household).filter(Household.id == data.household_id).first()
+    if not household:
+        raise HTTPException(status_code=404, detail="Agregado não encontrado.")
+
+    ingredient = db.query(Ingredient).filter(Ingredient.id == data.ingredient_id).first()
+    if not ingredient:
+        raise HTTPException(status_code=404, detail="Ingrediente não encontrado.")
+
+    normalized_unit = normalize_unit(data.unit)
+
+    state = (
+        db.query(ShoppingListItemState)
+        .filter(
+            ShoppingListItemState.household_id == data.household_id,
+            ShoppingListItemState.ingredient_id == data.ingredient_id,
+            ShoppingListItemState.unit == normalized_unit,
+        )
+        .first()
+    )
+
+    if state is None:
+        state = ShoppingListItemState(
+            household_id=data.household_id,
+            ingredient_id=data.ingredient_id,
+            unit=normalized_unit,
+            in_cart=data.in_cart,
+            updated_at=datetime.now(UTC).replace(tzinfo=None),
+        )
+        db.add(state)
+    else:
+        state.in_cart = data.in_cart
+        state.updated_at = datetime.now(UTC).replace(tzinfo=None)
+
+    db.commit()
+    db.refresh(state)
+
+    return ShoppingListItemStateRead(
+        household_id=state.household_id,
+        ingredient_id=state.ingredient_id,
+        unit=state.unit or None,
+        in_cart=state.in_cart,
+        updated_at=state.updated_at,
+    )
