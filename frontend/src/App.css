@@ -580,6 +580,108 @@
   font-weight: 600;
 }
 
+.nf-record-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nf-record-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid #243041;
+  background: #0b1220;
+}
+
+.nf-record-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.nf-record-card-main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.nf-record-title {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #f8fafc;
+}
+
+.nf-record-description {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #cbd5e1;
+}
+
+.nf-record-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.nf-date-group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.nf-date-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nf-date-group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #243041;
+}
+
+.nf-shopping-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.nf-shopping-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid #243041;
+  background: #0b1220;
+}
+
+.nf-shopping-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nf-shopping-quantity {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #f8fafc;
+  text-align: right;
+}
+
 .nf-modal-shell {
   position: fixed;
   inset: 0;
@@ -664,14 +766,23 @@
   .nf-card-grid--compact,
   .nf-select-card-grid,
   .nf-rating-grid,
-  .nf-score-grid {
+  .nf-score-grid,
+  .nf-shopping-grid {
     grid-template-columns: 1fr;
   }
 
   .nf-rating-card-head,
-  .nf-score-card-head {
+  .nf-score-card-head,
+  .nf-record-card-head,
+  .nf-shopping-card-head,
+  .nf-date-group-head {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .nf-record-actions,
+  .nf-actions-inline {
+    flex-direction: column;
   }
 
   .nf-modal-shell {
@@ -702,9 +813,5 @@
     padding: 10px;
     min-width: 42px;
     justify-content: center;
-  }
-
-  .nf-actions-inline {
-    flex-direction: column;
   }
 }

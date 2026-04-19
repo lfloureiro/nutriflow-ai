@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { API_BASE_URL } from "../../config";
 import { styles } from "../styles";
 import type { MealPlanItem, Recipe } from "../types";
@@ -29,6 +29,21 @@ function formatMealType(mealType: string) {
   return mealType.replaceAll("-", " ");
 }
 
+function formatPlanDate(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString("pt-PT", {
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
 function getErrorMessage(data: unknown, fallback: string) {
   if (
     data &&
@@ -56,6 +71,18 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
     recipe_id: "",
     notes: "",
   });
+
+  const groupedByDate = useMemo(() => {
+    const grouped = new Map<string, MealPlanItem[]>();
+
+    mealPlan.forEach((item) => {
+      const current = grouped.get(item.plan_date) ?? [];
+      current.push(item);
+      grouped.set(item.plan_date, current);
+    });
+
+    return [...grouped.entries()].sort(([a], [b]) => a.localeCompare(b));
+  }, [mealPlan]);
 
   function startEditing(item: MealPlanItem) {
     setLocalMessage(null);
@@ -176,7 +203,19 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
 
   return (
     <section style={styles.card}>
-      <h2 style={styles.sectionTitle}>Plano semanal</h2>
+      <div className="nf-menu-panel-head">
+        <div className="nf-kicker">Plano semanal</div>
+        <h2 style={styles.sectionTitle}>Refeições planeadas</h2>
+        <p className="nf-menu-panel-text">
+          Vista organizada por data, com edição simples e mais legível.
+        </p>
+      </div>
+
+      <div className="nf-pill-row" style={{ marginTop: "12px" }}>
+        <span className="nf-context-meta-chip">
+          {mealPlan.length} item(ns) planeado(s)
+        </span>
+      </div>
 
       {localMessage && <p style={styles.success}>{localMessage}</p>}
       {localError && <p style={styles.error}>Erro: {localError}</p>}
@@ -184,178 +223,171 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
       {mealPlan.length === 0 ? (
         <p style={styles.empty}>Sem itens no plano.</p>
       ) : (
-        <ul style={styles.list}>
-          {mealPlan.map((item) => {
-            const isEditing = editingId === item.id;
-            const isSaving = savingId === item.id;
-            const isDeleting = deletingId === item.id;
-            const isBusy = isSaving || isDeleting;
+        <div className="nf-date-group-list" style={{ marginTop: "14px" }}>
+          {groupedByDate.map(([planDate, items]) => (
+            <div key={planDate} className="nf-date-group">
+              <div className="nf-date-group-head">
+                <div className="nf-card-title">{formatPlanDate(planDate)}</div>
+                <div className="nf-card-body">{items.length} refeição(ões)</div>
+              </div>
 
-            return (
-              <li
-                key={item.id}
-                style={{
-                  ...styles.listItem,
-                  padding: "16px 0",
-                }}
-              >
-                {!isEditing ? (
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "18px",
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "10px",
-                        flexWrap: "wrap",
-                        minWidth: "170px",
-                      }}
-                    >
-                      <button
-                        type="button"
-                        style={styles.button}
-                        onClick={() => startEditing(item)}
-                        disabled={isBusy}
-                      >
-                        Editar
-                      </button>
+              <div className="nf-record-list">
+                {items.map((item) => {
+                  const isEditing = editingId === item.id;
+                  const isSaving = savingId === item.id;
+                  const isDeleting = deletingId === item.id;
+                  const isBusy = isSaving || isDeleting;
 
-                      <button
-                        type="button"
-                        style={{
-                          ...styles.button,
-                          background: "#7f1d1d",
-                          border: "1px solid #991b1b",
-                        }}
-                        onClick={() => handleDelete(item)}
-                        disabled={isBusy}
-                      >
-                        Apagar
-                      </button>
+                  return (
+                    <div key={item.id} className="nf-record-card">
+                      {!isEditing ? (
+                        <div className="nf-record-card-head">
+                          <div className="nf-record-card-main">
+                            <div className="nf-pill-row">
+                              <span className="nf-score-pill">
+                                {formatMealType(item.meal_type)}
+                              </span>
+                            </div>
+
+                            <div className="nf-record-title">{item.recipe.name}</div>
+
+                            <div className="nf-record-description">
+                              {item.notes?.trim() || "Sem notas adicionais."}
+                            </div>
+                          </div>
+
+                          <div className="nf-record-actions">
+                            <button
+                              type="button"
+                              style={styles.button}
+                              onClick={() => startEditing(item)}
+                              disabled={isBusy}
+                            >
+                              Editar
+                            </button>
+
+                            <button
+                              type="button"
+                              style={{
+                                ...styles.button,
+                                background: "#7f1d1d",
+                                border: "1px solid #991b1b",
+                              }}
+                              onClick={() => handleDelete(item)}
+                              disabled={isBusy}
+                            >
+                              {isDeleting ? "A apagar..." : "Apagar"}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="nf-panel-stack">
+                          <div className="nf-record-title">Editar refeição</div>
+
+                          <input
+                            type="date"
+                            style={styles.input}
+                            value={editState.plan_date}
+                            onChange={(e) =>
+                              setEditState((current) => ({
+                                ...current,
+                                plan_date: e.target.value,
+                              }))
+                            }
+                            disabled={isBusy}
+                          />
+
+                          <select
+                            style={styles.select}
+                            value={editState.meal_type}
+                            onChange={(e) =>
+                              setEditState((current) => ({
+                                ...current,
+                                meal_type: e.target.value,
+                              }))
+                            }
+                            disabled={isBusy}
+                          >
+                            {mealTypeOptions.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+
+                          <select
+                            style={styles.select}
+                            value={editState.recipe_id}
+                            onChange={(e) =>
+                              setEditState((current) => ({
+                                ...current,
+                                recipe_id: e.target.value,
+                              }))
+                            }
+                            disabled={isBusy}
+                          >
+                            <option value="">Seleciona uma receita</option>
+                            {recipes.map((recipe) => (
+                              <option key={recipe.id} value={recipe.id}>
+                                {recipe.name}
+                              </option>
+                            ))}
+                          </select>
+
+                          <textarea
+                            style={styles.textarea}
+                            value={editState.notes}
+                            onChange={(e) =>
+                              setEditState((current) => ({
+                                ...current,
+                                notes: e.target.value,
+                              }))
+                            }
+                            disabled={isBusy}
+                            placeholder="Notas opcionais"
+                          />
+
+                          <div className="nf-actions-inline">
+                            <button
+                              type="button"
+                              style={styles.button}
+                              onClick={() => handleSave(item.id)}
+                              disabled={isBusy}
+                            >
+                              {isSaving ? "A guardar..." : "Guardar"}
+                            </button>
+
+                            <button
+                              type="button"
+                              style={styles.button}
+                              onClick={cancelEditing}
+                              disabled={isBusy}
+                            >
+                              Cancelar
+                            </button>
+
+                            <button
+                              type="button"
+                              style={{
+                                ...styles.button,
+                                background: "#7f1d1d",
+                                border: "1px solid #991b1b",
+                              }}
+                              onClick={() => handleDelete(item)}
+                              disabled={isBusy}
+                            >
+                              {isDeleting ? "A apagar..." : "Apagar"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
-
-                    <div
-                      style={{
-                        flex: 1,
-                        minWidth: "280px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: "15px",
-                          lineHeight: 1.5,
-                        }}
-                      >
-                        <strong>{item.plan_date}</strong> —{" "}
-                        {formatMealType(item.meal_type)} — {item.recipe.name}
-                        {item.notes ? ` (${item.notes})` : ""}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div style={styles.form}>
-                    <input
-                      type="date"
-                      style={styles.input}
-                      value={editState.plan_date}
-                      onChange={(e) =>
-                        setEditState((current) => ({
-                          ...current,
-                          plan_date: e.target.value,
-                        }))
-                      }
-                    />
-
-                    <select
-                      style={styles.select}
-                      value={editState.meal_type}
-                      onChange={(e) =>
-                        setEditState((current) => ({
-                          ...current,
-                          meal_type: e.target.value,
-                        }))
-                      }
-                    >
-                      {mealTypeOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-
-                    <select
-                      style={styles.select}
-                      value={editState.recipe_id}
-                      onChange={(e) =>
-                        setEditState((current) => ({
-                          ...current,
-                          recipe_id: e.target.value,
-                        }))
-                      }
-                    >
-                      <option value="">Seleciona uma receita</option>
-                      {recipes.map((recipe) => (
-                        <option key={recipe.id} value={recipe.id}>
-                          {recipe.name}
-                        </option>
-                      ))}
-                    </select>
-
-                    <textarea
-                      style={styles.textarea}
-                      value={editState.notes}
-                      onChange={(e) =>
-                        setEditState((current) => ({
-                          ...current,
-                          notes: e.target.value,
-                        }))
-                      }
-                      placeholder="Notas opcionais"
-                    />
-
-                    <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                      <button
-                        type="button"
-                        style={styles.button}
-                        onClick={() => handleSave(item.id)}
-                        disabled={isBusy}
-                      >
-                        Guardar
-                      </button>
-
-                      <button
-                        type="button"
-                        style={styles.button}
-                        onClick={cancelEditing}
-                        disabled={isBusy}
-                      >
-                        Cancelar
-                      </button>
-
-                      <button
-                        type="button"
-                        style={{
-                          ...styles.button,
-                          background: "#7f1d1d",
-                          border: "1px solid #991b1b",
-                        }}
-                        onClick={() => handleDelete(item)}
-                        disabled={isBusy}
-                      >
-                        Apagar
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </section>
   );

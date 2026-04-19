@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { API_BASE_URL } from "../../config";
 import { styles } from "../styles";
 import type { Recipe } from "../types";
@@ -37,6 +37,7 @@ export function RecipeList({
   const [editingId, setEditingId] = useState<number | null>(null);
   const [savingId, setSavingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [search, setSearch] = useState("");
 
   const [localMessage, setLocalMessage] = useState<string | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
@@ -45,6 +46,16 @@ export function RecipeList({
     name: "",
     description: "",
   });
+
+  const filteredRecipes = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return recipes;
+
+    return recipes.filter((recipe) => {
+      const haystack = `${recipe.name} ${recipe.description ?? ""}`.toLowerCase();
+      return haystack.includes(term);
+    });
+  }, [recipes, search]);
 
   function startEditing(recipe: Recipe) {
     setLocalMessage(null);
@@ -154,153 +165,163 @@ export function RecipeList({
 
   return (
     <section style={styles.card}>
-      <h2 style={styles.sectionTitle}>Receitas</h2>
+      <div className="nf-menu-panel-head">
+        <div className="nf-kicker">Receitas</div>
+        <h2 style={styles.sectionTitle}>Lista de receitas</h2>
+        <p className="nf-menu-panel-text">
+          Consulta, procura e edita receitas sem cair numa lista longa e feia.
+        </p>
+      </div>
+
+      <div className="nf-pill-row" style={{ marginTop: "12px" }}>
+        <span className="nf-context-meta-chip">
+          {recipes.length} receita(s) no total
+        </span>
+        {search.trim() && (
+          <span className="nf-context-meta-chip">
+            {filteredRecipes.length} resultado(s)
+          </span>
+        )}
+      </div>
 
       {localMessage && <p style={styles.success}>{localMessage}</p>}
       {localError && <p style={styles.error}>Erro: {localError}</p>}
 
-      {recipes.length === 0 ? (
-        <p style={styles.empty}>Sem receitas.</p>
-      ) : (
-        <ul style={styles.list}>
-          {recipes.map((recipe) => {
-            const isEditing = editingId === recipe.id;
-            const isSaving = savingId === recipe.id;
-            const isDeleting = deletingId === recipe.id;
-            const isBusy = isSaving || isDeleting;
+      <div className="nf-panel-stack" style={{ marginTop: "14px" }}>
+        <div>
+          <label htmlFor="recipe-search" className="nf-field-label">
+            Procurar receita
+          </label>
+          <input
+            id="recipe-search"
+            style={styles.input}
+            placeholder="Ex.: atum, frango, sopa..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
 
-            return (
-              <li
-                key={recipe.id}
-                style={{
-                  ...styles.listItem,
-                  padding: "16px 0",
-                }}
-              >
-                {!isEditing ? (
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "18px",
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "10px",
-                        flexWrap: "wrap",
-                        minWidth: "170px",
-                      }}
-                    >
-                      <button
-                        type="button"
-                        style={styles.button}
-                        onClick={() => startEditing(recipe)}
+        {filteredRecipes.length === 0 ? (
+          <p style={styles.empty}>
+            {recipes.length === 0
+              ? "Ainda não existem receitas."
+              : "Nenhuma receita corresponde à pesquisa."}
+          </p>
+        ) : (
+          <div className="nf-record-list">
+            {filteredRecipes.map((recipe) => {
+              const isEditing = editingId === recipe.id;
+              const isSaving = savingId === recipe.id;
+              const isDeleting = deletingId === recipe.id;
+              const isBusy = isSaving || isDeleting;
+
+              return (
+                <div key={recipe.id} className="nf-record-card">
+                  {!isEditing ? (
+                    <>
+                      <div className="nf-record-card-head">
+                        <div className="nf-record-card-main">
+                          <div className="nf-record-title">{recipe.name}</div>
+                          <div className="nf-record-description">
+                            {recipe.description?.trim() || "Sem descrição."}
+                          </div>
+                        </div>
+
+                        <div className="nf-record-actions">
+                          <button
+                            type="button"
+                            style={styles.button}
+                            onClick={() => startEditing(recipe)}
+                            disabled={isBusy}
+                          >
+                            Editar
+                          </button>
+
+                          <button
+                            type="button"
+                            style={{
+                              ...styles.button,
+                              background: "#7f1d1d",
+                              border: "1px solid #991b1b",
+                            }}
+                            onClick={() => handleDelete(recipe)}
+                            disabled={isBusy}
+                          >
+                            {isDeleting ? "A apagar..." : "Apagar"}
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="nf-panel-stack">
+                      <div className="nf-record-title">Editar receita</div>
+
+                      <input
+                        style={styles.input}
+                        placeholder="Nome da receita"
+                        value={editState.name}
+                        onChange={(e) =>
+                          setEditState((current) => ({
+                            ...current,
+                            name: e.target.value,
+                          }))
+                        }
                         disabled={isBusy}
-                      >
-                        Editar
-                      </button>
+                      />
 
-                      <button
-                        type="button"
-                        style={{
-                          ...styles.button,
-                          background: "#7f1d1d",
-                          border: "1px solid #991b1b",
-                        }}
-                        onClick={() => handleDelete(recipe)}
+                      <textarea
+                        style={styles.textarea}
+                        placeholder="Descrição"
+                        value={editState.description}
+                        onChange={(e) =>
+                          setEditState((current) => ({
+                            ...current,
+                            description: e.target.value,
+                          }))
+                        }
                         disabled={isBusy}
-                      >
-                        Apagar
-                      </button>
-                    </div>
+                      />
 
-                    <div
-                      style={{
-                        flex: 1,
-                        minWidth: "280px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: "15px",
-                          lineHeight: 1.5,
-                        }}
-                      >
-                        <strong>{recipe.name}</strong>
-                        {recipe.description ? ` — ${recipe.description}` : ""}
+                      <div className="nf-actions-inline">
+                        <button
+                          type="button"
+                          style={styles.button}
+                          onClick={() => handleSave(recipe.id)}
+                          disabled={isBusy}
+                        >
+                          {isSaving ? "A guardar..." : "Guardar"}
+                        </button>
+
+                        <button
+                          type="button"
+                          style={styles.button}
+                          onClick={cancelEditing}
+                          disabled={isBusy}
+                        >
+                          Cancelar
+                        </button>
+
+                        <button
+                          type="button"
+                          style={{
+                            ...styles.button,
+                            background: "#7f1d1d",
+                            border: "1px solid #991b1b",
+                          }}
+                          onClick={() => handleDelete(recipe)}
+                          disabled={isBusy}
+                        >
+                          {isDeleting ? "A apagar..." : "Apagar"}
+                        </button>
                       </div>
                     </div>
-                  </div>
-                ) : (
-                  <div style={styles.form}>
-                    <input
-                      style={styles.input}
-                      placeholder="Nome da receita"
-                      value={editState.name}
-                      onChange={(e) =>
-                        setEditState((current) => ({
-                          ...current,
-                          name: e.target.value,
-                        }))
-                      }
-                      disabled={isBusy}
-                    />
-
-                    <textarea
-                      style={styles.textarea}
-                      placeholder="Descrição"
-                      value={editState.description}
-                      onChange={(e) =>
-                        setEditState((current) => ({
-                          ...current,
-                          description: e.target.value,
-                        }))
-                      }
-                      disabled={isBusy}
-                    />
-
-                    <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                      <button
-                        type="button"
-                        style={styles.button}
-                        onClick={() => handleSave(recipe.id)}
-                        disabled={isBusy}
-                      >
-                        Guardar
-                      </button>
-
-                      <button
-                        type="button"
-                        style={styles.button}
-                        onClick={cancelEditing}
-                        disabled={isBusy}
-                      >
-                        Cancelar
-                      </button>
-
-                      <button
-                        type="button"
-                        style={{
-                          ...styles.button,
-                          background: "#7f1d1d",
-                          border: "1px solid #991b1b",
-                        }}
-                        onClick={() => handleDelete(recipe)}
-                        disabled={isBusy}
-                      >
-                        Apagar
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      )}
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </section>
   );
 }
