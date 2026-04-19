@@ -372,6 +372,214 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.nf-panel-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.nf-split-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.nf-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.nf-actions-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.nf-select-card-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.nf-select-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid #243041;
+  background: #0b1220;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.nf-select-card:hover {
+  transform: translateY(-1px);
+  border-color: #334155;
+  background: #10192a;
+}
+
+.nf-select-card:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 3px;
+}
+
+.nf-select-card--active {
+  border-color: #60a5fa;
+  background: rgba(30, 41, 59, 0.9);
+}
+
+.nf-entity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nf-entity-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #243041;
+  background: #0b1220;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.nf-entity-row:hover {
+  transform: translateY(-1px);
+  border-color: #334155;
+  background: #10192a;
+}
+
+.nf-entity-row:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 3px;
+}
+
+.nf-entity-row--active {
+  border-color: #60a5fa;
+  background: rgba(30, 41, 59, 0.9);
+}
+
+.nf-entity-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.nf-entity-row-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.nf-entity-row-meta {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.nf-rating-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.nf-rating-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid #243041;
+  background: #0b1220;
+}
+
+.nf-rating-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nf-rating-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid #334155;
+  background: #111827;
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.nf-rating-chip--saved {
+  border-color: rgba(34, 197, 94, 0.35);
+  background: rgba(20, 83, 45, 0.25);
+  color: #bbf7d0;
+}
+
+.nf-score-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.nf-score-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid #243041;
+  background: #0b1220;
+}
+
+.nf-score-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nf-score-value {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  color: #f8fafc;
+}
+
+.nf-score-stars {
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  color: #fbbf24;
+}
+
+.nf-score-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid #243041;
+  background: #111827;
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .nf-modal-shell {
   position: fixed;
   inset: 0;
@@ -441,7 +649,8 @@
 @media (max-width: 920px) {
   .nf-context-grid,
   .nf-menu-grid,
-  .nf-menu-grid--three {
+  .nf-menu-grid--three,
+  .nf-split-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -452,8 +661,17 @@
   }
 
   .nf-card-grid,
-  .nf-card-grid--compact {
+  .nf-card-grid--compact,
+  .nf-select-card-grid,
+  .nf-rating-grid,
+  .nf-score-grid {
     grid-template-columns: 1fr;
+  }
+
+  .nf-rating-card-head,
+  .nf-score-card-head {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .nf-modal-shell {
@@ -484,5 +702,9 @@
     padding: 10px;
     min-width: 42px;
     justify-content: center;
+  }
+
+  .nf-actions-inline {
+    flex-direction: column;
   }
 }

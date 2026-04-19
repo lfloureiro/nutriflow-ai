@@ -8,45 +8,54 @@ type Props = {
 export function HouseholdView({ onOpenHouseholds, onOpenMembers }: Props) {
   return (
     <section style={styles.card}>
-      <h2 style={styles.sectionTitle}>Agregados e membros</h2>
+      <div className="nf-menu-panel-head">
+        <div className="nf-kicker">Estrutura</div>
+        <h2 style={styles.sectionTitle}>Agregados e membros</h2>
+        <p className="nf-menu-panel-text">
+          Escolhe a área que queres gerir sem abrir listas longas desnecessárias.
+        </p>
+      </div>
 
-      <p style={styles.info}>
-        Escolhe a área que queres gerir.
-      </p>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: "16px",
-          marginTop: "16px",
-        }}
-      >
-        <button
-          type="button"
-          style={{
-            ...styles.button,
-            minHeight: "72px",
-            fontSize: "16px",
-            fontWeight: 700,
-          }}
+      <div className="nf-menu-grid nf-menu-grid--three" style={{ marginTop: "14px" }}>
+        <div
+          className="nf-clickable-card nf-clickable-card--compact"
+          role="button"
+          tabIndex={0}
           onClick={onOpenHouseholds}
-        >
-          Gerir agregados
-        </button>
-
-        <button
-          type="button"
-          style={{
-            ...styles.button,
-            minHeight: "72px",
-            fontSize: "16px",
-            fontWeight: 700,
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              onOpenHouseholds();
+            }
           }}
-          onClick={onOpenMembers}
+          title="Gerir agregados"
         >
-          Gerir membros
-        </button>
+          <div className="nf-card-kicker">Agregados</div>
+          <div className="nf-card-title">Gerir agregados</div>
+          <div className="nf-card-body">
+            Criar, renomear ou apagar agregados familiares.
+          </div>
+        </div>
+
+        <div
+          className="nf-clickable-card nf-clickable-card--compact"
+          role="button"
+          tabIndex={0}
+          onClick={onOpenMembers}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              onOpenMembers();
+            }
+          }}
+          title="Gerir membros"
+        >
+          <div className="nf-card-kicker">Membros</div>
+          <div className="nf-card-title">Gerir membros</div>
+          <div className="nf-card-body">
+            Adicionar, editar e remover membros de cada agregado.
+          </div>
+        </div>
       </div>
     </section>
   );

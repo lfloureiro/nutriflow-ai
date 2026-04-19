@@ -15,6 +15,10 @@ function renderStars(value: number) {
   return `${"★".repeat(rounded)}${"☆".repeat(5 - rounded)}`;
 }
 
+function formatAverage(value: number) {
+  return value.toFixed(1).replace(".", ",");
+}
+
 export function HouseholdRecipeScoresView({ household }: Props) {
   const [summaries, setSummaries] = useState<RecipePreferenceSummary[]>([]);
   const [loading, setLoading] = useState(false);
@@ -59,17 +63,33 @@ export function HouseholdRecipeScoresView({ household }: Props) {
   if (!household) {
     return (
       <section style={styles.card}>
-        <h2 style={styles.sectionTitle}>Scores da família</h2>
-        <p style={styles.empty}>Seleciona primeiro um agregado ativo.</p>
+        <div className="nf-menu-panel-head">
+          <div className="nf-kicker">Análise</div>
+          <h2 style={styles.sectionTitle}>Scores da família</h2>
+          <p className="nf-menu-panel-text">
+            Seleciona primeiro um agregado ativo.
+          </p>
+        </div>
       </section>
     );
   }
 
   return (
     <section style={styles.card}>
-      <h2 style={styles.sectionTitle}>Scores da família</h2>
+      <div className="nf-menu-panel-head">
+        <div className="nf-kicker">Análise</div>
+        <h2 style={styles.sectionTitle}>Scores da família</h2>
+        <p className="nf-menu-panel-text">
+          Visão consolidada das receitas já avaliadas pelo agregado ativo.
+        </p>
+      </div>
 
-      <p style={styles.info}>Agregado ativo: {household.name}</p>
+      <div className="nf-pill-row" style={{ marginTop: "12px" }}>
+        <span className="nf-context-meta-chip">{household.name}</span>
+        <span className="nf-context-meta-chip">
+          {household.members.length} membros
+        </span>
+      </div>
 
       {loading ? (
         <p style={styles.info}>A carregar scores...</p>
@@ -78,49 +98,30 @@ export function HouseholdRecipeScoresView({ household }: Props) {
       ) : ratedSummaries.length === 0 ? (
         <p style={styles.empty}>Ainda não existem avaliações nesta família.</p>
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-            gap: "16px",
-          }}
-        >
+        <div className="nf-score-grid" style={{ marginTop: "14px" }}>
           {ratedSummaries.map((summary) => (
-            <div
-              key={summary.recipe_id}
-              style={{
-                border: "1px solid #374151",
-                borderRadius: "12px",
-                background: "#111827",
-                padding: "14px",
-                display: "grid",
-                gap: "10px",
-              }}
-            >
-              <div>
-                <strong>{summary.recipe_name}</strong>
+            <div key={summary.recipe_id} className="nf-score-card">
+              <div className="nf-score-card-head">
+                <div className="nf-card-title">{summary.recipe_name}</div>
+                <div className="nf-score-value">
+                  {formatAverage(summary.average_rating)}
+                </div>
               </div>
 
-              <div>
-                <strong>Média:</strong> {summary.average_rating.toFixed(2)} / 5
+              <div className="nf-score-stars">
+                {renderStars(summary.average_rating)}
               </div>
 
-              <div>{renderStars(summary.average_rating)}</div>
-
-              <div>
-                <strong>Número de avaliações:</strong> {summary.ratings_count}
+              <div className="nf-card-body">
+                {summary.ratings_count} avaliação(ões) registadas
               </div>
 
-              <div>
-                <strong>Detalhe:</strong>
-                <ul style={{ margin: "8px 0 0 18px" }}>
-                  {summary.ratings.map((item) => (
-                    <li key={item.id}>
-                      {item.family_member.name}: {item.rating}/5
-                      {item.note ? ` — ${item.note}` : ""}
-                    </li>
-                  ))}
-                </ul>
+              <div className="nf-pill-row" style={{ marginTop: "10px" }}>
+                {summary.ratings.map((rating) => (
+                  <span key={rating.id} className="nf-score-pill">
+                    {rating.family_member.name}: {rating.rating}/5
+                  </span>
+                ))}
               </div>
             </div>
           ))}

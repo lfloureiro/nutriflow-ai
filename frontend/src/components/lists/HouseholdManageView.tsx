@@ -60,7 +60,9 @@ export function HouseholdManageView({
     setFormError(null);
 
     if (!newHouseholdName.trim()) {
-      setLocalError("O nome do agregado é obrigatório.");
+      const message = "O nome do agregado é obrigatório.";
+      setLocalError(message);
+      setFormError(message);
       return;
     }
 
@@ -83,12 +85,15 @@ export function HouseholdManageView({
         throw new Error(getErrorMessage(data, "Não foi possível criar o agregado."));
       }
 
+      const message = "Agregado criado com sucesso.";
       setNewHouseholdName("");
-      setSelectedHouseholdId(String(data.id));
-      setLocalMessage("Agregado criado com sucesso.");
+      setLocalMessage(message);
+      setFormMessage(message);
       await onSuccess();
     } catch (err) {
-      setLocalError(err instanceof Error ? err.message : "Erro inesperado.");
+      const message = err instanceof Error ? err.message : "Erro inesperado.";
+      setLocalError(message);
+      setFormError(message);
     } finally {
       setCreating(false);
     }
@@ -101,12 +106,16 @@ export function HouseholdManageView({
     setFormError(null);
 
     if (!selectedHousehold) {
-      setLocalError("Seleciona um agregado.");
+      const message = "Seleciona um agregado.";
+      setLocalError(message);
+      setFormError(message);
       return;
     }
 
     if (!editHouseholdName.trim()) {
-      setLocalError("O nome do agregado é obrigatório.");
+      const message = "O nome do agregado é obrigatório.";
+      setLocalError(message);
+      setFormError(message);
       return;
     }
 
@@ -126,13 +135,19 @@ export function HouseholdManageView({
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(getErrorMessage(data, "Não foi possível atualizar o agregado."));
+        throw new Error(
+          getErrorMessage(data, "Não foi possível atualizar o agregado.")
+        );
       }
 
-      setLocalMessage("Agregado atualizado com sucesso.");
+      const message = "Agregado atualizado com sucesso.";
+      setLocalMessage(message);
+      setFormMessage(message);
       await onSuccess();
     } catch (err) {
-      setLocalError(err instanceof Error ? err.message : "Erro inesperado.");
+      const message = err instanceof Error ? err.message : "Erro inesperado.";
+      setLocalError(message);
+      setFormError(message);
     } finally {
       setSaving(false);
     }
@@ -145,7 +160,9 @@ export function HouseholdManageView({
     setFormError(null);
 
     if (!selectedHousehold) {
-      setLocalError("Seleciona um agregado.");
+      const message = "Seleciona um agregado.";
+      setLocalError(message);
+      setFormError(message);
       return;
     }
 
@@ -170,12 +187,16 @@ export function HouseholdManageView({
         throw new Error(getErrorMessage(data, "Não foi possível apagar o agregado."));
       }
 
+      const message = "Agregado apagado com sucesso.";
       setSelectedHouseholdId("");
       setEditHouseholdName("");
-      setLocalMessage("Agregado apagado com sucesso.");
+      setLocalMessage(message);
+      setFormMessage(message);
       await onSuccess();
     } catch (err) {
-      setLocalError(err instanceof Error ? err.message : "Erro inesperado.");
+      const message = err instanceof Error ? err.message : "Erro inesperado.";
+      setLocalError(message);
+      setFormError(message);
     } finally {
       setDeleting(false);
     }
@@ -185,97 +206,120 @@ export function HouseholdManageView({
 
   return (
     <section style={styles.card}>
-      <h2 style={styles.sectionTitle}>Gerir agregados</h2>
+      <div className="nf-menu-panel-head">
+        <div className="nf-kicker">Estrutura</div>
+        <h2 style={styles.sectionTitle}>Gerir agregados</h2>
+        <p className="nf-menu-panel-text">
+          Cria novos agregados e mantém a lista atual organizada.
+        </p>
+      </div>
 
       {localMessage && <p style={styles.success}>{localMessage}</p>}
       {localError && <p style={styles.error}>Erro: {localError}</p>}
 
-      <div style={{ display: "grid", gap: "24px" }}>
-        <form style={styles.form} onSubmit={handleCreate}>
-          <h3 style={styles.formTitle}>Novo agregado</h3>
-
-          <input
-            style={styles.input}
-            placeholder="Nome do agregado"
-            value={newHouseholdName}
-            onChange={(e) => setNewHouseholdName(e.target.value)}
-            disabled={busy}
-          />
-
-          <button style={styles.button} type="submit" disabled={busy}>
-            Criar agregado
-          </button>
-        </form>
-
-        <div style={styles.form}>
-          <h3 style={styles.formTitle}>Editar ou apagar agregado</h3>
+      <div className="nf-split-grid" style={{ marginTop: "14px" }}>
+        <div className="nf-panel-stack">
+          <div className="nf-card-title">Agregados existentes</div>
 
           {households.length === 0 ? (
-            <p style={styles.empty}>Sem agregados.</p>
+            <p style={styles.empty}>Ainda não existem agregados.</p>
           ) : (
-            <>
-              <select
-                style={styles.select}
-                value={selectedHouseholdId}
-                onChange={(e) => setSelectedHouseholdId(e.target.value)}
-                disabled={busy}
-              >
-                <option value="">Seleciona um agregado</option>
-                {households.map((household) => (
-                  <option key={household.id} value={household.id}>
-                    {household.name}
-                  </option>
-                ))}
-              </select>
+            <div className="nf-select-card-grid">
+              {households.map((household) => {
+                const isActive = String(household.id) === selectedHouseholdId;
 
-              {selectedHousehold && (
-                <>
-                  <input
-                    style={styles.input}
-                    value={editHouseholdName}
-                    onChange={(e) => setEditHouseholdName(e.target.value)}
-                    disabled={busy}
-                  />
-
-                  <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                    <button
-                      type="button"
-                      style={styles.button}
-                      onClick={handleUpdate}
-                      disabled={busy}
-                    >
-                      Guardar
-                    </button>
-
-                    <button
-                      type="button"
-                      style={{
-                        ...styles.button,
-                        background: "#7f1d1d",
-                        border: "1px solid #991b1b",
-                      }}
-                      onClick={handleDelete}
-                      disabled={busy}
-                    >
-                      Apagar
-                    </button>
-                  </div>
-
+                return (
                   <div
-                    style={{
-                      padding: "12px",
-                      border: "1px solid #374151",
-                      borderRadius: "10px",
-                      background: "#111827",
+                    key={household.id}
+                    className={`nf-select-card${isActive ? " nf-select-card--active" : ""}`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setSelectedHouseholdId(String(household.id))}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setSelectedHouseholdId(String(household.id));
+                      }
                     }}
+                    title={household.name}
                   >
-                    <strong>Membros neste agregado:</strong>{" "}
-                    {selectedHousehold.members.length}
+                    <div className="nf-entity-row-title">{household.name}</div>
+                    <div className="nf-entity-row-meta">
+                      {household.members.length} membro(s)
+                    </div>
                   </div>
-                </>
-              )}
-            </>
+                );
+              })}
+            </div>
           )}
+        </div>
+
+        <div className="nf-panel-stack">
+          <form style={styles.form} onSubmit={handleCreate}>
+            <div className="nf-card-title">Novo agregado</div>
+
+            <input
+              style={styles.input}
+              placeholder="Nome do agregado"
+              value={newHouseholdName}
+              onChange={(e) => setNewHouseholdName(e.target.value)}
+              disabled={busy}
+            />
+
+            <button style={styles.button} type="submit" disabled={busy}>
+              {creating ? "A criar..." : "Criar agregado"}
+            </button>
+          </form>
+
+          <div className="nf-panel-stack">
+            <div className="nf-card-title">Editar agregado selecionado</div>
+
+            {!selectedHousehold ? (
+              <p style={styles.empty}>
+                Seleciona um agregado na lista para o editar ou apagar.
+              </p>
+            ) : (
+              <>
+                <div className="nf-pill-row">
+                  <span className="nf-context-meta-chip">{selectedHousehold.name}</span>
+                  <span className="nf-context-meta-chip">
+                    {selectedHousehold.members.length} membro(s)
+                  </span>
+                </div>
+
+                <input
+                  style={styles.input}
+                  value={editHouseholdName}
+                  onChange={(e) => setEditHouseholdName(e.target.value)}
+                  disabled={busy}
+                />
+
+                <div className="nf-actions-inline">
+                  <button
+                    type="button"
+                    style={styles.button}
+                    onClick={handleUpdate}
+                    disabled={busy}
+                  >
+                    {saving ? "A guardar..." : "Guardar"}
+                  </button>
+
+                  <button
+                    type="button"
+                    style={{
+                      ...styles.button,
+                      background: "#7f1d1d",
+                      border: "1px solid #991b1b",
+                    }}
+                    onClick={handleDelete}
+                    disabled={busy}
+                  >
+                    {deleting ? "A apagar..." : "Apagar"}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </section>
