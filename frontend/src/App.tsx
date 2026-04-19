@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import "./App.css";
 import { API_BASE_URL } from "./config";
 import { styles } from "./components/styles";
 import type {
@@ -53,6 +54,23 @@ type ActiveModal =
   | "data-restore"
   | "data-import";
 
+type DashboardTile = {
+  id: string;
+  title: string;
+  description: string;
+  meta?: string;
+  onOpen: () => void;
+  disabled?: boolean;
+};
+
+type StatTile = {
+  id: string;
+  label: string;
+  value: number;
+  onOpen: () => void;
+  disabled?: boolean;
+};
+
 function App() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
@@ -60,7 +78,8 @@ function App() {
   const [shoppingList, setShoppingList] = useState<ShoppingListItem[]>([]);
   const [households, setHouseholds] = useState<Household[]>([]);
 
-  const [loading, setLoading] = useState(true);
+  const [baseLoading, setBaseLoading] = useState(true);
+  const [householdLoading, setHouseholdLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [formMessage, setFormMessage] = useState<string | null>(null);
@@ -77,6 +96,8 @@ function App() {
       null,
     [households, selectedHouseholdId]
   );
+
+  const hasActiveHousehold = Boolean(selectedHouseholdId && selectedHousehold);
 
   async function loadBaseData(): Promise<string> {
     const [recipesRes, ingredientsRes, householdsRes] = await Promise.all([
@@ -121,40 +142,54 @@ function App() {
     return nextHouseholdId;
   }
 
-  async function loadHouseholdScopedData(householdId: string) {
+  async function loadHouseholdScopedData(
+    householdId: string,
+    options?: { showLoading?: boolean }
+  ) {
     const requestId = ++householdScopedRequestRef.current;
+    const showLoading = options?.showLoading ?? false;
 
-    if (!householdId) {
-      if (requestId === householdScopedRequestRef.current) {
-        setMealPlan([]);
-        setShoppingList([]);
+    if (showLoading) {
+      setHouseholdLoading(true);
+    }
+
+    try {
+      if (!householdId) {
+        if (requestId === householdScopedRequestRef.current) {
+          setMealPlan([]);
+          setShoppingList([]);
+        }
+        return;
       }
-      return;
+
+      const [mealPlanRes, shoppingListRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/meal-plan/?household_id=${householdId}`),
+        fetch(`${API_BASE_URL}/shopping-list/generate?household_id=${householdId}`),
+      ]);
+
+      if (!mealPlanRes.ok || !shoppingListRes.ok) {
+        throw new Error("Falha ao carregar dados do agregado ativo.");
+      }
+
+      const mealPlanData = await mealPlanRes.json();
+      const shoppingListData = await shoppingListRes.json();
+
+      if (requestId !== householdScopedRequestRef.current) {
+        return;
+      }
+
+      setMealPlan(mealPlanData);
+      setShoppingList(shoppingListData);
+    } finally {
+      if (showLoading) {
+        setHouseholdLoading(false);
+      }
     }
-
-    const [mealPlanRes, shoppingListRes] = await Promise.all([
-      fetch(`${API_BASE_URL}/meal-plan/?household_id=${householdId}`),
-      fetch(`${API_BASE_URL}/shopping-list/generate?household_id=${householdId}`),
-    ]);
-
-    if (!mealPlanRes.ok || !shoppingListRes.ok) {
-      throw new Error("Falha ao carregar dados do agregado ativo.");
-    }
-
-    const mealPlanData = await mealPlanRes.json();
-    const shoppingListData = await shoppingListRes.json();
-
-    if (requestId !== householdScopedRequestRef.current) {
-      return;
-    }
-
-    setMealPlan(mealPlanData);
-    setShoppingList(shoppingListData);
   }
 
   async function loadData() {
     try {
-      setLoading(true);
+      setBaseLoading(true);
       setError(null);
 
       const householdId = await loadBaseData();
@@ -162,26 +197,21 @@ function App() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado.");
     } finally {
-      setLoading(false);
+      setBaseLoading(false);
+      setHouseholdLoading(false);
     }
   }
 
   async function handleChangeHousehold(value: string) {
     try {
-      setLoading(true);
       setError(null);
       setFormMessage(null);
       setFormError(null);
 
       setSelectedHouseholdId(value);
-      setMealPlan([]);
-      setShoppingList([]);
-
-      await loadHouseholdScopedData(value);
+      await loadHouseholdScopedData(value, { showLoading: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado.");
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -199,324 +229,462 @@ function App() {
     setActiveModal(null);
   }
 
+  function activateTile(onOpen: () => void, disabled?: boolean) {
+    if (disabled) {
+      return;
+    }
+    onOpen();
+  }
+
+  function handleTileKeyDown(
+    event: React.KeyboardEvent<HTMLDivElement>,
+    onOpen: () => void,
+    disabled?: boolean
+  ) {
+    if (disabled) {
+      return;
+    }
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onOpen();
+    }
+  }
+
+  const statTiles: StatTile[] = [
+    {
+      id: "recipes",
+      label: "Receitas",
+      value: recipes.length,
+      onOpen: () => openModal("manage-recipes"),
+    },
+    {
+      id: "meal-plan",
+      label: "Refeições planeadas",
+      value: mealPlan.length,
+      onOpen: () => openModal("weekly-plan"),
+      disabled: !hasActiveHousehold,
+    },
+    {
+      id: "shopping-list",
+      label: "Itens na lista",
+      value: shoppingList.length,
+      onOpen: () => openModal("shopping-list"),
+      disabled: !hasActiveHousehold,
+    },
+  ];
+
+  const dashboardTiles: DashboardTile[] = [
+    {
+      id: "next-meal",
+      title: "Planear próxima refeição",
+      description: "Cria almoço ou jantar para o agregado ativo com sugestão do próximo slot.",
+      meta: "Plano semanal",
+      onOpen: () => openModal("meal-plan"),
+      disabled: !hasActiveHousehold,
+    },
+    {
+      id: "recipes",
+      title: "Gerir receitas",
+      description: "Criar receitas, ingredientes e ligações entre receitas e ingredientes.",
+      meta: "Receitas",
+      onOpen: () => openModal("manage-recipes"),
+    },
+    {
+      id: "weekly-plan",
+      title: "Ver plano semanal",
+      description: "Consulta rápida das refeições já planeadas para o agregado ativo.",
+      meta: "Plano semanal",
+      onOpen: () => openModal("weekly-plan"),
+      disabled: !hasActiveHousehold,
+    },
+    {
+      id: "shopping-list",
+      title: "Ver lista de compras",
+      description: "Abre a lista agregada gerada a partir do plano do agregado ativo.",
+      meta: "Compras",
+      onOpen: () => openModal("shopping-list"),
+      disabled: !hasActiveHousehold,
+    },
+    {
+      id: "family",
+      title: "Família e preferências",
+      description: "Gerir agregados, membros, avaliações e scores da família.",
+      meta: "Família",
+      onOpen: () => openModal("family-feedback"),
+    },
+  ];
+
   return (
     <div style={styles.page}>
-      <header style={styles.header}>
-        <div style={styles.title}>NutriFlow AI</div>
-        <div style={styles.subtitle}>
-          Protótipo inicial do planeamento alimentar.
-        </div>
-
-        {loading && <p>A carregar dados...</p>}
-        {error && <p style={styles.error}>Erro: {error}</p>}
-        {formMessage && <p style={styles.success}>{formMessage}</p>}
-        {formError && <p style={styles.error}>Erro: {formError}</p>}
-      </header>
-
-      {!loading && !error && (
-        <>
-          <div style={styles.statsGrid}>
-            <button
-              type="button"
-              onClick={() => openModal("manage-recipes")}
-              style={{
-                ...styles.statCard,
-                cursor: "pointer",
-                textAlign: "center",
-              }}
-              aria-label="Abrir gestão de receitas"
-              title="Abrir gestão de receitas"
-            >
-              <div style={styles.statValue}>{recipes.length}</div>
-              <div style={styles.statLabel}>Receitas</div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => openModal("weekly-plan")}
-              style={{
-                ...styles.statCard,
-                cursor: "pointer",
-                textAlign: "center",
-              }}
-              aria-label="Abrir plano semanal"
-              title="Abrir plano semanal"
-            >
-              <div style={styles.statValue}>{mealPlan.length}</div>
-              <div style={styles.statLabel}>Refeições planeadas</div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => openModal("shopping-list")}
-              style={{
-                ...styles.statCard,
-                cursor: "pointer",
-                textAlign: "center",
-              }}
-              aria-label="Abrir lista de compras"
-              title="Abrir lista de compras"
-            >
-              <div style={styles.statValue}>{shoppingList.length}</div>
-              <div style={styles.statLabel}>Itens na lista de compras</div>
-            </button>
+      <div className="nf-shell">
+        <header className="nf-header">
+          <div className="nf-title-block">
+            <div className="nf-kicker">NutriFlow AI</div>
+            <h1 style={styles.title}>Planeamento alimentar familiar</h1>
+            <p style={styles.subtitle}>
+              Base estável do protótipo, centrada em agregado, plano semanal e
+              preferências por receita.
+            </p>
           </div>
 
-          <div style={{ height: "16px" }} />
-
-          <HouseholdContextSelector
-            households={households}
-            selectedHouseholdId={selectedHouseholdId}
-            onChange={handleChangeHousehold}
-          />
-
-          <div style={{ height: "16px" }} />
-
-          <div style={styles.actionGrid}>
-            <div style={styles.actionCard} onClick={() => openModal("meal-plan")}>
-              <div style={styles.actionTitle}>Planear próxima refeição</div>
-              <div style={styles.actionText}>
-                Sugere automaticamente a próxima data e tipo de refeição livres,
-                permitindo ajuste antes de guardar.
-              </div>
+          <div className="nf-header-right">
+            <div className="nf-header-badge">
+              <span className="nf-header-badge-label">Estado</span>
+              <strong>
+                {baseLoading
+                  ? "A carregar"
+                  : householdLoading
+                    ? "A atualizar agregado"
+                    : "Pronto"}
+              </strong>
             </div>
 
             <div
-              style={styles.actionCard}
-              onClick={() => openModal("manage-recipes")}
-            >
-              <div style={styles.actionTitle}>Gerir receitas</div>
-              <div style={styles.actionText}>
-                Criar receitas, ingredientes e associar ingredientes às receitas.
-              </div>
-            </div>
-
-            <div
-              style={styles.actionCard}
-              onClick={() => openModal("weekly-plan")}
-            >
-              <div style={styles.actionTitle}>Ver plano semanal</div>
-              <div style={styles.actionText}>
-                Consultar as refeições já planeadas para o agregado ativo.
-              </div>
-            </div>
-
-            <div
-              style={styles.actionCard}
-              onClick={() => openModal("shopping-list")}
-            >
-              <div style={styles.actionTitle}>Ver lista de compras</div>
-              <div style={styles.actionText}>
-                Consultar a lista agregada do agregado ativo.
-              </div>
-            </div>
-
-            <div
-              style={styles.actionCard}
-              onClick={() => openModal("family-feedback")}
-            >
-              <div style={styles.actionTitle}>Família e preferências</div>
-              <div style={styles.actionText}>
-                Gerir agregados, avaliar receitas de 0 a 5 e consultar scores por agregado.
-              </div>
-            </div>
-
-            <div
-              style={styles.actionCard}
+              className="nf-utility-action"
+              role="button"
+              tabIndex={0}
+              aria-label="Abrir administração de dados"
+              title="Dados e importação"
               onClick={() => openModal("data-tools")}
+              onKeyDown={(event) =>
+                handleTileKeyDown(event, () => openModal("data-tools"))
+              }
             >
-              <div style={styles.actionTitle}>Dados e importação</div>
-              <div style={styles.actionText}>
-                Gerir snapshots de dados e executar importações bulk por JSON.
-              </div>
+              <span className="nf-utility-action-icon">⚙</span>
+              <span className="nf-utility-action-text">Administração</span>
             </div>
           </div>
-        </>
-      )}
+        </header>
 
-      {activeModal === "meal-plan" && (
-        <Modal title="Planear próxima refeição" onClose={closeModal}>
-          <MealPlanForm
-            householdId={selectedHouseholdId}
-            householdName={selectedHousehold?.name ?? null}
-            recipes={recipes}
-            onSuccess={loadData}
-            setFormMessage={setFormMessage}
-            setFormError={setFormError}
-          />
-        </Modal>
-      )}
+        {(error || formMessage || formError || householdLoading) && (
+          <div className="nf-status-stack">
+            {householdLoading && (
+              <div className="nf-status-banner nf-status-banner--info">
+                A atualizar o plano e a lista de compras do agregado ativo…
+              </div>
+            )}
 
-      {activeModal === "manage-recipes" && (
-        <Modal title="Gerir receitas e ingredientes" onClose={closeModal}>
-          <RecipeToolsMenu
-            onOpenCreateRecipe={() => openModal("recipe-create")}
-            onOpenManageIngredients={() => openModal("ingredient-manage")}
-            onOpenLinkIngredient={() => openModal("recipe-ingredient-link")}
-            onOpenRecipeList={() => openModal("recipe-list")}
-          />
-        </Modal>
-      )}
+            {error && (
+              <div className="nf-status-banner nf-status-banner--error">
+                {error}
+              </div>
+            )}
 
-      {activeModal === "recipe-create" && (
-        <Modal title="Nova receita" onClose={closeModal}>
-          <RecipeForm
-            onSuccess={loadData}
-            setFormMessage={setFormMessage}
-            setFormError={setFormError}
-          />
-        </Modal>
-      )}
+            {formMessage && (
+              <div className="nf-status-banner nf-status-banner--success">
+                {formMessage}
+              </div>
+            )}
 
-      {activeModal === "ingredient-manage" && (
-        <Modal title="Gerir ingredientes" onClose={closeModal}>
-          <IngredientForm
-            ingredients={ingredients}
-            onSuccess={loadData}
-            setFormMessage={setFormMessage}
-            setFormError={setFormError}
-          />
-        </Modal>
-      )}
+            {formError && (
+              <div className="nf-status-banner nf-status-banner--error">
+                {formError}
+              </div>
+            )}
+          </div>
+        )}
 
-      {activeModal === "recipe-ingredient-link" && (
-        <Modal title="Associar ingrediente a receita" onClose={closeModal}>
-          <RecipeIngredientForm
-            recipes={recipes}
-            ingredients={ingredients}
-            onSuccess={loadData}
-            setFormMessage={setFormMessage}
-            setFormError={setFormError}
-          />
-        </Modal>
-      )}
+        {baseLoading ? (
+          <section style={styles.card}>
+            <div className="nf-loading-state">
+              <div className="nf-kicker">Inicialização</div>
+              <div className="nf-card-title">A carregar dados base</div>
+              <div className="nf-card-body">
+                A aplicação está a sincronizar receitas, ingredientes, agregados
+                e dados do agregado ativo.
+              </div>
+            </div>
+          </section>
+        ) : !error ? (
+          <>
+            <div className="nf-overview-grid">
+              <HouseholdContextSelector
+                households={households}
+                selectedHouseholdId={selectedHouseholdId}
+                onChange={handleChangeHousehold}
+                isLoading={householdLoading}
+              />
 
-      {activeModal === "recipe-list" && (
-        <Modal title="Receitas" onClose={closeModal}>
-          <RecipeList
-            recipes={recipes}
-            onSuccess={loadData}
-            setFormMessage={setFormMessage}
-            setFormError={setFormError}
-          />
-        </Modal>
-      )}
+              <section style={styles.card} className="nf-home-summary">
+                <div className="nf-kicker">Contexto atual</div>
+                <div className="nf-card-title">
+                  {selectedHousehold?.name ?? "Sem agregado ativo"}
+                </div>
+                <div className="nf-card-body">
+                  {selectedHousehold
+                    ? "O plano semanal, a lista de compras e as avaliações trabalham sobre este agregado."
+                    : "Cria ou seleciona um agregado para ativar o plano semanal e a lista de compras."}
+                </div>
 
-      {activeModal === "weekly-plan" && (
-        <Modal title="Plano semanal" onClose={closeModal}>
-          <MealPlanList
-            mealPlan={mealPlan}
-            recipes={recipes}
-            onSuccess={loadData}
-          />
-        </Modal>
-      )}
+                <div className="nf-home-summary-grid">
+                  <div className="nf-home-summary-item">
+                    <span>Membros</span>
+                    <strong>{selectedHousehold?.members.length ?? 0}</strong>
+                  </div>
 
-      {activeModal === "shopping-list" && (
-        <Modal title="Lista de compras" onClose={closeModal}>
-          <ShoppingListView shoppingList={shoppingList} />
-        </Modal>
-      )}
+                  <div className="nf-home-summary-item">
+                    <span>Plano</span>
+                    <strong>{mealPlan.length}</strong>
+                  </div>
 
-      {activeModal === "family-feedback" && (
-        <Modal title="Família e preferências" onClose={closeModal}>
-          <FamilyWorkspaceMenu
-            household={selectedHousehold}
-            onOpenHouseholds={() => openModal("family-households")}
-            onOpenRatings={() => openModal("family-ratings")}
-            onOpenScores={() => openModal("family-scores")}
-          />
-        </Modal>
-      )}
+                  <div className="nf-home-summary-item">
+                    <span>Compras</span>
+                    <strong>{shoppingList.length}</strong>
+                  </div>
+                </div>
+              </section>
+            </div>
 
-      {activeModal === "family-households" && (
-        <Modal title="Agregados e membros" onClose={closeModal}>
-          <HouseholdView
-            onOpenHouseholds={() => openModal("family-household-manage")}
-            onOpenMembers={() => openModal("family-member-manage")}
-          />
-        </Modal>
-      )}
+            <section className="nf-section-block">
+              <div className="nf-section-header">
+                <div>
+                  <div className="nf-kicker">Visão rápida</div>
+                  <h2 style={styles.sectionTitle}>Indicadores principais</h2>
+                </div>
+              </div>
 
-      {activeModal === "family-household-manage" && (
-        <Modal title="Gerir agregados" onClose={closeModal}>
-          <HouseholdManageView
-            households={households}
-            onSuccess={loadData}
-            setFormMessage={setFormMessage}
-            setFormError={setFormError}
-          />
-        </Modal>
-      )}
+              <div className="nf-stats-grid">
+                {statTiles.map((tile) => (
+                  <div
+                    key={tile.id}
+                    className={`nf-clickable-card nf-stat-card${tile.disabled ? " nf-clickable-card--disabled" : ""}`}
+                    role="button"
+                    tabIndex={tile.disabled ? -1 : 0}
+                    aria-disabled={tile.disabled ? "true" : "false"}
+                    onClick={() => activateTile(tile.onOpen, tile.disabled)}
+                    onKeyDown={(event) =>
+                      handleTileKeyDown(event, tile.onOpen, tile.disabled)
+                    }
+                    title={tile.disabled ? "Seleciona primeiro um agregado" : tile.label}
+                  >
+                    <div className="nf-card-value">{tile.value}</div>
+                    <div className="nf-card-body">{tile.label}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
 
-      {activeModal === "family-member-manage" && (
-        <Modal title="Gerir membros" onClose={closeModal}>
-          <FamilyMemberManageView
-            households={households}
-            onSuccess={loadData}
-            setFormMessage={setFormMessage}
-            setFormError={setFormError}
-          />
-        </Modal>
-      )}
+            <section className="nf-section-block">
+              <div className="nf-section-header">
+                <div>
+                  <div className="nf-kicker">Ações rápidas</div>
+                  <h2 style={styles.sectionTitle}>O que queres fazer agora?</h2>
+                </div>
+              </div>
 
-      {activeModal === "family-ratings" && (
-        <Modal title="Avaliar receitas" onClose={closeModal}>
-          <RecipeRatingsPanel
-            household={selectedHousehold}
-            recipes={recipes}
-            onSuccess={loadData}
-            setFormMessage={setFormMessage}
-            setFormError={setFormError}
-          />
-        </Modal>
-      )}
+              <div className="nf-card-grid">
+                {dashboardTiles.map((tile) => (
+                  <div
+                    key={tile.id}
+                    className={`nf-clickable-card${tile.disabled ? " nf-clickable-card--disabled" : ""}`}
+                    role="button"
+                    tabIndex={tile.disabled ? -1 : 0}
+                    aria-disabled={tile.disabled ? "true" : "false"}
+                    onClick={() => activateTile(tile.onOpen, tile.disabled)}
+                    onKeyDown={(event) =>
+                      handleTileKeyDown(event, tile.onOpen, tile.disabled)
+                    }
+                    title={
+                      tile.disabled
+                        ? "Seleciona primeiro um agregado"
+                        : tile.title
+                    }
+                  >
+                    {tile.meta && <div className="nf-card-kicker">{tile.meta}</div>}
+                    <div className="nf-card-title">{tile.title}</div>
+                    <div className="nf-card-body">{tile.description}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </>
+        ) : null}
 
-      {activeModal === "family-scores" && (
-        <Modal title="Scores da família" onClose={closeModal}>
-          <HouseholdRecipeScoresView household={selectedHousehold} />
-        </Modal>
-      )}
+        {activeModal === "meal-plan" && (
+          <Modal title="Planear próxima refeição" onClose={closeModal}>
+            <MealPlanForm
+              householdId={selectedHouseholdId}
+              householdName={selectedHousehold?.name ?? null}
+              recipes={recipes}
+              onSuccess={loadData}
+              setFormMessage={setFormMessage}
+              setFormError={setFormError}
+            />
+          </Modal>
+        )}
 
-      {activeModal === "data-tools" && (
-        <Modal title="Dados e importação" onClose={closeModal}>
-          <DataToolsMenu
-            onOpenBackup={() => openModal("data-backup")}
-            onOpenRestore={() => openModal("data-restore")}
-            onOpenImport={() => openModal("data-import")}
-          />
-        </Modal>
-      )}
+        {activeModal === "manage-recipes" && (
+          <Modal title="Gerir receitas e ingredientes" onClose={closeModal}>
+            <RecipeToolsMenu
+              onOpenCreateRecipe={() => openModal("recipe-create")}
+              onOpenManageIngredients={() => openModal("ingredient-manage")}
+              onOpenLinkIngredient={() => openModal("recipe-ingredient-link")}
+              onOpenRecipeList={() => openModal("recipe-list")}
+            />
+          </Modal>
+        )}
 
-      {activeModal === "data-backup" && (
-        <Modal title="Guardar snapshot" onClose={closeModal}>
-          <SnapshotBackupPanel
-            onSuccess={loadData}
-            setFormMessage={setFormMessage}
-            setFormError={setFormError}
-          />
-        </Modal>
-      )}
+        {activeModal === "recipe-create" && (
+          <Modal title="Nova receita" onClose={closeModal}>
+            <RecipeForm
+              onSuccess={loadData}
+              setFormMessage={setFormMessage}
+              setFormError={setFormError}
+            />
+          </Modal>
+        )}
 
-      {activeModal === "data-restore" && (
-        <Modal title="Repor snapshot" onClose={closeModal}>
-          <SnapshotRestorePanel
-            onSuccess={loadData}
-            setFormMessage={setFormMessage}
-            setFormError={setFormError}
-          />
-        </Modal>
-      )}
+        {activeModal === "ingredient-manage" && (
+          <Modal title="Gerir ingredientes" onClose={closeModal}>
+            <IngredientForm
+              ingredients={ingredients}
+              onSuccess={loadData}
+              setFormMessage={setFormMessage}
+              setFormError={setFormError}
+            />
+          </Modal>
+        )}
 
-      {activeModal === "data-import" && (
-        <Modal title="Importação bulk JSON" onClose={closeModal}>
-          <BulkImportPanel
-            onSuccess={loadData}
-            setFormMessage={setFormMessage}
-            setFormError={setFormError}
-          />
-        </Modal>
-      )}
+        {activeModal === "recipe-ingredient-link" && (
+          <Modal title="Associar ingrediente a receita" onClose={closeModal}>
+            <RecipeIngredientForm
+              recipes={recipes}
+              ingredients={ingredients}
+              onSuccess={loadData}
+              setFormMessage={setFormMessage}
+              setFormError={setFormError}
+            />
+          </Modal>
+        )}
+
+        {activeModal === "recipe-list" && (
+          <Modal title="Receitas" onClose={closeModal}>
+            <RecipeList
+              recipes={recipes}
+              onSuccess={loadData}
+              setFormMessage={setFormMessage}
+              setFormError={setFormError}
+            />
+          </Modal>
+        )}
+
+        {activeModal === "weekly-plan" && (
+          <Modal title="Plano semanal" onClose={closeModal}>
+            <MealPlanList
+              mealPlan={mealPlan}
+              recipes={recipes}
+              onSuccess={loadData}
+            />
+          </Modal>
+        )}
+
+        {activeModal === "shopping-list" && (
+          <Modal title="Lista de compras" onClose={closeModal}>
+            <ShoppingListView shoppingList={shoppingList} />
+          </Modal>
+        )}
+
+        {activeModal === "family-feedback" && (
+          <Modal title="Família e preferências" onClose={closeModal}>
+            <FamilyWorkspaceMenu
+              household={selectedHousehold}
+              onOpenHouseholds={() => openModal("family-households")}
+              onOpenRatings={() => openModal("family-ratings")}
+              onOpenScores={() => openModal("family-scores")}
+            />
+          </Modal>
+        )}
+
+        {activeModal === "family-households" && (
+          <Modal title="Agregados e membros" onClose={closeModal}>
+            <HouseholdView
+              onOpenHouseholds={() => openModal("family-household-manage")}
+              onOpenMembers={() => openModal("family-member-manage")}
+            />
+          </Modal>
+        )}
+
+        {activeModal === "family-household-manage" && (
+          <Modal title="Gerir agregados" onClose={closeModal}>
+            <HouseholdManageView
+              households={households}
+              onSuccess={loadData}
+              setFormMessage={setFormMessage}
+              setFormError={setFormError}
+            />
+          </Modal>
+        )}
+
+        {activeModal === "family-member-manage" && (
+          <Modal title="Gerir membros" onClose={closeModal}>
+            <FamilyMemberManageView
+              households={households}
+              onSuccess={loadData}
+              setFormMessage={setFormMessage}
+              setFormError={setFormError}
+            />
+          </Modal>
+        )}
+
+        {activeModal === "family-ratings" && (
+          <Modal title="Avaliar receitas" onClose={closeModal}>
+            <RecipeRatingsPanel
+              household={selectedHousehold}
+              recipes={recipes}
+              onSuccess={loadData}
+              setFormMessage={setFormMessage}
+              setFormError={setFormError}
+            />
+          </Modal>
+        )}
+
+        {activeModal === "family-scores" && (
+          <Modal title="Scores da família" onClose={closeModal}>
+            <HouseholdRecipeScoresView household={selectedHousehold} />
+          </Modal>
+        )}
+
+        {activeModal === "data-tools" && (
+          <Modal title="Dados e importação" onClose={closeModal}>
+            <DataToolsMenu
+              onOpenBackup={() => openModal("data-backup")}
+              onOpenRestore={() => openModal("data-restore")}
+              onOpenImport={() => openModal("data-import")}
+            />
+          </Modal>
+        )}
+
+        {activeModal === "data-backup" && (
+          <Modal title="Guardar snapshot" onClose={closeModal}>
+            <SnapshotBackupPanel
+              onSuccess={loadData}
+              setFormMessage={setFormMessage}
+              setFormError={setFormError}
+            />
+          </Modal>
+        )}
+
+        {activeModal === "data-restore" && (
+          <Modal title="Repor snapshot" onClose={closeModal}>
+            <SnapshotRestorePanel
+              onSuccess={loadData}
+              setFormMessage={setFormMessage}
+              setFormError={setFormError}
+            />
+          </Modal>
+        )}
+
+        {activeModal === "data-import" && (
+          <Modal title="Importação bulk JSON" onClose={closeModal}>
+            <BulkImportPanel
+              onSuccess={loadData}
+              setFormMessage={setFormMessage}
+              setFormError={setFormError}
+            />
+          </Modal>
+        )}
+      </div>
     </div>
   );
 }

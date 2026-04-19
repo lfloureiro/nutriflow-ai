@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { styles } from "./styles";
 
 type Props = {
@@ -8,16 +8,47 @@ type Props = {
 };
 
 export function Modal({ title, onClose, children }: Props) {
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
+
   return (
-    <div style={styles.overlay} onClick={onClose}>
-      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <div style={styles.modalHeader}>
-          <h2 style={styles.modalTitle}>{title}</h2>
-          <button style={styles.closeButton} onClick={onClose}>
+    <div className="nf-modal-shell" onClick={onClose}>
+      <div
+        className="nf-modal-card"
+        style={styles.modal}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="nf-modal-header">
+          <div className="nf-modal-title-wrap">
+            <h2 style={styles.modalTitle}>{title}</h2>
+          </div>
+
+          <button
+            type="button"
+            className="nf-modal-close"
+            style={styles.closeButton}
+            onClick={onClose}
+          >
             Fechar
           </button>
         </div>
-        {children}
+
+        <div className="nf-modal-content">{children}</div>
       </div>
     </div>
   );

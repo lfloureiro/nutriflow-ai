@@ -5,33 +5,36 @@ type Props = {
   households: Household[];
   selectedHouseholdId: string;
   onChange: (value: string) => void;
+  isLoading?: boolean;
 };
 
 export function HouseholdContextSelector({
   households,
   selectedHouseholdId,
   onChange,
+  isLoading = false,
 }: Props) {
   const selectedHousehold =
     households.find((item) => String(item.id) === selectedHouseholdId) ?? null;
 
   return (
     <section style={styles.card}>
-      <h2 style={styles.sectionTitle}>Agregado ativo</h2>
+      <div className="nf-kicker">Agregado ativo</div>
+      <h2 style={styles.sectionTitle}>Contexto de trabalho</h2>
 
       {households.length === 0 ? (
-        <p style={styles.empty}>Ainda não existem agregados.</p>
+        <p style={{ ...styles.empty, marginTop: "10px" }}>
+          Ainda não existem agregados. Cria um agregado em “Família e preferências”.
+        </p>
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gap: "14px",
-            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-            alignItems: "start",
-          }}
-        >
-          <div style={styles.form}>
+        <div className="nf-household-grid" style={{ marginTop: "14px" }}>
+          <div>
+            <label htmlFor="household-selector" className="nf-field-label">
+              Agregado selecionado
+            </label>
+
             <select
+              id="household-selector"
               style={styles.select}
               value={selectedHouseholdId}
               onChange={(e) => onChange(e.target.value)}
@@ -43,22 +46,22 @@ export function HouseholdContextSelector({
                 </option>
               ))}
             </select>
+
+            {isLoading && (
+              <p className="nf-inline-note">A atualizar plano e compras…</p>
+            )}
           </div>
 
-          <div
-            style={{
-              padding: "14px",
-              border: "1px solid #374151",
-              borderRadius: "12px",
-              background: "#111827",
-            }}
-          >
+          <div className="nf-household-summary">
             <div>
-              <strong>Agregado selecionado:</strong>{" "}
-              {selectedHousehold?.name ?? "-"}
+              <strong>Agregado:</strong> {selectedHousehold?.name ?? "-"}
             </div>
-            <div style={{ marginTop: "8px" }}>
+            <div>
               <strong>Membros:</strong> {selectedHousehold?.members.length ?? 0}
+            </div>
+            <div>
+              <strong>Estado:</strong>{" "}
+              {selectedHousehold ? "Ativo" : "Sem agregado selecionado"}
             </div>
           </div>
         </div>
