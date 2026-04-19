@@ -7,79 +7,83 @@ type Props = {
   onOpenRecipeList: () => void;
 };
 
+type MenuTile = {
+  id: string;
+  title: string;
+  description: string;
+  meta: string;
+  onOpen: () => void;
+};
+
 export function RecipeToolsMenu({
   onOpenCreateRecipe,
   onOpenManageIngredients,
   onOpenLinkIngredient,
   onOpenRecipeList,
 }: Props) {
+  const items: MenuTile[] = [
+    {
+      id: "recipe-create",
+      title: "Nova receita",
+      description: "Criar uma nova receita base com nome e descrição.",
+      meta: "Receitas",
+      onOpen: onOpenCreateRecipe,
+    },
+    {
+      id: "ingredient-manage",
+      title: "Gerir ingredientes",
+      description: "Adicionar, editar ou limpar a lista global de ingredientes.",
+      meta: "Ingredientes",
+      onOpen: onOpenManageIngredients,
+    },
+    {
+      id: "recipe-ingredient-link",
+      title: "Associar ingredientes",
+      description:
+        "Ligar ingredientes a receitas com quantidade e unidade.",
+      meta: "Composição",
+      onOpen: onOpenLinkIngredient,
+    },
+    {
+      id: "recipe-list",
+      title: "Ver receitas",
+      description: "Abrir a lista de receitas para consulta e manutenção.",
+      meta: "Consulta",
+      onOpen: onOpenRecipeList,
+    },
+  ];
+
   return (
-    <section style={styles.card}>
-      <h2 style={styles.sectionTitle}>Receitas e ingredientes</h2>
+    <section className="nf-menu-panel">
+      <div className="nf-menu-panel-head">
+        <div className="nf-kicker">Receitas</div>
+        <h3 style={styles.sectionTitle}>Ferramentas de receitas</h3>
+        <p className="nf-menu-panel-text">
+          Escolhe a operação que queres fazer sem abrir um ecrã demasiado comprido.
+        </p>
+      </div>
 
-      <p style={styles.info}>
-        Escolhe a ação que queres executar.
-      </p>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: "16px",
-          marginTop: "16px",
-        }}
-      >
-        <button
-          type="button"
-          style={{
-            ...styles.button,
-            minHeight: "72px",
-            fontSize: "16px",
-            fontWeight: 700,
-          }}
-          onClick={onOpenCreateRecipe}
-        >
-          Nova receita
-        </button>
-
-        <button
-          type="button"
-          style={{
-            ...styles.button,
-            minHeight: "72px",
-            fontSize: "16px",
-            fontWeight: 700,
-          }}
-          onClick={onOpenManageIngredients}
-        >
-          Gerir ingredientes
-        </button>
-
-        <button
-          type="button"
-          style={{
-            ...styles.button,
-            minHeight: "72px",
-            fontSize: "16px",
-            fontWeight: 700,
-          }}
-          onClick={onOpenLinkIngredient}
-        >
-          Associar ingrediente
-        </button>
-
-        <button
-          type="button"
-          style={{
-            ...styles.button,
-            minHeight: "72px",
-            fontSize: "16px",
-            fontWeight: 700,
-          }}
-          onClick={onOpenRecipeList}
-        >
-          Ver receitas
-        </button>
+      <div className="nf-menu-grid">
+        {items.map((item) => (
+          <div
+            key={item.id}
+            className="nf-clickable-card nf-clickable-card--compact"
+            role="button"
+            tabIndex={0}
+            onClick={item.onOpen}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                item.onOpen();
+              }
+            }}
+            title={item.title}
+          >
+            <div className="nf-card-kicker">{item.meta}</div>
+            <div className="nf-card-title">{item.title}</div>
+            <div className="nf-card-body">{item.description}</div>
+          </div>
+        ))}
       </div>
     </section>
   );

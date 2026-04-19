@@ -8,70 +8,98 @@ type Props = {
   onOpenScores: () => void;
 };
 
+type MenuTile = {
+  id: string;
+  title: string;
+  description: string;
+  meta: string;
+  onOpen: () => void;
+  disabled?: boolean;
+};
+
 export function FamilyWorkspaceMenu({
   household,
   onOpenHouseholds,
   onOpenRatings,
   onOpenScores,
 }: Props) {
+  const hasHousehold = Boolean(household);
+
+  const items: MenuTile[] = [
+    {
+      id: "households",
+      title: "Agregados e membros",
+      description:
+        "Criar agregados, editar nomes e gerir os membros de cada família.",
+      meta: "Estrutura",
+      onOpen: onOpenHouseholds,
+    },
+    {
+      id: "ratings",
+      title: "Avaliar receitas",
+      description:
+        "Registar ratings por membro para o agregado atualmente ativo.",
+      meta: "Preferências",
+      onOpen: onOpenRatings,
+      disabled: !hasHousehold,
+    },
+    {
+      id: "scores",
+      title: "Scores da família",
+      description:
+        "Consultar as médias e avaliações já registadas para o agregado ativo.",
+      meta: "Análise",
+      onOpen: onOpenScores,
+      disabled: !hasHousehold,
+    },
+  ];
+
   return (
-    <section style={styles.card}>
-      <h2 style={styles.sectionTitle}>Família e preferências</h2>
+    <section className="nf-menu-panel">
+      <div className="nf-menu-panel-head">
+        <div className="nf-kicker">Família</div>
+        <h3 style={styles.sectionTitle}>Preferências e agregado</h3>
+        <p className="nf-menu-panel-text">
+          {household
+            ? `Agregado ativo: ${household.name}.`
+            : "Seleciona primeiro um agregado para abrir ratings e scores."}
+        </p>
+      </div>
 
-      <p style={styles.info}>
-        {household
-          ? `A trabalhar no agregado: ${household.name}`
-          : "Seleciona primeiro um agregado ativo na página principal."}
-      </p>
+      <div className="nf-menu-grid nf-menu-grid--three">
+        {items.map((item) => (
+          <div
+            key={item.id}
+            className={`nf-clickable-card nf-clickable-card--compact${item.disabled ? " nf-clickable-card--disabled" : ""}`}
+            role="button"
+            tabIndex={item.disabled ? -1 : 0}
+            aria-disabled={item.disabled ? "true" : "false"}
+            onClick={() => {
+              if (!item.disabled) {
+                item.onOpen();
+              }
+            }}
+            onKeyDown={(event) => {
+              if (item.disabled) {
+                return;
+              }
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: "16px",
-          marginTop: "16px",
-        }}
-      >
-        <button
-          type="button"
-          style={{
-            ...styles.button,
-            minHeight: "72px",
-            fontSize: "16px",
-            fontWeight: 700,
-          }}
-          onClick={onOpenHouseholds}
-        >
-          Agregados e membros
-        </button>
-
-        <button
-          type="button"
-          style={{
-            ...styles.button,
-            minHeight: "72px",
-            fontSize: "16px",
-            fontWeight: 700,
-          }}
-          onClick={onOpenRatings}
-          disabled={!household}
-        >
-          Avaliar receitas
-        </button>
-
-        <button
-          type="button"
-          style={{
-            ...styles.button,
-            minHeight: "72px",
-            fontSize: "16px",
-            fontWeight: 700,
-          }}
-          onClick={onOpenScores}
-          disabled={!household}
-        >
-          Scores da família
-        </button>
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                item.onOpen();
+              }
+            }}
+            title={
+              item.disabled
+                ? "Seleciona primeiro um agregado"
+                : item.title
+            }
+          >
+            <div className="nf-card-kicker">{item.meta}</div>
+            <div className="nf-card-title">{item.title}</div>
+            <div className="nf-card-body">{item.description}</div>
+          </div>
+        ))}
       </div>
     </section>
   );
