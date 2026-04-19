@@ -28,26 +28,30 @@ def upgrade() -> None:
         with op.batch_alter_table("meal_plan_items") as batch_op:
             batch_op.add_column(sa.Column("household_id", sa.Integer(), nullable=True))
 
-    household_count = bind.execute(text("SELECT COUNT(*) FROM households")).scalar()
-    if not household_count:
+    meal_plan_count = bind.execute(text("SELECT COUNT(*) FROM meal_plan_items")).scalar() or 0
+    household_count = bind.execute(text("SELECT COUNT(*) FROM households")).scalar() or 0
+
+    if meal_plan_count > 0 and household_count == 0:
         raise RuntimeError(
-            "Não existem agregados em households. Cria pelo menos um agregado antes de aplicar esta migration."
+            "Existem registos em meal_plan_items mas não existem agregados em households. "
+            "Cria pelo menos um agregado antes de aplicar esta migration."
         )
 
-    bind.execute(
-        text(
-            """
-            UPDATE meal_plan_items
-            SET household_id = (
-                SELECT id
-                FROM households
-                ORDER BY id
-                LIMIT 1
+    if household_count > 0:
+        bind.execute(
+            text(
+                """
+                UPDATE meal_plan_items
+                SET household_id = (
+                    SELECT id
+                    FROM households
+                    ORDER BY id
+                    LIMIT 1
+                )
+                WHERE household_id IS NULL
+                """
             )
-            WHERE household_id IS NULL
-            """
         )
-    )
 
     inspector = inspect(bind)
     existing_fks = {
