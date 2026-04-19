@@ -5,13 +5,69 @@ from backend.app.db.session import get_db
 from backend.app.models.ingredient import Ingredient
 from backend.app.models.recipe import Recipe
 from backend.app.models.recipe_ingredient import RecipeIngredient
-from backend.app.schemas.recipe import RecipeCreate, RecipeRead, RecipeDetail, RecipeUpdate
+from backend.app.schemas.recipe import RecipeCreate, RecipeDetail, RecipeRead, RecipeUpdate
 from backend.app.schemas.recipe_ingredient import (
     RecipeIngredientCreate,
     RecipeIngredientUpdate,
 )
 
 router = APIRouter(prefix="/recipes", tags=["recipes"])
+
+ALLOWED_CATEGORIES = {
+    "carne",
+    "peixe",
+    "vegetariano_leguminosas",
+    "outra",
+}
+
+ALLOWED_PROTEINS = {
+    "frango",
+    "vaca",
+    "porco",
+    "peru",
+    "enchidos_processados",
+    "peixe",
+    "ovos",
+    "leguminosas",
+    "queijo_lacticinios",
+    "outra",
+    "nenhuma",
+}
+
+ALLOWED_MEAL_SUITABILITY = {
+    "almoco",
+    "jantar",
+    "ambos",
+}
+
+
+def normalize_optional_text(value: str | None) -> str | None:
+    if value is None:
+        return None
+
+    cleaned = value.strip()
+    return cleaned or None
+
+
+def normalize_choice(
+    value: str | None,
+    allowed_values: set[str],
+    field_label: str,
+) -> str | None:
+    if value is None:
+        return None
+
+    cleaned = value.strip().lower()
+    if not cleaned:
+        return None
+
+    if cleaned not in allowed_values:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Valor inválido para {field_label}: {cleaned}",
+        )
+
+    return cleaned
 
 
 @router.get("/", response_model=list[RecipeRead])
@@ -46,7 +102,23 @@ def create_recipe(recipe_in: RecipeCreate, db: Session = Depends(get_db)):
 
     recipe = Recipe(
         name=name_clean,
-        description=recipe_in.description,
+        description=normalize_optional_text(recipe_in.description),
+        categoria_alimentar=normalize_choice(
+            recipe_in.categoria_alimentar,
+            ALLOWED_CATEGORIES,
+            "categoria_alimentar",
+        ),
+        proteina_principal=normalize_choice(
+            recipe_in.proteina_principal,
+            ALLOWED_PROTEINS,
+            "proteina_principal",
+        ),
+        adequado_refeicao=normalize_choice(
+            recipe_in.adequado_refeicao,
+            ALLOWED_MEAL_SUITABILITY,
+            "adequado_refeicao",
+        ),
+        auto_plan_enabled=recipe_in.auto_plan_enabled,
     )
 
     db.add(recipe)
@@ -73,7 +145,33 @@ def update_recipe(
         recipe.name = name_clean
 
     if "description" in recipe_in.model_fields_set:
-        recipe.description = recipe_in.description
+        recipe.description = normalize_optional_text(recipe_in.description)
+
+    if "categoria_alimentar" in recipe_in.model_fields_set:
+        recipe.categoria_alimentar = normalize_choice(
+            recipe_in.categoria_alimentar,
+            ALLOWED_CATEGORIES,
+            "categoria_alimentar",
+        )
+
+    if "proteina_principal" in recipe_in.model_fields_set:
+        recipe.proteina_principal = normalize_choice(
+            recipe_in.proteina_principal,
+            ALLOWED_PROTEINS,
+            "proteina_principal",
+        )
+
+    if "adequado_refeicao" in recipe_in.model_fields_set:
+        recipe.adequado_refeicao = normalize_choice(
+            recipe_in.adequado_refeicao,
+            ALLOWED_MEAL_SUITABILITY,
+            "adequado_refeicao",
+        )
+
+    if "auto_plan_enabled" in recipe_in.model_fields_set:
+        recipe.auto_plan_enabled = (
+            True if recipe_in.auto_plan_enabled is None else recipe_in.auto_plan_enabled
+        )
 
     db.commit()
     db.refresh(recipe)
