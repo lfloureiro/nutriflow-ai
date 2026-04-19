@@ -106,6 +106,36 @@ $recipeMetadataMap = @{
         adequado_refeicao = "jantar"
         auto_plan_enabled = $true
     }
+    "Chili con carne" = @{
+    categoria_alimentar = "carne"
+    proteina_principal = "vaca"
+    adequado_refeicao = "ambos"
+    auto_plan_enabled = $true
+    }
+    "Chili vegetariano" = @{
+        categoria_alimentar = "vegetariano_leguminosas"
+        proteina_principal = "leguminosas"
+        adequado_refeicao = "ambos"
+        auto_plan_enabled = $true
+    }
+    "Jardineira de vitela" = @{
+        categoria_alimentar = "carne"
+        proteina_principal = "vaca"
+        adequado_refeicao = "ambos"
+        auto_plan_enabled = $true
+    }
+    "Sopa de lentilhas e legumes" = @{
+        categoria_alimentar = "vegetariano_leguminosas"
+        proteina_principal = "leguminosas"
+        adequado_refeicao = "jantar"
+        auto_plan_enabled = $true
+    }
+    "Tarte de legumes e feta" = @{
+        categoria_alimentar = "vegetariano_leguminosas"
+        proteina_principal = "queijo_lacticinios"
+        adequado_refeicao = "jantar"
+        auto_plan_enabled = $true
+    }
 }
 
 Write-Host ""
