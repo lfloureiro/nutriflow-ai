@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { API_BASE_URL } from "../../config";
 import { styles } from "../styles";
 import type { ShoppingListItem } from "../types";
@@ -10,6 +10,8 @@ type Props = {
 };
 
 type FilterMode = "all" | "pending" | "cart";
+
+const POLLING_INTERVAL_MS = 10000;
 
 function formatMealType(mealType: string) {
   return mealType
@@ -30,6 +32,18 @@ function getErrorMessage(data: unknown, fallback: string) {
   return fallback;
 }
 
+function formatSyncTime(value: Date | null) {
+  if (!value) {
+    return "Ainda não sincronizada";
+  }
+
+  return value.toLocaleTimeString("pt-PT", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
 export function ShoppingListView({
   householdId,
   shoppingList,
@@ -39,6 +53,8 @@ export function ShoppingListView({
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [localMessage, setLocalMessage] = useState<string | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(new Date());
 
   const filteredItems = useMemo(() => {
     if (filter === "pending") {
@@ -51,6 +67,66 @@ export function ShoppingListView({
 
     return shoppingList;
   }, [shoppingList, filter]);
+
+  useEffect(() => {
+    setLastSyncedAt(new Date());
+  }, [shoppingList]);
+
+  const refreshList = useCallback(
+    async (options?: { silent?: boolean }) => {
+      if (!householdId) {
+        return;
+      }
+
+      const silent = options?.silent ?? false;
+
+      if (!silent) {
+        setLocalMessage(null);
+        setLocalError(null);
+        setIsRefreshing(true);
+      }
+
+      try {
+        await onRefresh();
+        setLastSyncedAt(new Date());
+
+        if (!silent) {
+          setLocalMessage("Lista sincronizada.");
+        }
+      } catch (err) {
+        if (!silent) {
+          setLocalError(
+            err instanceof Error
+              ? err.message
+              : "Erro inesperado ao sincronizar a lista."
+          );
+        }
+      } finally {
+        if (!silent) {
+          setIsRefreshing(false);
+        }
+      }
+    },
+    [householdId, onRefresh]
+  );
+
+  useEffect(() => {
+    if (!householdId) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      if (document.hidden || savingKey !== null) {
+        return;
+      }
+
+      void refreshList({ silent: true });
+    }, POLLING_INTERVAL_MS);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [householdId, refreshList, savingKey]);
 
   async function toggleInCart(item: ShoppingListItem) {
     setLocalMessage(null);
@@ -93,7 +169,7 @@ export function ShoppingListView({
           : "Item retirado do estado já no cesto."
       );
 
-      await onRefresh();
+      await refreshList({ silent: true });
     } catch (err) {
       setLocalError(err instanceof Error ? err.message : "Erro inesperado.");
     } finally {
@@ -107,7 +183,8 @@ export function ShoppingListView({
         <div className="nf-kicker">Compras</div>
         <h2 style={styles.sectionTitle}>Lista de compras</h2>
         <p className="nf-menu-panel-text">
-          Vista partilhada dos itens a comprar, com estado persistido do cesto.
+          Vista partilhada dos itens a comprar, com estado persistido do cesto e
+          sincronização automática.
         </p>
       </div>
 
@@ -121,6 +198,24 @@ export function ShoppingListView({
         <span className="nf-context-meta-chip">
           {shoppingList.filter((item) => item.in_cart).length} já no cesto
         </span>
+      </div>
+
+      <div
+        className="nf-actions-inline"
+        style={{ marginTop: "12px", alignItems: "center" }}
+      >
+        <span className="nf-context-meta-chip">
+          Última sincronização: {formatSyncTime(lastSyncedAt)}
+        </span>
+
+        <button
+          type="button"
+          className={`nf-filter-chip${isRefreshing ? " nf-filter-chip--active" : ""}`}
+          onClick={() => void refreshList()}
+          disabled={isRefreshing || !householdId}
+        >
+          {isRefreshing ? "A sincronizar..." : "Atualizar agora"}
+        </button>
       </div>
 
       {localMessage && <p style={styles.success}>{localMessage}</p>}
@@ -171,9 +266,7 @@ export function ShoppingListView({
               >
                 <div className="nf-shopping-card-head">
                   <div>
-                    <div className="nf-record-title">
-                      {item.ingredient_name}
-                    </div>
+                    <div className="nf-record-title">{item.ingredient_name}</div>
                     <div className="nf-card-body">
                       {item.sources.length} origem(ns) no plano
                     </div>
