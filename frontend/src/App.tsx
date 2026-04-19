@@ -19,7 +19,6 @@ import { DataToolsMenu } from "./components/forms/DataToolsMenu";
 import { SnapshotBackupPanel } from "./components/forms/SnapshotBackupPanel";
 import { SnapshotRestorePanel } from "./components/forms/SnapshotRestorePanel";
 import { RecipeToolsMenu } from "./components/forms/RecipeToolsMenu";
-import { HouseholdContextSelector } from "./components/forms/HouseholdContextSelector";
 import { FamilyWorkspaceMenu } from "./components/forms/FamilyWorkspaceMenu";
 import { RecipeRatingsPanel } from "./components/forms/RecipeRatingsPanel";
 
@@ -59,14 +58,6 @@ type DashboardTile = {
   title: string;
   description: string;
   meta?: string;
-  onOpen: () => void;
-  disabled?: boolean;
-};
-
-type StatTile = {
-  id: string;
-  label: string;
-  value: number;
   onOpen: () => void;
   disabled?: boolean;
 };
@@ -251,34 +242,12 @@ function App() {
     }
   }
 
-  const statTiles: StatTile[] = [
-    {
-      id: "recipes",
-      label: "Receitas",
-      value: recipes.length,
-      onOpen: () => openModal("manage-recipes"),
-    },
-    {
-      id: "meal-plan",
-      label: "Refeições planeadas",
-      value: mealPlan.length,
-      onOpen: () => openModal("weekly-plan"),
-      disabled: !hasActiveHousehold,
-    },
-    {
-      id: "shopping-list",
-      label: "Itens na lista",
-      value: shoppingList.length,
-      onOpen: () => openModal("shopping-list"),
-      disabled: !hasActiveHousehold,
-    },
-  ];
-
   const dashboardTiles: DashboardTile[] = [
     {
       id: "next-meal",
       title: "Planear próxima refeição",
-      description: "Cria almoço ou jantar para o agregado ativo com sugestão do próximo slot.",
+      description:
+        "Cria almoço ou jantar para o agregado ativo com sugestão do próximo slot.",
       meta: "Plano semanal",
       onOpen: () => openModal("meal-plan"),
       disabled: !hasActiveHousehold,
@@ -286,30 +255,15 @@ function App() {
     {
       id: "recipes",
       title: "Gerir receitas",
-      description: "Criar receitas, ingredientes e ligações entre receitas e ingredientes.",
+      description: `${recipes.length} receitas disponíveis para criar, editar e ligar a ingredientes.`,
       meta: "Receitas",
       onOpen: () => openModal("manage-recipes"),
     },
     {
-      id: "weekly-plan",
-      title: "Ver plano semanal",
-      description: "Consulta rápida das refeições já planeadas para o agregado ativo.",
-      meta: "Plano semanal",
-      onOpen: () => openModal("weekly-plan"),
-      disabled: !hasActiveHousehold,
-    },
-    {
-      id: "shopping-list",
-      title: "Ver lista de compras",
-      description: "Abre a lista agregada gerada a partir do plano do agregado ativo.",
-      meta: "Compras",
-      onOpen: () => openModal("shopping-list"),
-      disabled: !hasActiveHousehold,
-    },
-    {
       id: "family",
       title: "Família e preferências",
-      description: "Gerir agregados, membros, avaliações e scores da família.",
+      description:
+        "Gerir agregados, membros, avaliações e scores da família.",
       meta: "Família",
       onOpen: () => openModal("family-feedback"),
     },
@@ -398,71 +352,122 @@ function App() {
           </section>
         ) : !error ? (
           <>
-            <div className="nf-overview-grid">
-              <HouseholdContextSelector
-                households={households}
-                selectedHouseholdId={selectedHouseholdId}
-                onChange={handleChangeHousehold}
-                isLoading={householdLoading}
-              />
-
-              <section style={styles.card} className="nf-home-summary">
-                <div className="nf-kicker">Contexto atual</div>
-                <div className="nf-card-title">
-                  {selectedHousehold?.name ?? "Sem agregado ativo"}
-                </div>
-                <div className="nf-card-body">
-                  {selectedHousehold
-                    ? "O plano semanal, a lista de compras e as avaliações trabalham sobre este agregado."
-                    : "Cria ou seleciona um agregado para ativar o plano semanal e a lista de compras."}
-                </div>
-
-                <div className="nf-home-summary-grid">
-                  <div className="nf-home-summary-item">
-                    <span>Membros</span>
-                    <strong>{selectedHousehold?.members.length ?? 0}</strong>
-                  </div>
-
-                  <div className="nf-home-summary-item">
-                    <span>Plano</span>
-                    <strong>{mealPlan.length}</strong>
-                  </div>
-
-                  <div className="nf-home-summary-item">
-                    <span>Compras</span>
-                    <strong>{shoppingList.length}</strong>
-                  </div>
-                </div>
-              </section>
-            </div>
-
-            <section className="nf-section-block">
-              <div className="nf-section-header">
+            <section style={styles.card} className="nf-context-panel">
+              <div className="nf-context-panel-head">
                 <div>
-                  <div className="nf-kicker">Visão rápida</div>
-                  <h2 style={styles.sectionTitle}>Indicadores principais</h2>
+                  <div className="nf-kicker">Agregado ativo</div>
+                  <h2 style={styles.sectionTitle}>Contexto de trabalho</h2>
                 </div>
               </div>
 
-              <div className="nf-stats-grid">
-                {statTiles.map((tile) => (
-                  <div
-                    key={tile.id}
-                    className={`nf-clickable-card nf-stat-card${tile.disabled ? " nf-clickable-card--disabled" : ""}`}
-                    role="button"
-                    tabIndex={tile.disabled ? -1 : 0}
-                    aria-disabled={tile.disabled ? "true" : "false"}
-                    onClick={() => activateTile(tile.onOpen, tile.disabled)}
-                    onKeyDown={(event) =>
-                      handleTileKeyDown(event, tile.onOpen, tile.disabled)
-                    }
-                    title={tile.disabled ? "Seleciona primeiro um agregado" : tile.label}
-                  >
-                    <div className="nf-card-value">{tile.value}</div>
-                    <div className="nf-card-body">{tile.label}</div>
+              {households.length === 0 ? (
+                <p style={{ ...styles.empty, marginTop: "6px" }}>
+                  Ainda não existem agregados. Cria um agregado em “Família e
+                  preferências”.
+                </p>
+              ) : (
+                <div className="nf-context-grid">
+                  <div className="nf-context-selector-block">
+                    <label htmlFor="household-selector" className="nf-field-label">
+                      Agregado selecionado
+                    </label>
+
+                    <select
+                      id="household-selector"
+                      style={styles.select}
+                      value={selectedHouseholdId}
+                      onChange={(e) => handleChangeHousehold(e.target.value)}
+                    >
+                      <option value="">Seleciona um agregado</option>
+                      {households.map((household) => (
+                        <option key={household.id} value={household.id}>
+                          {household.name}
+                        </option>
+                      ))}
+                    </select>
+
+                    {householdLoading && (
+                      <p className="nf-inline-note">A atualizar plano e compras…</p>
+                    )}
                   </div>
-                ))}
-              </div>
+
+                  <div className="nf-context-summary">
+                    <div className="nf-context-summary-main">
+                      <div className="nf-card-title">
+                        {selectedHousehold?.name ?? "Sem agregado ativo"}
+                      </div>
+                      <div className="nf-card-body">
+                        {selectedHousehold
+                          ? "O plano semanal, a lista de compras e as avaliações trabalham sobre este agregado."
+                          : "Seleciona um agregado para ativar o plano semanal e a lista de compras."}
+                      </div>
+                    </div>
+
+                    <div className="nf-context-meta">
+                      <span className="nf-context-meta-chip">
+                        {selectedHousehold?.members.length ?? 0} membros
+                      </span>
+                    </div>
+
+                    <div className="nf-context-stats">
+                      <div
+                        className={`nf-context-stat${!hasActiveHousehold ? " nf-context-stat--disabled" : ""}`}
+                        role="button"
+                        tabIndex={hasActiveHousehold ? 0 : -1}
+                        aria-disabled={hasActiveHousehold ? "false" : "true"}
+                        title={
+                          hasActiveHousehold
+                            ? "Abrir plano semanal"
+                            : "Seleciona primeiro um agregado"
+                        }
+                        onClick={() =>
+                          activateTile(() => openModal("weekly-plan"), !hasActiveHousehold)
+                        }
+                        onKeyDown={(event) =>
+                          handleTileKeyDown(
+                            event,
+                            () => openModal("weekly-plan"),
+                            !hasActiveHousehold
+                          )
+                        }
+                      >
+                        <span className="nf-context-stat-label">Plano</span>
+                        <strong className="nf-context-stat-value">{mealPlan.length}</strong>
+                      </div>
+
+                      <div
+                        className={`nf-context-stat${!hasActiveHousehold ? " nf-context-stat--disabled" : ""}`}
+                        role="button"
+                        tabIndex={hasActiveHousehold ? 0 : -1}
+                        aria-disabled={hasActiveHousehold ? "false" : "true"}
+                        title={
+                          hasActiveHousehold
+                            ? "Abrir lista de compras"
+                            : "Seleciona primeiro um agregado"
+                        }
+                        onClick={() =>
+                          activateTile(
+                            () => openModal("shopping-list"),
+                            !hasActiveHousehold
+                          )
+                        }
+                        onKeyDown={(event) =>
+                          handleTileKeyDown(
+                            event,
+                            () => openModal("shopping-list"),
+                            !hasActiveHousehold
+                          )
+                        }
+                      >
+                        <span className="nf-context-stat-label">Compras</span>
+                        <strong className="nf-context-stat-value">
+                          {shoppingList.length}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </section>
 
             <section className="nf-section-block">
@@ -473,7 +478,7 @@ function App() {
                 </div>
               </div>
 
-              <div className="nf-card-grid">
+              <div className="nf-card-grid nf-card-grid--compact">
                 {dashboardTiles.map((tile) => (
                   <div
                     key={tile.id}
