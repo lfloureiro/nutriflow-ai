@@ -11,9 +11,19 @@ from backend.app.schemas.meal_plan import (
     MealPlanItemRead,
     NextMealSlotRead,
 )
+from backend.app.schemas.meal_plan_auto import (
+    AutoMealPlanApplyRead,
+    AutoMealPlanPreviewRead,
+    AutoMealPlanRequest,
+    AutoMealPlanSuggestionRead,
+)
 from backend.app.schemas.meal_plan_manage import (
     MealPlanItemCreateScoped,
     MealPlanItemUpdateScoped,
+)
+from backend.app.services.auto_meal_planner import (
+    build_auto_meal_plan_preview,
+    normalize_meal_types,
 )
 
 router = APIRouter(prefix="/meal-plan", tags=["meal-plan"])
@@ -54,6 +64,24 @@ def get_next_available_slot(db: Session, household_id: int) -> tuple[date, str]:
 
     fallback_date = now.date() + timedelta(days=31)
     return fallback_date, "almoco"
+
+
+def suggestion_to_read(item) -> AutoMealPlanSuggestionRead:
+    recipe = item.recipe
+
+    return AutoMealPlanSuggestionRead(
+        plan_date=item.plan_date,
+        meal_type=item.meal_type,
+        action=item.action,
+        recipe_id=recipe.id if recipe else None,
+        recipe_name=recipe.name if recipe else None,
+        categoria_alimentar=recipe.categoria_alimentar if recipe else None,
+        proteina_principal=recipe.proteina_principal if recipe else None,
+        score=item.score,
+        average_rating=item.average_rating,
+        ratings_count=item.ratings_count,
+        reasons=item.reasons,
+    )
 
 
 @router.get("/next-slot", response_model=NextMealSlotRead)
@@ -232,3 +260,107 @@ def delete_meal_plan_item(
     db.commit()
 
     return {"message": "Refeição planeada apagada com sucesso."}
+
+
+@router.post("/auto-plan/preview", response_model=AutoMealPlanPreviewRead)
+def preview_auto_meal_plan(
+    data: AutoMealPlanRequest,
+    db: Session = Depends(get_db),
+):
+    household = db.query(Household).filter(Household.id == data.household_id).first()
+    if not household:
+        raise HTTPException(status_code=404, detail="Agregado não encontrado.")
+
+    if not data.skip_existing:
+        raise HTTPException(
+            status_code=400,
+            detail="Nesta fase o auto-planeamento só suporta skip_existing=true.",
+        )
+
+    suggestions = build_auto_meal_plan_preview(
+        db=db,
+        household_id=data.household_id,
+        start_date=data.start_date,
+        end_date=data.end_date,
+        meal_types=data.meal_types,
+        skip_existing=data.skip_existing,
+    )
+
+    return AutoMealPlanPreviewRead(
+        household_id=data.household_id,
+        start_date=data.start_date,
+        end_date=data.end_date,
+        meal_types=normalize_meal_types(data.meal_types),
+        skip_existing=data.skip_existing,
+        suggestions=[suggestion_to_read(item) for item in suggestions],
+    )
+
+
+@router.post("/auto-plan/apply", response_model=AutoMealPlanApplyRead)
+def apply_auto_meal_plan(
+    data: AutoMealPlanRequest,
+    db: Session = Depends(get_db),
+):
+    household = db.query(Household).filter(Household.id == data.household_id).first()
+    if not household:
+        raise HTTPException(status_code=404, detail="Agregado não encontrado.")
+
+    if not data.skip_existing:
+        raise HTTPException(
+            status_code=400,
+            detail="Nesta fase o auto-planeamento só suporta skip_existing=true.",
+        )
+
+    suggestions = build_auto_meal_plan_preview(
+        db=db,
+        household_id=data.household_id,
+        start_date=data.start_date,
+        end_date=data.end_date,
+        meal_types=data.meal_types,
+        skip_existing=data.skip_existing,
+    )
+
+    created_count = 0
+    skipped_count = 0
+
+    for item in suggestions:
+        if item.action != "suggest" or item.recipe is None:
+            skipped_count += 1
+            continue
+
+        existing = (
+            db.query(MealPlanItem)
+            .filter(
+                MealPlanItem.household_id == data.household_id,
+                MealPlanItem.plan_date == item.plan_date,
+                MealPlanItem.meal_type == item.meal_type,
+            )
+            .first()
+        )
+
+        if existing:
+            skipped_count += 1
+            continue
+
+        db_item = MealPlanItem(
+            household_id=data.household_id,
+            plan_date=item.plan_date,
+            meal_type=item.meal_type,
+            notes="Auto-planeado",
+            recipe_id=item.recipe.id,
+        )
+        db.add(db_item)
+        created_count += 1
+
+    db.commit()
+
+    return AutoMealPlanApplyRead(
+        household_id=data.household_id,
+        start_date=data.start_date,
+        end_date=data.end_date,
+        meal_types=normalize_meal_types(data.meal_types),
+        skip_existing=data.skip_existing,
+        created_count=created_count,
+        skipped_count=skipped_count,
+        suggestions=[suggestion_to_read(item) for item in suggestions],
+    )
