@@ -282,7 +282,7 @@ def bulk_import_meal_plan(
     skipped = 0
 
     occupied_slots = {
-        (item.plan_date, item.meal_type): item.id
+        (item.household_id, item.plan_date, item.meal_type.strip().lower()): item.id
         for item in db.query(MealPlanItem).all()
     }
 
@@ -291,6 +291,13 @@ def bulk_import_meal_plan(
         if not meal_type_clean:
             raise HTTPException(status_code=400, detail="O tipo de refeição é obrigatório.")
 
+        household = db.query(Household).filter(Household.id == item.household_id).first()
+        if not household:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Agregado não encontrado: {item.household_id}",
+            )
+
         recipe = db.query(Recipe).filter(Recipe.id == item.recipe_id).first()
         if not recipe:
             raise HTTPException(
@@ -298,7 +305,7 @@ def bulk_import_meal_plan(
                 detail=f"Receita não encontrada: {item.recipe_id}",
             )
 
-        slot_key = (item.plan_date, meal_type_clean)
+        slot_key = (item.household_id, item.plan_date, meal_type_clean)
 
         if slot_key in occupied_slots:
             if data.skip_existing:
@@ -307,13 +314,14 @@ def bulk_import_meal_plan(
             raise HTTPException(
                 status_code=400,
                 detail=(
-                    f"Já existe uma refeição para a data {item.plan_date} "
-                    f"e tipo {meal_type_clean}."
+                    f"Já existe uma refeição para o agregado {item.household_id}, "
+                    f"na data {item.plan_date} e tipo {meal_type_clean}."
                 ),
             )
 
         db.add(
             MealPlanItem(
+                household_id=item.household_id,
                 plan_date=item.plan_date,
                 meal_type=meal_type_clean,
                 notes=item.notes,
@@ -364,6 +372,15 @@ def bulk_import_feedback(
             raise HTTPException(
                 status_code=404,
                 detail=f"Membro da família não encontrado: {item.family_member_id}",
+            )
+
+        if family_member.household_id != meal_plan_item.household_id:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"O membro {item.family_member_id} não pertence ao mesmo agregado "
+                    f"da refeição {item.meal_plan_item_id}."
+                ),
             )
 
         existing = (
@@ -436,7 +453,7 @@ def bulk_update_meal_plan(
 
     all_items = db.query(MealPlanItem).all()
     occupied_slots = {
-        (item.plan_date, item.meal_type): item.id
+        (item.household_id, item.plan_date, item.meal_type.strip().lower()): item.id
         for item in all_items
         if item.id not in unique_ids
     }
@@ -452,7 +469,7 @@ def bulk_update_meal_plan(
                 raise HTTPException(status_code=400, detail="O tipo de refeição é obrigatório.")
             new_meal_type = meal_type_clean
         else:
-            new_meal_type = item.meal_type
+            new_meal_type = item.meal_type.strip().lower()
 
         new_recipe_id = payload.recipe_id if payload.recipe_id is not None else item.recipe_id
 
@@ -464,13 +481,13 @@ def bulk_update_meal_plan(
                     detail=f"Receita não encontrada: {payload.recipe_id}",
                 )
 
-        slot_key = (new_plan_date, new_meal_type)
+        slot_key = (item.household_id, new_plan_date, new_meal_type)
         if slot_key in occupied_slots:
             raise HTTPException(
                 status_code=400,
                 detail=(
-                    f"Conflito no plano semanal para data {new_plan_date} "
-                    f"e refeição {new_meal_type}."
+                    f"Conflito no plano semanal para o agregado {item.household_id}, "
+                    f"data {new_plan_date} e refeição {new_meal_type}."
                 ),
             )
 

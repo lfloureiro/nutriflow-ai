@@ -99,6 +99,7 @@ const importOptions: Record<
       {
         items: [
           {
+            household_id: 1,
             plan_date: "2026-04-20",
             meal_type: "jantar",
             notes: "Segunda",

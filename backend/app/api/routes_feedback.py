@@ -16,6 +16,17 @@ from backend.app.schemas.meal_feedback import (
 router = APIRouter(prefix="/feedback", tags=["feedback"])
 
 
+def _ensure_member_matches_meal_household(
+    meal_item: MealPlanItem,
+    member: FamilyMember,
+) -> None:
+    if member.household_id != meal_item.household_id:
+        raise HTTPException(
+            status_code=400,
+            detail="O membro não pertence ao mesmo agregado da refeição planeada.",
+        )
+
+
 @router.get("/meal-plan/{meal_plan_item_id}", response_model=list[MealFeedbackRead])
 def list_meal_feedback(meal_plan_item_id: int, db: Session = Depends(get_db)):
     meal_item = db.query(MealPlanItem).filter(MealPlanItem.id == meal_plan_item_id).first()
@@ -45,6 +56,8 @@ def create_meal_feedback(
     member = db.query(FamilyMember).filter(FamilyMember.id == data.family_member_id).first()
     if not member:
         raise HTTPException(status_code=404, detail="Membro da família não encontrado.")
+
+    _ensure_member_matches_meal_household(meal_item, member)
 
     existing = (
         db.query(MealFeedback)
@@ -91,20 +104,29 @@ def update_meal_feedback(
     if not feedback:
         raise HTTPException(status_code=404, detail="Feedback não encontrado.")
 
-    new_family_member_id = (
+    meal_item = (
+        db.query(MealPlanItem)
+        .filter(MealPlanItem.id == feedback.meal_plan_item_id)
+        .first()
+    )
+    if not meal_item:
+        raise HTTPException(status_code=404, detail="Refeição planeada não encontrada.")
+
+    target_member_id = (
         data.family_member_id if data.family_member_id is not None else feedback.family_member_id
     )
 
-    if data.family_member_id is not None:
-        member = db.query(FamilyMember).filter(FamilyMember.id == data.family_member_id).first()
-        if not member:
-            raise HTTPException(status_code=404, detail="Membro da família não encontrado.")
+    member = db.query(FamilyMember).filter(FamilyMember.id == target_member_id).first()
+    if not member:
+        raise HTTPException(status_code=404, detail="Membro da família não encontrado.")
+
+    _ensure_member_matches_meal_household(meal_item, member)
 
     existing = (
         db.query(MealFeedback)
         .filter(
             MealFeedback.meal_plan_item_id == feedback.meal_plan_item_id,
-            MealFeedback.family_member_id == new_family_member_id,
+            MealFeedback.family_member_id == target_member_id,
             MealFeedback.id != feedback_id,
         )
         .first()
@@ -115,7 +137,7 @@ def update_meal_feedback(
             detail="Esse membro já deu feedback para esta refeição.",
         )
 
-    feedback.family_member_id = new_family_member_id
+    feedback.family_member_id = target_member_id
 
     if data.reaction is not None:
         feedback.reaction = data.reaction

@@ -5,6 +5,8 @@ from backend.app.db.session import get_db
 from backend.app.models.family_member import FamilyMember
 from backend.app.models.household import Household
 from backend.app.models.meal_feedback import MealFeedback
+from backend.app.models.meal_plan_item import MealPlanItem
+from backend.app.models.recipe_preference import RecipePreference
 from backend.app.schemas.family_member import FamilyMemberCreate, FamilyMemberRead
 from backend.app.schemas.household import HouseholdCreate, HouseholdRead, HouseholdDetail
 from backend.app.schemas.household_manage import HouseholdUpdate, FamilyMemberUpdate
@@ -86,6 +88,28 @@ def delete_household(
         raise HTTPException(
             status_code=400,
             detail="Não é possível apagar um agregado que ainda tem membros.",
+        )
+
+    has_meal_plan = (
+        db.query(MealPlanItem)
+        .filter(MealPlanItem.household_id == household_id)
+        .first()
+    )
+    if has_meal_plan:
+        raise HTTPException(
+            status_code=400,
+            detail="Não é possível apagar um agregado que ainda tem refeições planeadas.",
+        )
+
+    has_preferences = (
+        db.query(RecipePreference)
+        .filter(RecipePreference.household_id == household_id)
+        .first()
+    )
+    if has_preferences:
+        raise HTTPException(
+            status_code=400,
+            detail="Não é possível apagar um agregado que ainda tem avaliações de receitas.",
         )
 
     db.delete(household)
@@ -244,6 +268,17 @@ def delete_household_member(
         raise HTTPException(
             status_code=400,
             detail="Não é possível apagar um membro que já tem feedback associado.",
+        )
+
+    has_preferences = (
+        db.query(RecipePreference)
+        .filter(RecipePreference.family_member_id == member_id)
+        .first()
+    )
+    if has_preferences:
+        raise HTTPException(
+            status_code=400,
+            detail="Não é possível apagar um membro que já tem avaliações de receitas associadas.",
         )
 
     db.delete(member)

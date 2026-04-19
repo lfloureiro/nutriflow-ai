@@ -30,6 +30,7 @@ class BulkRecipeIngredientImportItem(BaseModel):
 
 
 class BulkMealPlanImportItem(BaseModel):
+    household_id: int
     plan_date: date
     meal_type: str
     notes: str | None = None
