@@ -244,12 +244,21 @@ function App() {
 
   const dashboardTiles: DashboardTile[] = [
     {
-      id: "next-meal",
-      title: "Planear próxima refeição",
+      id: "next-meal-manual",
+      title: "Planear refeição manualmente",
       description:
-        "Cria almoço ou jantar para o agregado ativo com sugestão do próximo slot.",
-      meta: "Plano semanal",
+        "Escolhe data, tipo de refeição e receita para adicionar manualmente ao plano.",
+      meta: "Plano manual",
       onOpen: () => openModal("meal-plan"),
+      disabled: !hasActiveHousehold,
+    },
+    {
+      id: "next-meal-auto",
+      title: "Gerar plano automático",
+      description:
+        "Cria sugestões automáticas para vários dias com base em preferências, rotação e histórico recente.",
+      meta: "Plano automático",
+      onOpen: () => openModal("weekly-plan"),
       disabled: !hasActiveHousehold,
     },
     {
@@ -580,6 +589,7 @@ function App() {
               mealPlan={mealPlan}
               recipes={recipes}
               onSuccess={loadData}
+              householdId={selectedHouseholdId}
             />
           </Modal>
         )}

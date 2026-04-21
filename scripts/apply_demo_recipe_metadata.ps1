@@ -5,7 +5,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-function Normalize-Text {
+function Format-Text {
     param([string]$Value)
 
     if ($null -eq $Value) {
@@ -147,7 +147,7 @@ $skippedCount = 0
 $unmapped = @()
 
 foreach ($recipe in $recipes) {
-    $recipeName = Normalize-Text $recipe.name
+    $recipeName = Format-Text $recipe.name
 
     if (-not $recipeMetadataMap.ContainsKey($recipeName)) {
         $skippedCount++

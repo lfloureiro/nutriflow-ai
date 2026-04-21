@@ -2,11 +2,13 @@ import { useMemo, useState } from "react";
 import { API_BASE_URL } from "../../config";
 import { styles } from "../styles";
 import type { MealPlanItem, Recipe } from "../types";
+import { AutoPlanPanel } from "../mealplan/AutoPlanPanel";
 
 type Props = {
   mealPlan: MealPlanItem[];
   recipes: Recipe[];
   onSuccess: () => Promise<void>;
+  householdId: string;
 };
 
 type EditState = {
@@ -57,7 +59,12 @@ function getErrorMessage(data: unknown, fallback: string) {
   return fallback;
 }
 
-export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
+export function MealPlanList({
+  mealPlan,
+  recipes,
+  onSuccess,
+  householdId,
+}: Props) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [savingId, setSavingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -216,6 +223,8 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
           {mealPlan.length} item(ns) planeado(s)
         </span>
       </div>
+
+      <AutoPlanPanel householdId={householdId} onApplied={onSuccess} />
 
       {localMessage && <p style={styles.success}>{localMessage}</p>}
       {localError && <p style={styles.error}>Erro: {localError}</p>}
