@@ -30,11 +30,13 @@ import { HouseholdManageView } from "./components/lists/HouseholdManageView";
 import { FamilyMemberManageView } from "./components/lists/FamilyMemberManageView";
 import { HouseholdRecipeScoresView } from "./components/lists/HouseholdRecipeScoresView";
 
+import { AutoPlanPanel } from "./components/mealplan/AutoPlanPanel";
 import { Modal } from "./components/Modal";
 
 type ActiveModal =
   | null
   | "meal-plan"
+  | "auto-plan"
   | "manage-recipes"
   | "recipe-create"
   | "ingredient-manage"
@@ -258,7 +260,7 @@ function App() {
       description:
         "Cria sugestões automáticas para vários dias com base em preferências, rotação e histórico recente.",
       meta: "Plano automático",
-      onOpen: () => openModal("weekly-plan"),
+      onOpen: () => openModal("auto-plan"),
       disabled: !hasActiveHousehold,
     },
     {
@@ -516,7 +518,7 @@ function App() {
         ) : null}
 
         {activeModal === "meal-plan" && (
-          <Modal title="Planear próxima refeição" onClose={closeModal}>
+          <Modal title="Planear refeição manualmente" onClose={closeModal}>
             <MealPlanForm
               householdId={selectedHouseholdId}
               householdName={selectedHousehold?.name ?? null}
@@ -524,6 +526,15 @@ function App() {
               onSuccess={loadData}
               setFormMessage={setFormMessage}
               setFormError={setFormError}
+            />
+          </Modal>
+        )}
+
+        {activeModal === "auto-plan" && (
+          <Modal title="Gerar plano automático" onClose={closeModal}>
+            <AutoPlanPanel
+              householdId={selectedHouseholdId}
+              onApplied={loadData}
             />
           </Modal>
         )}
@@ -589,7 +600,6 @@ function App() {
               mealPlan={mealPlan}
               recipes={recipes}
               onSuccess={loadData}
-              householdId={selectedHouseholdId}
             />
           </Modal>
         )}

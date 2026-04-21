@@ -145,7 +145,7 @@ export function MealPlanForm({
 
   return (
     <section style={styles.card}>
-      <h2 style={styles.formTitle}>Planear próxima refeição</h2>
+      <h2 style={styles.formTitle}>Planear refeição manualmente</h2>
 
       <p style={styles.info}>
         Agregado ativo: <strong>{householdName ?? "-"}</strong>
@@ -158,7 +158,7 @@ export function MealPlanForm({
         <p style={styles.info}>A obter a próxima refeição disponível...</p>
       ) : (
         <p style={styles.info}>
-          A data e o tipo de refeição foram sugeridos automaticamente para o agregado ativo.
+          A data e o tipo de refeição foram sugeridos automaticamente para o agregado ativo. Podes ajustar manualmente antes de guardar.
         </p>
       )}
 
