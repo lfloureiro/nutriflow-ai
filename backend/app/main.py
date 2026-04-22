@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.api.routes import router
+from backend.app.api.routes_admin_tools import router as admin_tools_router
 from backend.app.core.config import settings
 
 app = FastAPI(
@@ -20,3 +21,4 @@ app.add_middleware(
 )
 
 app.include_router(router)
+app.include_router(admin_tools_router)

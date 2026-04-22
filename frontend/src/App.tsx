@@ -21,6 +21,7 @@ import { SnapshotRestorePanel } from "./components/forms/SnapshotRestorePanel";
 import { RecipeToolsMenu } from "./components/forms/RecipeToolsMenu";
 import { FamilyWorkspaceMenu } from "./components/forms/FamilyWorkspaceMenu";
 import { RecipeRatingsPanel } from "./components/forms/RecipeRatingsPanel";
+import { AdminMlToolsPanel } from "./components/forms/AdminMlToolsPanel";
 
 import { RecipeList } from "./components/lists/RecipeList";
 import { MealPlanList } from "./components/lists/MealPlanList";
@@ -87,7 +88,7 @@ function App() {
     () =>
       households.find((household) => String(household.id) === selectedHouseholdId) ??
       null,
-    [households, selectedHouseholdId]
+    [households, selectedHouseholdId],
   );
 
   const hasActiveHousehold = Boolean(selectedHouseholdId && selectedHousehold);
@@ -114,13 +115,13 @@ function App() {
           throw new Error("Falha ao carregar detalhe do agregado.");
         }
         return res.json();
-      })
+      }),
     );
 
     const nextHouseholdId =
       selectedHouseholdId &&
       householdsDetailData.some(
-        (item: { id: number }) => String(item.id) === selectedHouseholdId
+        (item: { id: number }) => String(item.id) === selectedHouseholdId,
       )
         ? selectedHouseholdId
         : householdsDetailData.length > 0
@@ -137,7 +138,7 @@ function App() {
 
   async function loadHouseholdScopedData(
     householdId: string,
-    options?: { showLoading?: boolean }
+    options?: { showLoading?: boolean },
   ) {
     const requestId = ++householdScopedRequestRef.current;
     const showLoading = options?.showLoading ?? false;
@@ -232,7 +233,7 @@ function App() {
   function handleTileKeyDown(
     event: React.KeyboardEvent<HTMLDivElement>,
     onOpen: () => void,
-    disabled?: boolean
+    disabled?: boolean,
   ) {
     if (disabled) {
       return;
@@ -438,7 +439,7 @@ function App() {
                           handleTileKeyDown(
                             event,
                             () => openModal("weekly-plan"),
-                            !hasActiveHousehold
+                            !hasActiveHousehold,
                           )
                         }
                       >
@@ -459,14 +460,14 @@ function App() {
                         onClick={() =>
                           activateTile(
                             () => openModal("shopping-list"),
-                            !hasActiveHousehold
+                            !hasActiveHousehold,
                           )
                         }
                         onKeyDown={(event) =>
                           handleTileKeyDown(
                             event,
                             () => openModal("shopping-list"),
-                            !hasActiveHousehold
+                            !hasActiveHousehold,
                           )
                         }
                       >
@@ -501,11 +502,7 @@ function App() {
                     onKeyDown={(event) =>
                       handleTileKeyDown(event, tile.onOpen, tile.disabled)
                     }
-                    title={
-                      tile.disabled
-                        ? "Seleciona primeiro um agregado"
-                        : tile.title
-                    }
+                    title={tile.disabled ? "Seleciona primeiro um agregado" : tile.title}
                   >
                     {tile.meta && <div className="nf-card-kicker">{tile.meta}</div>}
                     <div className="nf-card-title">{tile.title}</div>
@@ -676,11 +673,25 @@ function App() {
 
         {activeModal === "data-tools" && (
           <Modal title="Dados e importação" onClose={closeModal}>
-            <DataToolsMenu
-              onOpenBackup={() => openModal("data-backup")}
-              onOpenRestore={() => openModal("data-restore")}
-              onOpenImport={() => openModal("data-import")}
-            />
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "16px",
+              }}
+            >
+              <DataToolsMenu
+                onOpenBackup={() => openModal("data-backup")}
+                onOpenRestore={() => openModal("data-restore")}
+                onOpenImport={() => openModal("data-import")}
+              />
+
+              <AdminMlToolsPanel
+                onSuccess={loadData}
+                setFormMessage={setFormMessage}
+                setFormError={setFormError}
+              />
+            </div>
           </Modal>
         )}
 
