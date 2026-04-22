@@ -50,6 +50,7 @@ export function ShoppingListView({
   onRefresh,
 }: Props) {
   const [filter, setFilter] = useState<FilterMode>("all");
+  const [showSources, setShowSources] = useState(false);
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [localMessage, setLocalMessage] = useState<string | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
@@ -245,6 +246,14 @@ export function ShoppingListView({
         >
           Já no cesto
         </button>
+
+        <button
+          type="button"
+          className={`nf-filter-chip${showSources ? " nf-filter-chip--active" : ""}`}
+          onClick={() => setShowSources((current) => !current)}
+        >
+          {showSources ? "Ocultar refeições" : "Mostrar refeições"}
+        </button>
       </div>
 
       {filteredItems.length === 0 ? (
@@ -268,7 +277,9 @@ export function ShoppingListView({
                   <div>
                     <div className="nf-record-title">{item.ingredient_name}</div>
                     <div className="nf-card-body">
-                      {item.sources.length} origem(ns) no plano
+                      {showSources
+                        ? `${item.sources.length} origem(ns) no plano`
+                        : "Origens ocultas"}
                     </div>
                   </div>
 
@@ -278,18 +289,20 @@ export function ShoppingListView({
                   </div>
                 </div>
 
-                <div className="nf-pill-row" style={{ marginTop: "10px" }}>
-                  {item.sources.map((source, index) => (
-                    <span
-                      key={`${source.recipe_id}-${index}`}
-                      className="nf-score-pill"
-                      title={`${source.plan_date} · ${source.meal_type} · ${source.recipe_name}`}
-                    >
-                      {source.plan_date} · {formatMealType(source.meal_type)} ·{" "}
-                      {source.recipe_name}
-                    </span>
-                  ))}
-                </div>
+                {showSources ? (
+                  <div className="nf-pill-row" style={{ marginTop: "10px" }}>
+                    {item.sources.map((source, index) => (
+                      <span
+                        key={`${source.recipe_id}-${index}`}
+                        className="nf-score-pill"
+                        title={`${source.plan_date} · ${source.meal_type} · ${source.recipe_name}`}
+                      >
+                        {source.plan_date} · {formatMealType(source.meal_type)} ·{" "}
+                        {source.recipe_name}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
 
                 <div className="nf-shopping-actions">
                   <span
