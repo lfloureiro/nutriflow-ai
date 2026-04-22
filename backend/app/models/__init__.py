@@ -7,3 +7,4 @@ from backend.app.models.family_member import FamilyMember
 from backend.app.models.meal_feedback import MealFeedback
 from backend.app.models.recipe_preference import RecipePreference
 from backend.app.models.shopping_list_item_state import ShoppingListItemState
+from backend.app.models.auto_meal_plan_event import AutoMealPlanEvent

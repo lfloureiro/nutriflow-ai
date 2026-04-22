@@ -25,6 +25,14 @@ from backend.app.services.auto_meal_planner import (
     build_auto_meal_plan_preview,
     normalize_meal_types,
 )
+from backend.app.services.auto_meal_plan_logging import (
+    ApplyExecutionResult,
+    detach_meal_plan_item_from_logs,
+    get_latest_auto_plan_apply_event,
+    log_auto_meal_plan_run,
+    log_post_apply_lifecycle_event,
+    snapshot_meal_plan_item,
+)
 
 router = APIRouter(prefix="/meal-plan", tags=["meal-plan"])
 
@@ -188,6 +196,9 @@ def update_meal_plan_item(
     if not item:
         raise HTTPException(status_code=404, detail="Refeição planeada não encontrada.")
 
+    before_snapshot = snapshot_meal_plan_item(item)
+    source_event = get_latest_auto_plan_apply_event(db, item.id)
+
     new_household_id = data.household_id if data.household_id is not None else item.household_id
     new_plan_date = date.fromisoformat(data.plan_date) if data.plan_date is not None else item.plan_date
 
@@ -234,6 +245,34 @@ def update_meal_plan_item(
     if "notes" in data.model_fields_set:
         item.notes = data.notes
 
+    change_reasons: list[str] = []
+    if before_snapshot.household_id != item.household_id:
+        change_reasons.append("household_changed")
+    if before_snapshot.plan_date != item.plan_date:
+        change_reasons.append("plan_date_changed")
+    if before_snapshot.meal_type != item.meal_type:
+        change_reasons.append("meal_type_changed")
+    if before_snapshot.recipe_id != item.recipe_id:
+        change_reasons.append("recipe_changed")
+    if (before_snapshot.notes or "") != (item.notes or ""):
+        change_reasons.append("notes_changed")
+
+    db.flush()
+
+    if source_event and change_reasons:
+        log_post_apply_lifecycle_event(
+            db=db,
+            source_event=source_event,
+            item_snapshot=before_snapshot,
+            event_kind="post_apply_update",
+            execution_status="recipe_replaced" if "recipe_changed" in change_reasons else "updated",
+            final_plan_date=item.plan_date,
+            final_meal_type=item.meal_type,
+            final_recipe_id=item.recipe_id,
+            keep_meal_plan_item_link=True,
+            reasons=change_reasons,
+        )
+
     db.commit()
     db.refresh(item)
 
@@ -255,6 +294,27 @@ def delete_meal_plan_item(
     item = db.query(MealPlanItem).filter(MealPlanItem.id == meal_plan_item_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Refeição planeada não encontrada.")
+
+    source_event = get_latest_auto_plan_apply_event(db, item.id)
+    before_snapshot = snapshot_meal_plan_item(item)
+
+    if source_event:
+        detach_meal_plan_item_from_logs(db, item.id)
+        log_post_apply_lifecycle_event(
+            db=db,
+            source_event=source_event,
+            item_snapshot=before_snapshot,
+            event_kind="post_apply_delete",
+            execution_status="deleted",
+            final_plan_date=before_snapshot.plan_date,
+            final_meal_type=before_snapshot.meal_type,
+            final_recipe_id=None,
+            keep_meal_plan_item_link=False,
+            reasons=[
+                "item_deleted",
+                f"deleted_meal_plan_item_id={before_snapshot.meal_plan_item_id}",
+            ],
+        )
 
     db.delete(item)
     db.commit()
@@ -285,6 +345,18 @@ def preview_auto_meal_plan(
         meal_types=data.meal_types,
         skip_existing=data.skip_existing,
     )
+
+    log_auto_meal_plan_run(
+        db=db,
+        household_id=data.household_id,
+        event_kind="preview",
+        start_date=data.start_date,
+        end_date=data.end_date,
+        meal_types=data.meal_types,
+        skip_existing=data.skip_existing,
+        suggestions=suggestions,
+    )
+    db.commit()
 
     return AutoMealPlanPreviewRead(
         household_id=data.household_id,
@@ -322,10 +394,17 @@ def apply_auto_meal_plan(
 
     created_count = 0
     skipped_count = 0
+    apply_results: dict[tuple[date, str], ApplyExecutionResult] = {}
 
     for item in suggestions:
+        slot_key = (item.plan_date, item.meal_type)
+
         if item.action != "suggest" or item.recipe is None:
             skipped_count += 1
+            apply_results[slot_key] = ApplyExecutionResult(
+                execution_status="skipped_non_suggest",
+                final_recipe_id=item.recipe.id if item.recipe else None,
+            )
             continue
 
         existing = (
@@ -340,6 +419,11 @@ def apply_auto_meal_plan(
 
         if existing:
             skipped_count += 1
+            apply_results[slot_key] = ApplyExecutionResult(
+                execution_status="skipped_existing",
+                meal_plan_item_id=existing.id,
+                final_recipe_id=existing.recipe_id,
+            )
             continue
 
         db_item = MealPlanItem(
@@ -350,7 +434,26 @@ def apply_auto_meal_plan(
             recipe_id=item.recipe.id,
         )
         db.add(db_item)
+        db.flush()
+
         created_count += 1
+        apply_results[slot_key] = ApplyExecutionResult(
+            execution_status="created",
+            meal_plan_item_id=db_item.id,
+            final_recipe_id=db_item.recipe_id,
+        )
+
+    log_auto_meal_plan_run(
+        db=db,
+        household_id=data.household_id,
+        event_kind="apply",
+        start_date=data.start_date,
+        end_date=data.end_date,
+        meal_types=data.meal_types,
+        skip_existing=data.skip_existing,
+        suggestions=suggestions,
+        apply_results=apply_results,
+    )
 
     db.commit()
 
