@@ -1,0 +1,46 @@
+{
+  "dataset_path": "D:\\Python\\NutriFlow AI\\nutriflow-ai\\data\\ml_datasets\\20260422_163310Z_auto_meal_plan_training_all_households.csv",
+  "generated_at_utc": "2026-04-22T18:00:42.808590+00:00",
+  "row_count": 7,
+  "target_column": "accepted_as_suggested",
+  "feature_columns": [
+    "household_id",
+    "meal_type",
+    "suggestion_action",
+    "suggested_recipe_id",
+    "suggested_categoria_alimentar",
+    "suggested_proteina_principal",
+    "suggested_adequado_refeicao",
+    "weekday_index",
+    "is_weekend",
+    "score",
+    "average_rating",
+    "ratings_count"
+  ],
+  "categorical_features": [
+    "household_id",
+    "meal_type",
+    "suggestion_action",
+    "suggested_recipe_id",
+    "suggested_categoria_alimentar",
+    "suggested_proteina_principal",
+    "suggested_adequado_refeicao"
+  ],
+  "numeric_features": [
+    "weekday_index",
+    "is_weekend",
+    "score",
+    "average_rating",
+    "ratings_count"
+  ],
+  "target_distribution": {
+    "1": 7
+  },
+  "status": "not_enough_classes",
+  "notes": [
+    "O dataset só contém uma classe no target. Ainda não é possível treinar um modelo supervisionado útil."
+  ],
+  "train_size": null,
+  "test_size": null,
+  "model_results": []
+}
