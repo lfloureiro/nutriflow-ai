@@ -1,0 +1,216 @@
+{
+  "dataset_path": "D:\\Python\\NutriFlow AI\\nutriflow-ai\\data\\ml_datasets\\20260422_210207Z_auto_meal_plan_training_all_households.csv",
+  "generated_at_utc": "2026-04-22T21:02:09.523192+00:00",
+  "row_count": 21,
+  "target_column": "accepted_as_suggested",
+  "feature_columns_used": [
+    "household_id",
+    "meal_type",
+    "suggestion_action",
+    "suggested_recipe_id",
+    "suggested_categoria_alimentar",
+    "suggested_proteina_principal",
+    "suggested_adequado_refeicao",
+    "weekday_index",
+    "is_weekend",
+    "score",
+    "ratings_count"
+  ],
+  "categorical_features_used": [
+    "household_id",
+    "meal_type",
+    "suggestion_action",
+    "suggested_recipe_id",
+    "suggested_categoria_alimentar",
+    "suggested_proteina_principal",
+    "suggested_adequado_refeicao"
+  ],
+  "numeric_features_used": [
+    "weekday_index",
+    "is_weekend",
+    "score",
+    "ratings_count"
+  ],
+  "dropped_numeric_features": [
+    "average_rating"
+  ],
+  "target_distribution": {
+    "1": 16,
+    "0": 5
+  },
+  "status": "ok",
+  "notes": [
+    "Foram removidas features numéricas totalmente vazias: average_rating"
+  ],
+  "train_size": 14,
+  "test_size": 7,
+  "model_results": [
+    {
+      "model_name": "dummy_most_frequent",
+      "accuracy": 0.7142857142857143,
+      "balanced_accuracy": 0.5,
+      "precision_weighted": 0.5102040816326531,
+      "recall_weighted": 0.7142857142857143,
+      "f1_weighted": 0.5952380952380952,
+      "confusion_matrix_labels": [
+        "0",
+        "1"
+      ],
+      "confusion_matrix": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          5
+        ]
+      ],
+      "classification_report": {
+        "0": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 2.0
+        },
+        "1": {
+          "precision": 0.7142857142857143,
+          "recall": 1.0,
+          "f1-score": 0.8333333333333334,
+          "support": 5.0
+        },
+        "accuracy": 0.7142857142857143,
+        "macro avg": {
+          "precision": 0.35714285714285715,
+          "recall": 0.5,
+          "f1-score": 0.4166666666666667,
+          "support": 7.0
+        },
+        "weighted avg": {
+          "precision": 0.5102040816326531,
+          "recall": 0.7142857142857143,
+          "f1-score": 0.5952380952380952,
+          "support": 7.0
+        }
+      }
+    },
+    {
+      "model_name": "logistic_regression",
+      "accuracy": 0.5714285714285714,
+      "balanced_accuracy": 0.4,
+      "precision_weighted": 0.47619047619047616,
+      "recall_weighted": 0.5714285714285714,
+      "f1_weighted": 0.5194805194805195,
+      "confusion_matrix_labels": [
+        "0",
+        "1"
+      ],
+      "confusion_matrix": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          4
+        ]
+      ],
+      "classification_report": {
+        "0": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 2.0
+        },
+        "1": {
+          "precision": 0.6666666666666666,
+          "recall": 0.8,
+          "f1-score": 0.7272727272727273,
+          "support": 5.0
+        },
+        "accuracy": 0.5714285714285714,
+        "macro avg": {
+          "precision": 0.3333333333333333,
+          "recall": 0.4,
+          "f1-score": 0.36363636363636365,
+          "support": 7.0
+        },
+        "weighted avg": {
+          "precision": 0.47619047619047616,
+          "recall": 0.5714285714285714,
+          "f1-score": 0.5194805194805195,
+          "support": 7.0
+        }
+      }
+    },
+    {
+      "model_name": "random_forest",
+      "accuracy": 0.7142857142857143,
+      "balanced_accuracy": 0.5,
+      "precision_weighted": 0.5102040816326531,
+      "recall_weighted": 0.7142857142857143,
+      "f1_weighted": 0.5952380952380952,
+      "confusion_matrix_labels": [
+        "0",
+        "1"
+      ],
+      "confusion_matrix": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          5
+        ]
+      ],
+      "classification_report": {
+        "0": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 2.0
+        },
+        "1": {
+          "precision": 0.7142857142857143,
+          "recall": 1.0,
+          "f1-score": 0.8333333333333334,
+          "support": 5.0
+        },
+        "accuracy": 0.7142857142857143,
+        "macro avg": {
+          "precision": 0.35714285714285715,
+          "recall": 0.5,
+          "f1-score": 0.4166666666666667,
+          "support": 7.0
+        },
+        "weighted avg": {
+          "precision": 0.5102040816326531,
+          "recall": 0.7142857142857143,
+          "f1-score": 0.5952380952380952,
+          "support": 7.0
+        }
+      }
+    }
+  ],
+  "best_model": {
+    "model_name": "dummy_most_frequent",
+    "accuracy": 0.7142857142857143,
+    "balanced_accuracy": 0.5,
+    "f1_weighted": 0.5952380952380952,
+    "confusion_matrix_labels": [
+      "0",
+      "1"
+    ],
+    "confusion_matrix": [
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        5
+      ]
+    ]
+  }
+}

@@ -47,6 +47,52 @@ BASE_NUMERIC_FEATURES = [
 ]
 
 
+def to_python_scalar(value: Any) -> Any:
+    if hasattr(value, "item"):
+        try:
+            return value.item()
+        except Exception:
+            return value
+    return value
+
+
+def get_ordered_labels(y_true: pd.Series, y_pred: Any) -> list[Any]:
+    combined = pd.concat(
+        [
+            pd.Series(y_true).reset_index(drop=True),
+            pd.Series(y_pred).reset_index(drop=True),
+        ],
+        ignore_index=True,
+    ).dropna()
+
+    unique_values = [to_python_scalar(value) for value in pd.unique(combined)]
+
+    try:
+        return sorted(unique_values)
+    except TypeError:
+        return sorted(unique_values, key=lambda value: str(value))
+
+
+def make_display_labels(labels: list[Any]) -> list[str]:
+    return [str(to_python_scalar(label)) for label in labels]
+
+
+def normalize_json_value(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {str(key): normalize_json_value(subvalue) for key, subvalue in value.items()}
+
+    if isinstance(value, list):
+        return [normalize_json_value(item) for item in value]
+
+    if hasattr(value, "item"):
+        try:
+            return value.item()
+        except Exception:
+            return value
+
+    return value
+
+
 def find_latest_dataset() -> Path:
     candidates = sorted(
         DATASET_DIR.glob("*_auto_meal_plan_training_*.csv"),
@@ -204,37 +250,51 @@ def evaluate_model(
     pipeline.fit(x_train, y_train)
     predictions = pipeline.predict(x_test)
 
-    labels = sorted(pd.Series(pd.concat([y_test, pd.Series(predictions)])).astype(str).unique().tolist())
+    actual_labels = get_ordered_labels(y_test, predictions)
+    display_labels = make_display_labels(actual_labels)
 
     result = {
         "model_name": model_name,
-        "accuracy": accuracy_score(y_test, predictions),
-        "balanced_accuracy": balanced_accuracy_score(y_test, predictions),
-        "precision_weighted": precision_score(
-            y_test,
-            predictions,
-            average="weighted",
-            zero_division=0,
+        "accuracy": float(accuracy_score(y_test, predictions)),
+        "balanced_accuracy": float(balanced_accuracy_score(y_test, predictions)),
+        "precision_weighted": float(
+            precision_score(
+                y_test,
+                predictions,
+                average="weighted",
+                zero_division=0,
+            )
         ),
-        "recall_weighted": recall_score(
-            y_test,
-            predictions,
-            average="weighted",
-            zero_division=0,
+        "recall_weighted": float(
+            recall_score(
+                y_test,
+                predictions,
+                average="weighted",
+                zero_division=0,
+            )
         ),
-        "f1_weighted": f1_score(
-            y_test,
-            predictions,
-            average="weighted",
-            zero_division=0,
+        "f1_weighted": float(
+            f1_score(
+                y_test,
+                predictions,
+                average="weighted",
+                zero_division=0,
+            )
         ),
-        "confusion_matrix_labels": labels,
-        "confusion_matrix": confusion_matrix(y_test, predictions, labels=labels).tolist(),
-        "classification_report": classification_report(
+        "confusion_matrix_labels": display_labels,
+        "confusion_matrix": confusion_matrix(
             y_test,
             predictions,
-            output_dict=True,
-            zero_division=0,
+            labels=actual_labels,
+        ).tolist(),
+        "classification_report": normalize_json_value(
+            classification_report(
+                y_test,
+                predictions,
+                labels=actual_labels,
+                output_dict=True,
+                zero_division=0,
+            )
         ),
     }
 
@@ -363,6 +423,8 @@ def train_auto_meal_plan_baseline(
             "accuracy": best_model["accuracy"],
             "balanced_accuracy": best_model["balanced_accuracy"],
             "f1_weighted": best_model["f1_weighted"],
+            "confusion_matrix_labels": best_model["confusion_matrix_labels"],
+            "confusion_matrix": best_model["confusion_matrix"],
         }
 
     output_path = build_report_path(target)

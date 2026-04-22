@@ -11,6 +11,13 @@ from backend.app.services.auto_meal_plan_baseline_training import (
 )
 
 
+def print_confusion_matrix(labels: list[str], matrix: list[list[int]]) -> None:
+    print("Confusion matrix:")
+    print("labels:", labels)
+    for row in matrix:
+        print(" ", row)
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Treina baselines de ML a partir do dataset exportado do auto-planeamento."
@@ -66,8 +73,8 @@ def main():
     if report["status"] != "ok":
         print(f"Treino ignorado: {report['status']}")
         if report["notes"]:
-          for note in report["notes"]:
-              print(f"- {note}")
+            for note in report["notes"]:
+                print(f"- {note}")
         print(f"Relatório gravado em: {report_path}")
         return
 
@@ -78,12 +85,20 @@ def main():
             f"balanced_accuracy={result['balanced_accuracy']:.4f} "
             f"f1_weighted={result['f1_weighted']:.4f}"
         )
+        print_confusion_matrix(
+            result["confusion_matrix_labels"],
+            result["confusion_matrix"],
+        )
 
     if report["best_model"]:
         print(
             "Melhor modelo: "
             f"{report['best_model']['model_name']} "
             f"(balanced_accuracy={report['best_model']['balanced_accuracy']:.4f})"
+        )
+        print_confusion_matrix(
+            report["best_model"]["confusion_matrix_labels"],
+            report["best_model"]["confusion_matrix"],
         )
 
     print(f"Relatório gravado em: {report_path}")
