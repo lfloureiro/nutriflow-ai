@@ -89,6 +89,8 @@ OPTIONAL_NUMERIC_FEATURES = [
     "reason_recent_meat_protein_repeat",
 ]
 
+INTERPRETABILITY_TOP_N = 12
+
 
 def to_python_scalar(value: Any) -> Any:
     if hasattr(value, "item"):
@@ -146,6 +148,100 @@ def safe_std(values: list[float]) -> float:
     if len(values) <= 1:
         return 0.0
     return float(pd.Series(values).std(ddof=0))
+
+
+def build_ranked_feature_list(
+    feature_names: list[str],
+    values: list[float],
+    *,
+    top_n: int = INTERPRETABILITY_TOP_N,
+    descending: bool = True,
+) -> list[dict[str, Any]]:
+    pairs = list(zip(feature_names, values))
+    pairs.sort(key=lambda item: item[1], reverse=descending)
+    selected = pairs[:top_n]
+
+    return [
+        {
+            "feature": str(feature_name),
+            "value": float(score_value),
+        }
+        for feature_name, score_value in selected
+    ]
+
+
+def extract_interpretability_from_pipeline(
+    pipeline: Pipeline,
+) -> dict[str, Any] | None:
+    model = pipeline.named_steps["model"]
+    preprocessor = pipeline.named_steps["preprocessor"]
+
+    try:
+        feature_names = [str(name) for name in preprocessor.get_feature_names_out()]
+    except Exception:
+        return None
+
+    if isinstance(model, LogisticRegression):
+        classes = [str(to_python_scalar(item)) for item in model.classes_]
+        coefficients = model.coef_
+
+        if coefficients.shape[0] == 1 and len(classes) == 2:
+            coef_values = coefficients[0].tolist()
+            return {
+                "type": "logistic_regression_coefficients",
+                "mode": "binary",
+                "positive_class": classes[1],
+                "negative_class": classes[0],
+                "top_positive_features": build_ranked_feature_list(
+                    feature_names,
+                    coef_values,
+                    descending=True,
+                ),
+                "top_negative_features": build_ranked_feature_list(
+                    feature_names,
+                    coef_values,
+                    descending=False,
+                ),
+            }
+
+        class_summaries: list[dict[str, Any]] = []
+        for index, class_name in enumerate(classes):
+            coef_values = coefficients[index].tolist()
+            class_summaries.append(
+                {
+                    "class_name": class_name,
+                    "top_positive_features": build_ranked_feature_list(
+                        feature_names,
+                        coef_values,
+                        descending=True,
+                    ),
+                    "top_negative_features": build_ranked_feature_list(
+                        feature_names,
+                        coef_values,
+                        descending=False,
+                    ),
+                }
+            )
+
+        return {
+            "type": "logistic_regression_coefficients",
+            "mode": "multiclass",
+            "classes": classes,
+            "per_class": class_summaries,
+        }
+
+    if isinstance(model, RandomForestClassifier):
+        importances = model.feature_importances_.tolist()
+        return {
+            "type": "random_forest_feature_importances",
+            "top_feature_importances": build_ranked_feature_list(
+                feature_names,
+                importances,
+                descending=True,
+            ),
+        }
+
+    return None
 
 
 def find_latest_dataset() -> Path:
@@ -409,7 +505,15 @@ def evaluate_model_cross_validated(
                 zero_division=0,
             )
         ),
+        "interpretability": None,
     }
+
+    full_fit_pipeline = make_models(
+        categorical_features=[],
+        numeric_features=[],
+        random_state=0,
+    )
+    del full_fit_pipeline
 
     return result
 
@@ -470,7 +574,8 @@ def train_auto_meal_plan_baseline(
         },
         "status": "ok",
         "notes": [
-            "As métricas representam média e desvio padrão por fold de validação cruzada estratificada."
+            "As métricas representam média e desvio padrão por fold de validação cruzada estratificada.",
+            "A interpretabilidade é calculada ajustando o modelo em todo o dataset apenas para inspeção exploratória.",
         ],
         "train_size": None,
         "test_size": None,
@@ -543,6 +648,15 @@ def train_auto_meal_plan_baseline(
             y=y,
             fold_indices=fold_indices,
         )
+
+        fitted_pipeline = make_models(
+            categorical_features=categorical_features,
+            numeric_features=numeric_features,
+            random_state=random_state,
+        )[model_name]
+        fitted_pipeline.fit(x, y)
+        result["interpretability"] = extract_interpretability_from_pipeline(fitted_pipeline)
+
         report["model_results"].append(result)
 
     best_model = select_best_model(report["model_results"])
@@ -557,6 +671,7 @@ def train_auto_meal_plan_baseline(
             "f1_weighted_std": best_model["f1_weighted_std"],
             "confusion_matrix_labels": best_model["confusion_matrix_labels"],
             "confusion_matrix": best_model["confusion_matrix"],
+            "interpretability": best_model["interpretability"],
         }
 
     output_path = build_report_path(target)

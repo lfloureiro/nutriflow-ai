@@ -18,6 +18,44 @@ def print_confusion_matrix(labels: list[str], matrix: list[list[int]]) -> None:
         print(" ", row)
 
 
+def print_interpretability(interpretability: dict | None) -> None:
+    if not interpretability:
+        return
+
+    if interpretability["type"] == "logistic_regression_coefficients":
+        if interpretability["mode"] == "binary":
+            print(
+                "Top features que empurram para a classe positiva "
+                f"({interpretability['positive_class']}):"
+            )
+            for item in interpretability["top_positive_features"]:
+                print(f"  + {item['feature']}: {item['value']:.4f}")
+
+            print(
+                "Top features que empurram contra a classe positiva "
+                f"({interpretability['positive_class']}):"
+            )
+            for item in interpretability["top_negative_features"]:
+                print(f"  - {item['feature']}: {item['value']:.4f}")
+            return
+
+        print("Top features por classe:")
+        for class_info in interpretability["per_class"]:
+            print(f"Classe: {class_info['class_name']}")
+            print("  Mais positivas:")
+            for item in class_info["top_positive_features"]:
+                print(f"    + {item['feature']}: {item['value']:.4f}")
+            print("  Mais negativas:")
+            for item in class_info["top_negative_features"]:
+                print(f"    - {item['feature']}: {item['value']:.4f}")
+        return
+
+    if interpretability["type"] == "random_forest_feature_importances":
+        print("Top feature importances:")
+        for item in interpretability["top_feature_importances"]:
+            print(f"  * {item['feature']}: {item['value']:.4f}")
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Treina baselines de ML a partir do dataset exportado do auto-planeamento."
@@ -95,6 +133,8 @@ def main():
             result["confusion_matrix_labels"],
             result["confusion_matrix"],
         )
+        print_interpretability(result.get("interpretability"))
+        print()
 
     if report["best_model"]:
         print(
@@ -106,6 +146,7 @@ def main():
             report["best_model"]["confusion_matrix_labels"],
             report["best_model"]["confusion_matrix"],
         )
+        print_interpretability(report["best_model"].get("interpretability"))
 
     print(f"Relatório gravado em: {report_path}")
 
