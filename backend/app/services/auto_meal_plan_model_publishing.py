@@ -68,6 +68,7 @@ def publish_auto_meal_plan_model(
     random_state: int = 42,
     include_suggested_recipe_id: bool = DEFAULT_PUBLISH_INCLUDE_SUGGESTED_RECIPE_ID,
     evaluation_strategy: str = DEFAULT_PUBLISH_EVALUATION_STRATEGY,
+    additional_artifact_fields: dict[str, Any] | None = None,
 ) -> tuple[Path, Path, dict[str, Any]]:
     report_path, report = train_auto_meal_plan_baseline(
         dataset_path=dataset_path,
@@ -132,6 +133,9 @@ def publish_auto_meal_plan_model(
         "source_report_path": str(report_path),
         "pipeline": pipeline,
     }
+
+    if additional_artifact_fields:
+        artifact.update(additional_artifact_fields)
 
     model_path = save_published_auto_meal_plan_model_artifact(artifact)
     metadata = summarize_published_auto_meal_plan_artifact(artifact) or {}

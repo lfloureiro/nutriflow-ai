@@ -23,10 +23,8 @@ from backend.app.schemas.meal_plan_manage import (
     MealPlanItemCreateScoped,
     MealPlanItemUpdateScoped,
 )
-from backend.app.services.auto_meal_planner import (
-    PlannerSuggestion,
-    build_auto_meal_plan_preview,
-    normalize_meal_types,
+from backend.app.services.auto_meal_plan_autopublish import (
+    maybe_auto_publish_auto_meal_plan_model,
 )
 from backend.app.services.auto_meal_plan_logging import (
     ApplyExecutionResult,
@@ -35,6 +33,11 @@ from backend.app.services.auto_meal_plan_logging import (
     log_auto_meal_plan_run,
     log_post_apply_lifecycle_event,
     snapshot_meal_plan_item,
+)
+from backend.app.services.auto_meal_planner import (
+    PlannerSuggestion,
+    build_auto_meal_plan_preview,
+    normalize_meal_types,
 )
 
 router = APIRouter(prefix="/meal-plan", tags=["meal-plan"])
@@ -308,6 +311,7 @@ def update_meal_plan_item(
 
     db.flush()
 
+    should_try_auto_publish = False
     if source_event and change_reasons:
         log_post_apply_lifecycle_event(
             db=db,
@@ -321,6 +325,7 @@ def update_meal_plan_item(
             keep_meal_plan_item_link=True,
             reasons=change_reasons,
         )
+        should_try_auto_publish = True
 
     db.commit()
     db.refresh(item)
@@ -331,6 +336,12 @@ def update_meal_plan_item(
         .filter(MealPlanItem.id == item.id)
         .first()
     )
+
+    if should_try_auto_publish:
+        maybe_auto_publish_auto_meal_plan_model(
+            db,
+            trigger_reason="meal_plan_update_from_auto_plan",
+        )
 
     return item
 
@@ -347,6 +358,7 @@ def delete_meal_plan_item(
     source_event = get_latest_auto_plan_apply_event(db, item.id)
     before_snapshot = snapshot_meal_plan_item(item)
 
+    should_try_auto_publish = False
     if source_event:
         detach_meal_plan_item_from_logs(db, item.id)
         log_post_apply_lifecycle_event(
@@ -364,9 +376,16 @@ def delete_meal_plan_item(
                 f"deleted_meal_plan_item_id={before_snapshot.meal_plan_item_id}",
             ],
         )
+        should_try_auto_publish = True
 
     db.delete(item)
     db.commit()
+
+    if should_try_auto_publish:
+        maybe_auto_publish_auto_meal_plan_model(
+            db,
+            trigger_reason="meal_plan_delete_from_auto_plan",
+        )
 
     return {"message": "Refeição planeada apagada com sucesso."}
 
@@ -505,6 +524,12 @@ def apply_auto_meal_plan(
     )
 
     db.commit()
+
+    if created_count > 0:
+        maybe_auto_publish_auto_meal_plan_model(
+            db,
+            trigger_reason="auto_plan_apply",
+        )
 
     return AutoMealPlanApplyRead(
         household_id=data.household_id,
@@ -719,6 +744,12 @@ def apply_adjusted_auto_meal_plan(
     )
 
     db.commit()
+
+    if created_count > 0:
+        maybe_auto_publish_auto_meal_plan_model(
+            db,
+            trigger_reason="auto_plan_apply_adjusted",
+        )
 
     return AutoMealPlanAdjustedApplyRead(
         household_id=data.household_id,
