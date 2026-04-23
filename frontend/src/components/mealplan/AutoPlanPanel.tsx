@@ -12,9 +12,13 @@ type Suggestion = {
   categoria_alimentar: string | null;
   proteina_principal: string | null;
   score: number | null;
+  heuristic_score: number | null;
+  ml_score: number | null;
+  final_score: number | null;
   average_rating: number | null;
   ratings_count: number;
   reasons: string[];
+  engine_version: string | null;
 };
 
 type PreviewResponse = {
@@ -91,6 +95,54 @@ function formatPlanDate(value: string) {
     day: "2-digit",
     month: "2-digit",
   });
+}
+
+function formatScore(value: number | null | undefined) {
+  if (value == null || Number.isNaN(value)) {
+    return "—";
+  }
+
+  return value.toFixed(2);
+}
+
+function formatMlScore(value: number | null | undefined) {
+  if (value == null || Number.isNaN(value)) {
+    return "—";
+  }
+
+  return `${Math.round(value * 100)}%`;
+}
+
+function getMlInsight(value: number | null | undefined) {
+  if (value == null || Number.isNaN(value)) {
+    return "Sem score ML";
+  }
+
+  if (value >= 0.7) {
+    return "ML: aceitação alta";
+  }
+
+  if (value <= 0.35) {
+    return "ML: risco de troca";
+  }
+
+  return "ML: aceitação intermédia";
+}
+
+function formatEngineVersion(value: string | null | undefined) {
+  if (!value) {
+    return "Motor desconhecido";
+  }
+
+  if (value === "hybrid_ml_v1") {
+    return "Heurística + ML";
+  }
+
+  if (value === "heuristic_v1") {
+    return "Heurística";
+  }
+
+  return value;
 }
 
 function getErrorMessage(data: unknown, fallback: string) {
@@ -373,9 +425,13 @@ export function AutoPlanPanel({ householdId, onApplied }: Props) {
             adjusted_recipe_id: item.adjusted_recipe_id,
             apply_decision: item.apply_decision,
             score: item.score,
+            heuristic_score: item.heuristic_score,
+            ml_score: item.ml_score,
+            final_score: item.final_score,
             average_rating: item.average_rating,
             ratings_count: item.ratings_count,
             reasons: item.reasons,
+            engine_version: item.engine_version,
           })),
         }),
       });
@@ -533,6 +589,7 @@ export function AutoPlanPanel({ householdId, onApplied }: Props) {
               {editableSuggestions.map((item, index) => {
                 const compatibleRecipes = compatibleRecipesForMealType(item.meal_type);
                 const selectedRecipe = getSelectedRecipe(item);
+                const effectiveFinalScore = item.final_score ?? item.score;
 
                 return (
                   <div
@@ -547,6 +604,10 @@ export function AutoPlanPanel({ householdId, onApplied }: Props) {
                           <span className="nf-score-pill">
                             {getDecisionLabel(item.apply_decision)}
                           </span>
+                          <span className="nf-score-pill">
+                            {formatEngineVersion(item.engine_version)}
+                          </span>
+                          <span className="nf-score-pill">{getMlInsight(item.ml_score)}</span>
                         </div>
 
                         <div className="nf-record-title">
@@ -560,8 +621,22 @@ export function AutoPlanPanel({ householdId, onApplied }: Props) {
                           ·{" "}
                           {(selectedRecipe?.proteina_principal ??
                             item.proteina_principal ??
-                            "Sem proteína")}{" "}
-                          · Score {item.score ?? "—"}
+                            "Sem proteína")}
+                        </div>
+
+                        <div
+                          className="nf-pill-row"
+                          style={{ marginTop: "10px", marginBottom: "6px" }}
+                        >
+                          <span className="nf-score-pill">
+                            Heurística: {formatScore(item.heuristic_score)}
+                          </span>
+                          <span className="nf-score-pill">
+                            ML: {formatMlScore(item.ml_score)}
+                          </span>
+                          <span className="nf-score-pill">
+                            Final: {formatScore(effectiveFinalScore)}
+                          </span>
                         </div>
 
                         {item.action === "suggest" ? (
