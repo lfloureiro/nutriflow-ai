@@ -6,6 +6,10 @@ from backend.app.models.auto_meal_plan_event import AutoMealPlanEvent
 from backend.app.models.meal_feedback import MealFeedback
 from backend.app.models.meal_plan_item import MealPlanItem
 from backend.app.models.shopping_list_item_state import ShoppingListItemState
+from backend.app.services.auto_meal_plan_model_runtime import (
+    MODEL_DIR,
+    clear_published_auto_meal_plan_model_cache,
+)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DATASET_DIR = PROJECT_ROOT / "data" / "ml_datasets"
@@ -35,6 +39,8 @@ def reset_meal_plan_ml_state(db: Session) -> dict[str, int]:
 
     deleted_dataset_file_count = delete_files_in_directory(DATASET_DIR)
     deleted_result_file_count = delete_files_in_directory(RESULTS_DIR)
+    deleted_model_file_count = delete_files_in_directory(MODEL_DIR)
+    clear_published_auto_meal_plan_model_cache()
 
     return {
         "deleted_meal_feedback_count": int(deleted_meal_feedback_count or 0),
@@ -43,4 +49,5 @@ def reset_meal_plan_ml_state(db: Session) -> dict[str, int]:
         "deleted_meal_plan_count": int(deleted_meal_plan_count or 0),
         "deleted_dataset_file_count": int(deleted_dataset_file_count),
         "deleted_result_file_count": int(deleted_result_file_count),
+        "deleted_model_file_count": int(deleted_model_file_count),
     }

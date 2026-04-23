@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session, joinedload
 from backend.app.models.meal_plan_item import MealPlanItem
 from backend.app.models.recipe import Recipe
 from backend.app.models.recipe_preference import RecipePreference
+from backend.app.services.auto_meal_plan_model_runtime import build_auto_meal_plan_model_scorer
 
 
 DEFAULT_MEAL_TYPES = ["almoco", "jantar"]
@@ -70,6 +71,8 @@ class PlannerSuggestion:
     average_rating: float | None = None
     ratings_count: int = 0
     reasons: list[str] = field(default_factory=list)
+    engine_version: str = "heuristic_v1"
+    model_acceptance_score: float | None = None
 
 
 def normalize_meal_types(meal_types: list[str] | None) -> list[str]:
@@ -457,6 +460,9 @@ def build_auto_meal_plan_preview(
     last_category = category_key(latest_before_range.recipe) if latest_before_range else None
     last_protein = protein_key(latest_before_range.recipe) if latest_before_range else None
 
+    model_scorer = build_auto_meal_plan_model_scorer(db)
+    run_engine_version = model_scorer.engine_version
+
     suggestions: list[PlannerSuggestion] = []
 
     for plan_date in daterange(start_date, end_date):
@@ -471,6 +477,7 @@ def build_auto_meal_plan_preview(
                         action="skip_existing",
                         recipe=existing.recipe,
                         reasons=["já existe uma refeição planeada neste slot"],
+                        engine_version=run_engine_version,
                     )
                 )
 
@@ -491,6 +498,7 @@ def build_auto_meal_plan_preview(
                         meal_type=meal_type,
                         action="no_candidate",
                         reasons=["não existem receitas elegíveis para este tipo de refeição"],
+                        engine_version=run_engine_version,
                     )
                 )
                 continue
@@ -516,15 +524,38 @@ def build_auto_meal_plan_preview(
                     last_category=last_category,
                     last_protein=last_protein,
                 )
+                candidate_score = score
+                candidate_reasons = list(reasons)
+                candidate_engine_version = run_engine_version
+                candidate_model_acceptance_score = None
+
+                model_score_result = model_scorer.score_candidate(
+                    household_id=household_id,
+                    plan_date=plan_date,
+                    meal_type=meal_type,
+                    recipe=recipe,
+                    heuristic_score=score,
+                    average_rating=average_rating,
+                    ratings_count=ratings_count,
+                )
+                if model_score_result is not None:
+                    candidate_score = model_score_result.blended_score
+                    candidate_engine_version = model_score_result.engine_version
+                    candidate_model_acceptance_score = model_score_result.acceptance_probability
+                    if model_score_result.reason:
+                        candidate_reasons.append(model_score_result.reason)
+
                 scored_candidates.append(
                     (
-                        score,
+                        candidate_score,
                         days_since_last_use_for_sort,
                         ratings_count,
                         recipe.name.lower(),
                         recipe,
-                        reasons,
+                        candidate_reasons,
                         average_rating,
+                        candidate_engine_version,
+                        candidate_model_acceptance_score,
                     )
                 )
 
@@ -537,6 +568,8 @@ def build_auto_meal_plan_preview(
                 best_recipe,
                 best_reasons,
                 best_average_rating,
+                best_engine_version,
+                best_model_acceptance_score,
             ) = scored_candidates[0]
 
             suggestions.append(
@@ -549,6 +582,8 @@ def build_auto_meal_plan_preview(
                     average_rating=best_average_rating,
                     ratings_count=best_ratings_count,
                     reasons=best_reasons,
+                    engine_version=best_engine_version,
+                    model_acceptance_score=best_model_acceptance_score,
                 )
             )
 

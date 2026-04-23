@@ -6,9 +6,8 @@ from sqlalchemy.orm import Session
 
 from backend.app.models.auto_meal_plan_event import AutoMealPlanEvent
 from backend.app.models.meal_plan_item import MealPlanItem
+from backend.app.services.auto_meal_plan_model_runtime import HEURISTIC_ENGINE_VERSION
 from backend.app.services.auto_meal_planner import PlannerSuggestion, normalize_meal_types
-
-ENGINE_VERSION = "heuristic_v1"
 
 
 @dataclass
@@ -130,7 +129,7 @@ def log_auto_meal_plan_run(
                 run_id=run_id,
                 household_id=household_id,
                 event_kind=event_kind,
-                engine_version=ENGINE_VERSION,
+                engine_version=suggestion.engine_version or HEURISTIC_ENGINE_VERSION,
                 request_start_date=start_date,
                 request_end_date=end_date,
                 request_meal_types=normalized_meal_types,

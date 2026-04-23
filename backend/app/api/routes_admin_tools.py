@@ -7,6 +7,16 @@ from backend.app.services.auto_meal_plan_baseline_training import (
     DEFAULT_TARGET,
     train_auto_meal_plan_baseline,
 )
+from backend.app.services.auto_meal_plan_model_publishing import (
+    DEFAULT_PUBLISH_EVALUATION_STRATEGY,
+    DEFAULT_PUBLISH_INCLUDE_SUGGESTED_RECIPE_ID,
+    DEFAULT_PUBLISH_TARGET,
+    publish_auto_meal_plan_model,
+)
+from backend.app.services.auto_meal_plan_model_runtime import (
+    load_published_auto_meal_plan_model_artifact,
+    summarize_published_auto_meal_plan_artifact,
+)
 from backend.app.services.auto_meal_plan_training_dataset import (
     export_auto_plan_training_dataset,
 )
@@ -63,6 +73,46 @@ def train_auto_plan_baseline(
         "test_size": report["test_size"],
         "notes": report["notes"],
         "best_model": report["best_model"],
+    }
+
+
+@router.post("/ml/publish-auto-plan-model")
+def publish_auto_plan_model(
+    dataset_path: str | None = Query(default=None),
+    target: str = Query(default=DEFAULT_PUBLISH_TARGET),
+    test_size: float = Query(default=0.3),
+    random_state: int = Query(default=42),
+    include_suggested_recipe_id: bool = Query(default=DEFAULT_PUBLISH_INCLUDE_SUGGESTED_RECIPE_ID),
+    evaluation_strategy: str = Query(default=DEFAULT_PUBLISH_EVALUATION_STRATEGY),
+):
+    try:
+        model_path, report_path, metadata = publish_auto_meal_plan_model(
+            dataset_path=dataset_path,
+            target=target,
+            test_size=test_size,
+            random_state=random_state,
+            include_suggested_recipe_id=include_suggested_recipe_id,
+            evaluation_strategy=evaluation_strategy,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return {
+        "message": "Modelo de auto-planeamento publicado com sucesso.",
+        "model_path": str(model_path),
+        "report_path": str(report_path),
+        **metadata,
+    }
+
+
+@router.get("/ml/active-auto-plan-model")
+def get_active_auto_plan_model():
+    artifact = load_published_auto_meal_plan_model_artifact()
+    metadata = summarize_published_auto_meal_plan_artifact(artifact)
+
+    return {
+        "active": metadata is not None,
+        "model": metadata,
     }
 
 
