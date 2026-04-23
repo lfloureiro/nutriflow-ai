@@ -234,6 +234,9 @@ def test_preview_uses_published_model_score_when_available(
         skip_existing=True,
     )
     assert preview_before[0].engine_version == HEURISTIC_ENGINE_VERSION
+    assert preview_before[0].heuristic_score is not None
+    assert preview_before[0].final_score == preview_before[0].score
+    assert preview_before[0].model_acceptance_score is None
 
     publish_auto_meal_plan_model(
         dataset_path=str(dataset_path),
@@ -257,5 +260,58 @@ def test_preview_uses_published_model_score_when_available(
     )
 
     assert preview_after[0].engine_version == AUTO_MEAL_PLAN_MODEL_ENGINE_VERSION
+    assert preview_after[0].heuristic_score is not None
+    assert preview_after[0].final_score == preview_after[0].score
     assert preview_after[0].model_acceptance_score is not None
     assert any("modelo prevê" in reason for reason in preview_after[0].reasons)
+
+
+def test_preview_endpoint_includes_score_breakdown_when_model_active(
+    monkeypatch,
+    tmp_path,
+    client,
+    sample_data,
+):
+    model_dir = tmp_path / "ml_models"
+    results_dir = tmp_path / "ml_results"
+    results_dir.mkdir(parents=True, exist_ok=True)
+    dataset_path = tmp_path / "auto_plan_training_publish.csv"
+    write_publishable_dataset(dataset_path)
+
+    monkeypatch.setattr(auto_meal_plan_model_runtime, "MODEL_DIR", model_dir)
+    monkeypatch.setattr(auto_meal_plan_baseline_training, "RESULTS_DIR", results_dir)
+    clear_published_auto_meal_plan_model_cache()
+
+    publish_auto_meal_plan_model(
+        dataset_path=str(dataset_path),
+        target="accepted_as_suggested",
+        include_suggested_recipe_id=False,
+        evaluation_strategy="stratified_kfold",
+        random_state=42,
+    )
+
+    response = client.post(
+        "/meal-plan/auto-plan/preview",
+        json={
+            "household_id": sample_data["household_2_id"],
+            "start_date": "2026-06-10",
+            "end_date": "2026-06-10",
+            "meal_types": ["jantar"],
+            "skip_existing": True,
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert len(body["suggestions"]) == 1
+
+    suggestion = body["suggestions"][0]
+    assert "heuristic_score" in suggestion
+    assert "ml_score" in suggestion
+    assert "final_score" in suggestion
+    assert "engine_version" in suggestion
+    assert suggestion["engine_version"] == AUTO_MEAL_PLAN_MODEL_ENGINE_VERSION
+    assert suggestion["heuristic_score"] is not None
+    assert suggestion["ml_score"] is not None
+    assert suggestion["final_score"] is not None
+    assert suggestion["score"] == suggestion["final_score"]

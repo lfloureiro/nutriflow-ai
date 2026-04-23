@@ -21,9 +21,13 @@ class AutoMealPlanSuggestionRead(BaseModel):
     categoria_alimentar: str | None = None
     proteina_principal: str | None = None
     score: float | None = None
+    heuristic_score: float | None = None
+    ml_score: float | None = None
+    final_score: float | None = None
     average_rating: float | None = None
     ratings_count: int = 0
     reasons: list[str] = Field(default_factory=list)
+    engine_version: str | None = None
 
 
 class AutoMealPlanPreviewRead(BaseModel):
@@ -54,9 +58,13 @@ class AutoMealPlanAdjustedSuggestionWrite(BaseModel):
     adjusted_recipe_id: int | None = None
     apply_decision: Literal["keep", "replace", "ignore", "skip_existing"] = "keep"
     score: float | None = None
+    heuristic_score: float | None = None
+    ml_score: float | None = None
+    final_score: float | None = None
     average_rating: float | None = None
     ratings_count: int = 0
     reasons: list[str] = Field(default_factory=list)
+    engine_version: str | None = None
 
 
 class AutoMealPlanAdjustedRequest(BaseModel):

@@ -68,6 +68,8 @@ class PlannerSuggestion:
     action: str
     recipe: Recipe | None = None
     score: float | None = None
+    heuristic_score: float | None = None
+    final_score: float | None = None
     average_rating: float | None = None
     ratings_count: int = 0
     reasons: list[str] = field(default_factory=list)
@@ -506,7 +508,7 @@ def build_auto_meal_plan_preview(
             scored_candidates = []
             for recipe in candidates:
                 (
-                    score,
+                    heuristic_score,
                     reasons,
                     average_rating,
                     ratings_count,
@@ -524,22 +526,23 @@ def build_auto_meal_plan_preview(
                     last_category=last_category,
                     last_protein=last_protein,
                 )
-                candidate_score = score
-                candidate_reasons = list(reasons)
+
+                final_score = heuristic_score
                 candidate_engine_version = run_engine_version
                 candidate_model_acceptance_score = None
+                candidate_reasons = list(reasons)
 
                 model_score_result = model_scorer.score_candidate(
                     household_id=household_id,
                     plan_date=plan_date,
                     meal_type=meal_type,
                     recipe=recipe,
-                    heuristic_score=score,
+                    heuristic_score=heuristic_score,
                     average_rating=average_rating,
                     ratings_count=ratings_count,
                 )
                 if model_score_result is not None:
-                    candidate_score = model_score_result.blended_score
+                    final_score = model_score_result.blended_score
                     candidate_engine_version = model_score_result.engine_version
                     candidate_model_acceptance_score = model_score_result.acceptance_probability
                     if model_score_result.reason:
@@ -547,7 +550,7 @@ def build_auto_meal_plan_preview(
 
                 scored_candidates.append(
                     (
-                        candidate_score,
+                        final_score,
                         days_since_last_use_for_sort,
                         ratings_count,
                         recipe.name.lower(),
@@ -556,12 +559,14 @@ def build_auto_meal_plan_preview(
                         average_rating,
                         candidate_engine_version,
                         candidate_model_acceptance_score,
+                        heuristic_score,
+                        final_score,
                     )
                 )
 
             scored_candidates.sort(key=lambda item: (-item[0], -item[1], -item[2], item[3]))
             (
-                best_score,
+                _candidate_sort_score,
                 _best_days_since_last_use,
                 best_ratings_count,
                 _,
@@ -570,6 +575,8 @@ def build_auto_meal_plan_preview(
                 best_average_rating,
                 best_engine_version,
                 best_model_acceptance_score,
+                best_heuristic_score,
+                best_final_score,
             ) = scored_candidates[0]
 
             suggestions.append(
@@ -578,7 +585,9 @@ def build_auto_meal_plan_preview(
                     meal_type=meal_type,
                     action="suggest",
                     recipe=best_recipe,
-                    score=best_score,
+                    score=best_final_score,
+                    heuristic_score=best_heuristic_score,
+                    final_score=best_final_score,
                     average_rating=best_average_rating,
                     ratings_count=best_ratings_count,
                     reasons=best_reasons,

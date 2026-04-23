@@ -95,10 +95,16 @@ def build_suggestion_read(
     action: str,
     recipe: Recipe | None,
     score: float | None,
+    heuristic_score: float | None,
+    ml_score: float | None,
+    final_score: float | None,
     average_rating: float | None,
     ratings_count: int,
     reasons: list[str],
+    engine_version: str | None,
 ) -> AutoMealPlanSuggestionRead:
+    effective_final_score = final_score if final_score is not None else score
+
     return AutoMealPlanSuggestionRead(
         plan_date=plan_date,
         meal_type=meal_type,
@@ -107,10 +113,14 @@ def build_suggestion_read(
         recipe_name=recipe.name if recipe else None,
         categoria_alimentar=recipe.categoria_alimentar if recipe else None,
         proteina_principal=recipe.proteina_principal if recipe else None,
-        score=score,
+        score=effective_final_score,
+        heuristic_score=heuristic_score,
+        ml_score=ml_score,
+        final_score=effective_final_score,
         average_rating=average_rating,
         ratings_count=ratings_count,
         reasons=reasons,
+        engine_version=engine_version,
     )
 
 
@@ -121,9 +131,13 @@ def suggestion_to_read(item: PlannerSuggestion) -> AutoMealPlanSuggestionRead:
         action=item.action,
         recipe=item.recipe,
         score=item.score,
+        heuristic_score=item.heuristic_score,
+        ml_score=item.model_acceptance_score,
+        final_score=item.final_score,
         average_rating=item.average_rating,
         ratings_count=item.ratings_count,
         reasons=item.reasons,
+        engine_version=item.engine_version,
     )
 
 
@@ -549,15 +563,21 @@ def apply_adjusted_auto_meal_plan(
             if not original_recipe:
                 raise HTTPException(status_code=404, detail="Receita original não encontrada.")
 
+        effective_final_score = item.final_score if item.final_score is not None else item.score
+
         original_suggestion = PlannerSuggestion(
             plan_date=item.plan_date,
             meal_type=meal_type_clean,
             action=item.original_action,
             recipe=original_recipe,
-            score=item.score,
+            score=effective_final_score,
+            heuristic_score=item.heuristic_score,
+            final_score=effective_final_score,
             average_rating=item.average_rating,
             ratings_count=item.ratings_count,
             reasons=item.reasons,
+            engine_version=item.engine_version or "heuristic_v1",
+            model_acceptance_score=item.ml_score,
         )
         suggestions_for_logging.append(original_suggestion)
 
@@ -582,10 +602,14 @@ def apply_adjusted_auto_meal_plan(
                     meal_type=meal_type_clean,
                     action="ignored",
                     recipe=original_recipe,
-                    score=item.score,
+                    score=effective_final_score,
+                    heuristic_score=item.heuristic_score,
+                    ml_score=item.ml_score,
+                    final_score=effective_final_score,
                     average_rating=item.average_rating,
                     ratings_count=item.ratings_count,
                     reasons=item.reasons,
+                    engine_version=item.engine_version,
                 )
             )
             continue
@@ -636,10 +660,14 @@ def apply_adjusted_auto_meal_plan(
                     meal_type=meal_type_clean,
                     action="skip_existing",
                     recipe=existing_recipe,
-                    score=item.score,
+                    score=effective_final_score,
+                    heuristic_score=item.heuristic_score,
+                    ml_score=item.ml_score,
+                    final_score=effective_final_score,
                     average_rating=item.average_rating,
                     ratings_count=item.ratings_count,
                     reasons=item.reasons,
+                    engine_version=item.engine_version,
                 )
             )
             continue
@@ -667,10 +695,14 @@ def apply_adjusted_auto_meal_plan(
                 meal_type=meal_type_clean,
                 action="adjusted_replace" if item.apply_decision == "replace" else "suggest",
                 recipe=final_recipe,
-                score=item.score,
+                score=effective_final_score,
+                heuristic_score=item.heuristic_score,
+                ml_score=item.ml_score,
+                final_score=effective_final_score,
                 average_rating=item.average_rating,
                 ratings_count=item.ratings_count,
                 reasons=item.reasons,
+                engine_version=item.engine_version,
             )
         )
 
