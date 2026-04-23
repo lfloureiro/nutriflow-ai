@@ -105,6 +105,15 @@ function formatScore(value: number | null | undefined) {
   return value.toFixed(2);
 }
 
+function formatSignedScore(value: number | null | undefined) {
+  if (value == null || Number.isNaN(value)) {
+    return "—";
+  }
+
+  const sign = value > 0 ? "+" : "";
+  return `${sign}${value.toFixed(2)}`;
+}
+
 function formatMlScore(value: number | null | undefined) {
   if (value == null || Number.isNaN(value)) {
     return "—";
@@ -143,6 +152,42 @@ function formatEngineVersion(value: string | null | undefined) {
   }
 
   return value;
+}
+
+function getEffectiveFinalScore(item: Suggestion | EditableSuggestion) {
+  return item.final_score ?? item.score;
+}
+
+function getMlImpactValue(item: Suggestion | EditableSuggestion) {
+  const finalScore = getEffectiveFinalScore(item);
+  const heuristicScore = item.heuristic_score;
+
+  if (
+    finalScore == null ||
+    heuristicScore == null ||
+    Number.isNaN(finalScore) ||
+    Number.isNaN(heuristicScore)
+  ) {
+    return null;
+  }
+
+  return finalScore - heuristicScore;
+}
+
+function getMlImpactLabel(value: number | null | undefined) {
+  if (value == null || Number.isNaN(value)) {
+    return "Impacto ML indisponível";
+  }
+
+  if (value >= 2) {
+    return "ML reforçou";
+  }
+
+  if (value <= -2) {
+    return "ML penalizou";
+  }
+
+  return "ML quase neutro";
 }
 
 function getErrorMessage(data: unknown, fallback: string) {
@@ -589,7 +634,8 @@ export function AutoPlanPanel({ householdId, onApplied }: Props) {
               {editableSuggestions.map((item, index) => {
                 const compatibleRecipes = compatibleRecipesForMealType(item.meal_type);
                 const selectedRecipe = getSelectedRecipe(item);
-                const effectiveFinalScore = item.final_score ?? item.score;
+                const effectiveFinalScore = getEffectiveFinalScore(item);
+                const mlImpactValue = getMlImpactValue(item);
 
                 return (
                   <div
@@ -637,6 +683,10 @@ export function AutoPlanPanel({ householdId, onApplied }: Props) {
                           <span className="nf-score-pill">
                             Final: {formatScore(effectiveFinalScore)}
                           </span>
+                          <span className="nf-score-pill">
+                            Impacto ML: {formatSignedScore(mlImpactValue)}
+                          </span>
+                          <span className="nf-score-pill">{getMlImpactLabel(mlImpactValue)}</span>
                         </div>
 
                         {item.action === "suggest" ? (

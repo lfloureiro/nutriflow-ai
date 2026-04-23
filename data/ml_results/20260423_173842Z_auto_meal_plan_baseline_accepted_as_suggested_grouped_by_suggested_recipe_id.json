@@ -1,6 +1,6 @@
 {
   "dataset_path": "D:\\Python\\NutriFlow AI\\nutriflow-ai\\data\\ml_datasets\\auto_meal_plan_training_autopublish.csv",
-  "generated_at_utc": "2026-04-23T17:12:23.029170+00:00",
+  "generated_at_utc": "2026-04-23T17:38:42.451762+00:00",
   "row_count": 21,
   "target_column": "accepted_as_suggested",
   "evaluation_strategy": "grouped_by_suggested_recipe_id",
@@ -11,14 +11,15 @@
   "feature_set_variants_requested": [
     "without_suggested_recipe_id"
   ],
-  "status": "not_enough_classes",
+  "status": "insufficient_evaluation_support",
   "notes": [
     "As métricas representam média e desvio padrão por fold de validação cruzada.",
     "A interpretabilidade é calculada ajustando o modelo em todo o dataset apenas para inspeção exploratória.",
-    "O dataset só contém uma classe no target. Ainda não é possível treinar um modelo supervisionado útil."
+    "Não foi possível construir folds agrupados por suggested_recipe_id com pelo menos duas classes nos conjuntos de treino e de teste."
   ],
   "target_distribution": {
-    "1": 21
+    "1": 19,
+    "0": 2
   },
   "train_size": null,
   "test_size": null,
