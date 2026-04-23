@@ -48,6 +48,24 @@ OPTIONAL_CATEGORICAL_FEATURES = [
     "previous_same_meal_type_proteina_principal",
 ]
 
+RECIPE_PROFILE_NUMERIC_FEATURES = [
+    "suggested_recipe_ingredient_count",
+    "suggested_recipe_distinct_ingredient_count",
+    "suggested_recipe_profile_flag_count",
+    "suggested_recipe_has_arroz_ingredient",
+    "suggested_recipe_has_massa_ingredient",
+    "suggested_recipe_has_batata_ingredient",
+    "suggested_recipe_has_ovos_ingredient",
+    "suggested_recipe_has_peixe_marisco_ingredient",
+    "suggested_recipe_has_frango_aves_ingredient",
+    "suggested_recipe_has_vaca_ingredient",
+    "suggested_recipe_has_porco_ingredient",
+    "suggested_recipe_has_queijo_lacticinios_ingredient",
+    "suggested_recipe_has_leguminosas_ingredient",
+    "suggested_recipe_has_tomate_ingredient",
+    "suggested_recipe_has_cebola_alho_ingredient",
+]
+
 CORE_NUMERIC_FEATURES = [
     "weekday_index",
     "is_weekend",
@@ -89,6 +107,7 @@ OPTIONAL_NUMERIC_FEATURES = [
     "reason_recent_category_repeat",
     "reason_three_meats_in_row",
     "reason_recent_meat_protein_repeat",
+    *RECIPE_PROFILE_NUMERIC_FEATURES,
 ]
 
 INTERPRETABILITY_TOP_N = 12

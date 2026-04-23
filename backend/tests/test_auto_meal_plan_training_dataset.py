@@ -3,6 +3,7 @@ from datetime import date
 from backend.app.models.auto_meal_plan_event import AutoMealPlanEvent
 from backend.app.services.auto_meal_plan_training_dataset import (
     build_auto_plan_training_dataset,
+    build_recipe_feature_profiles,
 )
 
 
@@ -12,6 +13,19 @@ def get_row(rows, plan_date: str, meal_type: str):
         for row in rows
         if row["plan_date"] == plan_date and row["meal_type"] == meal_type
     )
+
+
+def test_recipe_feature_profiles_extract_ingredient_patterns(db_session, sample_data):
+    profiles = build_recipe_feature_profiles(db_session)
+
+    recipe_1_profile = profiles[sample_data["recipe_1_id"]]
+
+    assert recipe_1_profile["suggested_recipe_ingredient_count"] == 2
+    assert recipe_1_profile["suggested_recipe_distinct_ingredient_count"] == 2
+    assert recipe_1_profile["suggested_recipe_has_peixe_marisco_ingredient"] == 1
+    assert recipe_1_profile["suggested_recipe_has_massa_ingredient"] == 1
+    assert recipe_1_profile["suggested_recipe_has_batata_ingredient"] == 0
+    assert recipe_1_profile["suggested_recipe_profile_flag_count"] >= 2
 
 
 def test_training_dataset_marks_unchanged_apply_as_accepted(db_session, client, sample_data):
@@ -42,6 +56,10 @@ def test_training_dataset_marks_unchanged_apply_as_accepted(db_session, client, 
     assert row["lifecycle_count"] == 0
     assert row["suggested_recipe_id"] != ""
     assert row["final_recipe_id"] != ""
+    assert "suggested_recipe_ingredient_count" in row
+    assert "suggested_recipe_profile_flag_count" in row
+    assert row["suggested_recipe_ingredient_count"] >= 0
+    assert row["suggested_recipe_profile_flag_count"] >= 0
 
 
 def test_training_dataset_marks_recipe_change_and_delete(db_session, client, sample_data):
@@ -128,6 +146,9 @@ def test_training_dataset_marks_recipe_change_and_delete(db_session, client, sam
     assert updated_row["changed_recipe"] == 1
     assert updated_row["deleted_after_apply"] == 0
     assert updated_row["final_recipe_id"] == replacement_recipe_id
+    assert "suggested_recipe_has_peixe_marisco_ingredient" in updated_row
+    assert "suggested_recipe_has_massa_ingredient" in updated_row
+    assert updated_row["suggested_recipe_ingredient_count"] >= 0
 
     deleted_row = get_row(rows, "2026-05-18", "almoco")
     assert deleted_row["outcome_label"] == "deleted_after_apply"
@@ -135,3 +156,6 @@ def test_training_dataset_marks_recipe_change_and_delete(db_session, client, sam
     assert deleted_row["changed_recipe"] == 0
     assert deleted_row["deleted_after_apply"] == 1
     assert deleted_row["final_recipe_id"] == ""
+    assert "suggested_recipe_has_tomate_ingredient" in deleted_row
+    assert "suggested_recipe_has_cebola_alho_ingredient" in deleted_row
+    assert deleted_row["suggested_recipe_profile_flag_count"] >= 0

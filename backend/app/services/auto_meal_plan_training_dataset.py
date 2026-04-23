@@ -1,5 +1,6 @@
 import csv
 import json
+import unicodedata
 from datetime import timezone, datetime
 from pathlib import Path
 from typing import Any
@@ -7,10 +8,123 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from backend.app.models.auto_meal_plan_event import AutoMealPlanEvent
+from backend.app.models.ingredient import Ingredient
 from backend.app.models.recipe import Recipe
+from backend.app.models.recipe_ingredient import RecipeIngredient
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DATASET_DIR = PROJECT_ROOT / "data" / "ml_datasets"
+
+RECIPE_INGREDIENT_PROFILE_COLUMNS = [
+    "suggested_recipe_ingredient_count",
+    "suggested_recipe_distinct_ingredient_count",
+    "suggested_recipe_profile_flag_count",
+    "suggested_recipe_has_arroz_ingredient",
+    "suggested_recipe_has_massa_ingredient",
+    "suggested_recipe_has_batata_ingredient",
+    "suggested_recipe_has_ovos_ingredient",
+    "suggested_recipe_has_peixe_marisco_ingredient",
+    "suggested_recipe_has_frango_aves_ingredient",
+    "suggested_recipe_has_vaca_ingredient",
+    "suggested_recipe_has_porco_ingredient",
+    "suggested_recipe_has_queijo_lacticinios_ingredient",
+    "suggested_recipe_has_leguminosas_ingredient",
+    "suggested_recipe_has_tomate_ingredient",
+    "suggested_recipe_has_cebola_alho_ingredient",
+]
+
+RECIPE_INGREDIENT_KEYWORD_GROUPS = {
+    "suggested_recipe_has_arroz_ingredient": [
+        "arroz",
+    ],
+    "suggested_recipe_has_massa_ingredient": [
+        "massa",
+        "esparguete",
+        "macarrao",
+        "noodle",
+        "noodles",
+        "penne",
+        "fusilli",
+        "lasanha",
+        "ravioli",
+        "tortellini",
+        "tagliatelle",
+        "couscous",
+        "cuscuz",
+    ],
+    "suggested_recipe_has_batata_ingredient": [
+        "batata",
+    ],
+    "suggested_recipe_has_ovos_ingredient": [
+        "ovo",
+        "ovos",
+    ],
+    "suggested_recipe_has_peixe_marisco_ingredient": [
+        "atum",
+        "sardinha",
+        "bacalhau",
+        "pescada",
+        "salmao",
+        "peixe",
+        "camarao",
+        "marisco",
+        "dourada",
+        "robalo",
+        "lula",
+        "polvo",
+    ],
+    "suggested_recipe_has_frango_aves_ingredient": [
+        "frango",
+        "peru",
+        "pato",
+        "aves",
+    ],
+    "suggested_recipe_has_vaca_ingredient": [
+        "vaca",
+        "vitela",
+        "novilho",
+        "carne picada",
+        "bife",
+    ],
+    "suggested_recipe_has_porco_ingredient": [
+        "porco",
+        "lombo",
+        "bacon",
+        "presunto",
+        "chourico",
+        "linguica",
+        "salsicha",
+    ],
+    "suggested_recipe_has_queijo_lacticinios_ingredient": [
+        "queijo",
+        "mozzarella",
+        "mozarela",
+        "requeijao",
+        "natas",
+        "bechamel",
+        "iogurte",
+        "leite",
+    ],
+    "suggested_recipe_has_leguminosas_ingredient": [
+        "feijao",
+        "grao",
+        "lentilha",
+        "lentilhas",
+        "ervilha",
+        "ervilhas",
+        "favas",
+        "grao-de-bico",
+    ],
+    "suggested_recipe_has_tomate_ingredient": [
+        "tomate",
+        "polpa de tomate",
+        "molho de tomate",
+    ],
+    "suggested_recipe_has_cebola_alho_ingredient": [
+        "cebola",
+        "alho",
+    ],
+}
 
 DATASET_COLUMNS = [
     "source_event_id",
@@ -30,6 +144,7 @@ DATASET_COLUMNS = [
     "suggested_categoria_alimentar",
     "suggested_proteina_principal",
     "suggested_adequado_refeicao",
+    *RECIPE_INGREDIENT_PROFILE_COLUMNS,
     "score",
     "average_rating",
     "ratings_count",
@@ -52,6 +167,65 @@ def ensure_dataset_dir() -> None:
 
 def serialize_json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False)
+
+
+def normalize_ingredient_text(value: str) -> str:
+    normalized = unicodedata.normalize("NFKD", value or "")
+    without_accents = "".join(char for char in normalized if not unicodedata.combining(char))
+    collapsed = " ".join(without_accents.lower().strip().split())
+    return collapsed
+
+
+def empty_recipe_feature_profile() -> dict[str, int]:
+    profile = {
+        "suggested_recipe_ingredient_count": 0,
+        "suggested_recipe_distinct_ingredient_count": 0,
+        "suggested_recipe_profile_flag_count": 0,
+    }
+
+    for column in RECIPE_INGREDIENT_KEYWORD_GROUPS:
+        profile[column] = 0
+
+    return profile
+
+
+def build_recipe_feature_profiles(db: Session) -> dict[int, dict[str, int]]:
+    rows = (
+        db.query(RecipeIngredient.recipe_id, Ingredient.name)
+        .join(Ingredient, Ingredient.id == RecipeIngredient.ingredient_id)
+        .order_by(RecipeIngredient.recipe_id.asc(), RecipeIngredient.id.asc())
+        .all()
+    )
+
+    profiles: dict[int, dict[str, int]] = {}
+    distinct_ingredient_names: dict[int, set[str]] = {}
+
+    for recipe_id, ingredient_name in rows:
+        profile = profiles.setdefault(recipe_id, empty_recipe_feature_profile())
+        profile["suggested_recipe_ingredient_count"] += 1
+
+        normalized_name = normalize_ingredient_text(ingredient_name or "")
+        if not normalized_name:
+            continue
+
+        distinct_ingredient_names.setdefault(recipe_id, set()).add(normalized_name)
+
+        for column, keywords in RECIPE_INGREDIENT_KEYWORD_GROUPS.items():
+            if profile[column] == 1:
+                continue
+
+            if any(keyword in normalized_name for keyword in keywords):
+                profile[column] = 1
+
+    for recipe_id, profile in profiles.items():
+        profile["suggested_recipe_distinct_ingredient_count"] = len(
+            distinct_ingredient_names.get(recipe_id, set())
+        )
+        profile["suggested_recipe_profile_flag_count"] = sum(
+            profile[column] for column in RECIPE_INGREDIENT_KEYWORD_GROUPS
+        )
+
+    return profiles
 
 
 def recipe_index(db: Session) -> dict[int, Recipe]:
@@ -201,6 +375,8 @@ def build_auto_plan_training_dataset(
         lifecycle_by_run.setdefault(item.run_id, []).append(item)
 
     recipes = recipe_index(db)
+    recipe_feature_profiles = build_recipe_feature_profiles(db)
+
     rows: list[dict[str, Any]] = []
 
     for source_event in source_events:
@@ -221,53 +397,63 @@ def build_auto_plan_training_dataset(
             else None
         )
 
+        suggested_recipe_profile = (
+            recipe_feature_profiles.get(
+                source_event.suggested_recipe_id,
+                empty_recipe_feature_profile(),
+            )
+            if source_event.suggested_recipe_id is not None
+            else empty_recipe_feature_profile()
+        )
+
         weekday_index = source_event.plan_date.weekday()
         is_weekend = int(weekday_index >= 5)
 
-        rows.append(
-            {
-                "source_event_id": source_event.id,
-                "run_id": source_event.run_id,
-                "household_id": source_event.household_id,
-                "request_start_date": source_event.request_start_date.isoformat(),
-                "request_end_date": source_event.request_end_date.isoformat(),
-                "request_meal_types": serialize_json(source_event.request_meal_types),
-                "skip_existing": int(source_event.skip_existing),
-                "plan_date": source_event.plan_date.isoformat(),
-                "meal_type": source_event.meal_type,
-                "weekday_index": weekday_index,
-                "is_weekend": is_weekend,
-                "suggestion_action": source_event.suggestion_action,
-                "suggested_recipe_id": source_event.suggested_recipe_id or "",
-                "suggested_recipe_name": suggested_recipe.name if suggested_recipe else "",
-                "suggested_categoria_alimentar": (
-                    suggested_recipe.categoria_alimentar if suggested_recipe else ""
-                ),
-                "suggested_proteina_principal": (
-                    suggested_recipe.proteina_principal if suggested_recipe else ""
-                ),
-                "suggested_adequado_refeicao": (
-                    suggested_recipe.adequado_refeicao if suggested_recipe else ""
-                ),
-                "score": source_event.score if source_event.score is not None else "",
-                "average_rating": (
-                    source_event.average_rating
-                    if source_event.average_rating is not None
-                    else ""
-                ),
-                "ratings_count": source_event.ratings_count,
-                "reasons": serialize_json(source_event.reasons),
-                "lifecycle_count": outcome["lifecycle_count"],
-                "latest_lifecycle_event_kind": outcome["latest_lifecycle_event_kind"],
-                "latest_execution_status": outcome["latest_execution_status"],
-                "final_recipe_id": outcome["final_recipe_id"] or "",
-                "final_recipe_name": final_recipe.name if final_recipe else "",
-                "outcome_label": outcome["outcome_label"],
-                "accepted_as_suggested": outcome["accepted_as_suggested"],
-                "changed_recipe": outcome["changed_recipe"],
-                "deleted_after_apply": outcome["deleted_after_apply"],
-            }
-        )
+        row = {
+            "source_event_id": source_event.id,
+            "run_id": source_event.run_id,
+            "household_id": source_event.household_id,
+            "request_start_date": source_event.request_start_date.isoformat(),
+            "request_end_date": source_event.request_end_date.isoformat(),
+            "request_meal_types": serialize_json(source_event.request_meal_types),
+            "skip_existing": int(source_event.skip_existing),
+            "plan_date": source_event.plan_date.isoformat(),
+            "meal_type": source_event.meal_type,
+            "weekday_index": weekday_index,
+            "is_weekend": is_weekend,
+            "suggestion_action": source_event.suggestion_action,
+            "suggested_recipe_id": source_event.suggested_recipe_id or "",
+            "suggested_recipe_name": suggested_recipe.name if suggested_recipe else "",
+            "suggested_categoria_alimentar": (
+                suggested_recipe.categoria_alimentar if suggested_recipe else ""
+            ),
+            "suggested_proteina_principal": (
+                suggested_recipe.proteina_principal if suggested_recipe else ""
+            ),
+            "suggested_adequado_refeicao": (
+                suggested_recipe.adequado_refeicao if suggested_recipe else ""
+            ),
+            "score": source_event.score if source_event.score is not None else "",
+            "average_rating": (
+                source_event.average_rating
+                if source_event.average_rating is not None
+                else ""
+            ),
+            "ratings_count": source_event.ratings_count,
+            "reasons": serialize_json(source_event.reasons),
+            "lifecycle_count": outcome["lifecycle_count"],
+            "latest_lifecycle_event_kind": outcome["latest_lifecycle_event_kind"],
+            "latest_execution_status": outcome["latest_execution_status"],
+            "final_recipe_id": outcome["final_recipe_id"] or "",
+            "final_recipe_name": final_recipe.name if final_recipe else "",
+            "outcome_label": outcome["outcome_label"],
+            "accepted_as_suggested": outcome["accepted_as_suggested"],
+            "changed_recipe": outcome["changed_recipe"],
+            "deleted_after_apply": outcome["deleted_after_apply"],
+        }
+
+        row.update(suggested_recipe_profile)
+        rows.append(row)
 
     return rows
 
