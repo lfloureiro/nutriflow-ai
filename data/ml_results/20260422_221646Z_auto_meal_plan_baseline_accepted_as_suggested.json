@@ -1,0 +1,398 @@
+{
+  "dataset_path": "D:\\Python\\NutriFlow AI\\nutriflow-ai\\data\\ml_datasets\\20260422_221630Z_auto_meal_plan_training_all_households.csv",
+  "generated_at_utc": "2026-04-22T22:16:45.300114+00:00",
+  "row_count": 14,
+  "target_column": "accepted_as_suggested",
+  "feature_columns_used": [
+    "household_id",
+    "meal_type",
+    "suggestion_action",
+    "suggested_recipe_id",
+    "suggested_categoria_alimentar",
+    "suggested_proteina_principal",
+    "suggested_adequado_refeicao",
+    "weekday_index",
+    "is_weekend",
+    "score",
+    "average_rating",
+    "ratings_count"
+  ],
+  "categorical_features_used": [
+    "household_id",
+    "meal_type",
+    "suggestion_action",
+    "suggested_recipe_id",
+    "suggested_categoria_alimentar",
+    "suggested_proteina_principal",
+    "suggested_adequado_refeicao"
+  ],
+  "numeric_features_used": [
+    "weekday_index",
+    "is_weekend",
+    "score",
+    "average_rating",
+    "ratings_count"
+  ],
+  "dropped_numeric_features": [],
+  "target_distribution": {
+    "1": 9,
+    "0": 5
+  },
+  "status": "ok",
+  "notes": [
+    "As métricas representam média e desvio padrão por fold de validação cruzada estratificada."
+  ],
+  "train_size": 11,
+  "test_size": 3,
+  "evaluation_strategy": "stratified_kfold",
+  "cv_n_splits": 5,
+  "model_results": [
+    {
+      "model_name": "dummy_most_frequent",
+      "evaluation_strategy": "stratified_kfold",
+      "fold_count": 5,
+      "fold_results": [
+        {
+          "fold": 1,
+          "train_size": 11,
+          "test_size": 3,
+          "accuracy": 0.6666666666666666,
+          "balanced_accuracy": 0.5,
+          "precision_weighted": 0.4444444444444444,
+          "recall_weighted": 0.6666666666666666,
+          "f1_weighted": 0.5333333333333333
+        },
+        {
+          "fold": 2,
+          "train_size": 11,
+          "test_size": 3,
+          "accuracy": 0.6666666666666666,
+          "balanced_accuracy": 0.5,
+          "precision_weighted": 0.4444444444444444,
+          "recall_weighted": 0.6666666666666666,
+          "f1_weighted": 0.5333333333333333
+        },
+        {
+          "fold": 3,
+          "train_size": 11,
+          "test_size": 3,
+          "accuracy": 0.6666666666666666,
+          "balanced_accuracy": 0.5,
+          "precision_weighted": 0.4444444444444444,
+          "recall_weighted": 0.6666666666666666,
+          "f1_weighted": 0.5333333333333333
+        },
+        {
+          "fold": 4,
+          "train_size": 11,
+          "test_size": 3,
+          "accuracy": 0.6666666666666666,
+          "balanced_accuracy": 0.5,
+          "precision_weighted": 0.4444444444444444,
+          "recall_weighted": 0.6666666666666666,
+          "f1_weighted": 0.5333333333333333
+        },
+        {
+          "fold": 5,
+          "train_size": 12,
+          "test_size": 2,
+          "accuracy": 0.5,
+          "balanced_accuracy": 0.5,
+          "precision_weighted": 0.25,
+          "recall_weighted": 0.5,
+          "f1_weighted": 0.3333333333333333
+        }
+      ],
+      "accuracy": 0.6333333333333333,
+      "accuracy_std": 0.06666666666666665,
+      "balanced_accuracy": 0.5,
+      "balanced_accuracy_std": 0.0,
+      "precision_weighted": 0.40555555555555556,
+      "precision_weighted_std": 0.07777777777777777,
+      "recall_weighted": 0.6333333333333333,
+      "recall_weighted_std": 0.06666666666666665,
+      "f1_weighted": 0.49333333333333335,
+      "f1_weighted_std": 0.08,
+      "confusion_matrix_labels": [
+        "0",
+        "1"
+      ],
+      "confusion_matrix": [
+        [
+          0,
+          5
+        ],
+        [
+          0,
+          9
+        ]
+      ],
+      "classification_report": {
+        "0": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 5.0
+        },
+        "1": {
+          "precision": 0.6428571428571429,
+          "recall": 1.0,
+          "f1-score": 0.782608695652174,
+          "support": 9.0
+        },
+        "accuracy": 0.6428571428571429,
+        "macro avg": {
+          "precision": 0.32142857142857145,
+          "recall": 0.5,
+          "f1-score": 0.391304347826087,
+          "support": 14.0
+        },
+        "weighted avg": {
+          "precision": 0.41326530612244905,
+          "recall": 0.6428571428571429,
+          "f1-score": 0.5031055900621119,
+          "support": 14.0
+        }
+      }
+    },
+    {
+      "model_name": "logistic_regression",
+      "evaluation_strategy": "stratified_kfold",
+      "fold_count": 5,
+      "fold_results": [
+        {
+          "fold": 1,
+          "train_size": 11,
+          "test_size": 3,
+          "accuracy": 0.3333333333333333,
+          "balanced_accuracy": 0.25,
+          "precision_weighted": 0.3333333333333333,
+          "recall_weighted": 0.3333333333333333,
+          "f1_weighted": 0.3333333333333333
+        },
+        {
+          "fold": 2,
+          "train_size": 11,
+          "test_size": 3,
+          "accuracy": 0.3333333333333333,
+          "balanced_accuracy": 0.25,
+          "precision_weighted": 0.3333333333333333,
+          "recall_weighted": 0.3333333333333333,
+          "f1_weighted": 0.3333333333333333
+        },
+        {
+          "fold": 3,
+          "train_size": 11,
+          "test_size": 3,
+          "accuracy": 0.6666666666666666,
+          "balanced_accuracy": 0.75,
+          "precision_weighted": 0.8333333333333334,
+          "recall_weighted": 0.6666666666666666,
+          "f1_weighted": 0.6666666666666666
+        },
+        {
+          "fold": 4,
+          "train_size": 11,
+          "test_size": 3,
+          "accuracy": 0.6666666666666666,
+          "balanced_accuracy": 0.5,
+          "precision_weighted": 0.4444444444444444,
+          "recall_weighted": 0.6666666666666666,
+          "f1_weighted": 0.5333333333333333
+        },
+        {
+          "fold": 5,
+          "train_size": 12,
+          "test_size": 2,
+          "accuracy": 1.0,
+          "balanced_accuracy": 1.0,
+          "precision_weighted": 1.0,
+          "recall_weighted": 1.0,
+          "f1_weighted": 1.0
+        }
+      ],
+      "accuracy": 0.6,
+      "accuracy_std": 0.24944382578492943,
+      "balanced_accuracy": 0.55,
+      "balanced_accuracy_std": 0.291547594742265,
+      "precision_weighted": 0.5888888888888889,
+      "precision_weighted_std": 0.2757705254664635,
+      "recall_weighted": 0.6,
+      "recall_weighted_std": 0.24944382578492943,
+      "f1_weighted": 0.5733333333333334,
+      "f1_weighted_std": 0.248014336503177,
+      "confusion_matrix_labels": [
+        "0",
+        "1"
+      ],
+      "confusion_matrix": [
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          6
+        ]
+      ],
+      "classification_report": {
+        "0": {
+          "precision": 0.4,
+          "recall": 0.4,
+          "f1-score": 0.4,
+          "support": 5.0
+        },
+        "1": {
+          "precision": 0.6666666666666666,
+          "recall": 0.6666666666666666,
+          "f1-score": 0.6666666666666666,
+          "support": 9.0
+        },
+        "accuracy": 0.5714285714285714,
+        "macro avg": {
+          "precision": 0.5333333333333333,
+          "recall": 0.5333333333333333,
+          "f1-score": 0.5333333333333333,
+          "support": 14.0
+        },
+        "weighted avg": {
+          "precision": 0.5714285714285714,
+          "recall": 0.5714285714285714,
+          "f1-score": 0.5714285714285714,
+          "support": 14.0
+        }
+      }
+    },
+    {
+      "model_name": "random_forest",
+      "evaluation_strategy": "stratified_kfold",
+      "fold_count": 5,
+      "fold_results": [
+        {
+          "fold": 1,
+          "train_size": 11,
+          "test_size": 3,
+          "accuracy": 0.3333333333333333,
+          "balanced_accuracy": 0.25,
+          "precision_weighted": 0.3333333333333333,
+          "recall_weighted": 0.3333333333333333,
+          "f1_weighted": 0.3333333333333333
+        },
+        {
+          "fold": 2,
+          "train_size": 11,
+          "test_size": 3,
+          "accuracy": 0.3333333333333333,
+          "balanced_accuracy": 0.25,
+          "precision_weighted": 0.3333333333333333,
+          "recall_weighted": 0.3333333333333333,
+          "f1_weighted": 0.3333333333333333
+        },
+        {
+          "fold": 3,
+          "train_size": 11,
+          "test_size": 3,
+          "accuracy": 0.3333333333333333,
+          "balanced_accuracy": 0.25,
+          "precision_weighted": 0.3333333333333333,
+          "recall_weighted": 0.3333333333333333,
+          "f1_weighted": 0.3333333333333333
+        },
+        {
+          "fold": 4,
+          "train_size": 11,
+          "test_size": 3,
+          "accuracy": 0.6666666666666666,
+          "balanced_accuracy": 0.5,
+          "precision_weighted": 0.4444444444444444,
+          "recall_weighted": 0.6666666666666666,
+          "f1_weighted": 0.5333333333333333
+        },
+        {
+          "fold": 5,
+          "train_size": 12,
+          "test_size": 2,
+          "accuracy": 0.5,
+          "balanced_accuracy": 0.5,
+          "precision_weighted": 0.25,
+          "recall_weighted": 0.5,
+          "f1_weighted": 0.3333333333333333
+        }
+      ],
+      "accuracy": 0.4333333333333333,
+      "accuracy_std": 0.13333333333333333,
+      "balanced_accuracy": 0.35,
+      "balanced_accuracy_std": 0.1224744871391589,
+      "precision_weighted": 0.3388888888888889,
+      "precision_weighted_std": 0.06186404847588913,
+      "recall_weighted": 0.4333333333333333,
+      "recall_weighted_std": 0.13333333333333333,
+      "f1_weighted": 0.3733333333333333,
+      "f1_weighted_std": 0.08,
+      "confusion_matrix_labels": [
+        "0",
+        "1"
+      ],
+      "confusion_matrix": [
+        [
+          0,
+          5
+        ],
+        [
+          3,
+          6
+        ]
+      ],
+      "classification_report": {
+        "0": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 5.0
+        },
+        "1": {
+          "precision": 0.5454545454545454,
+          "recall": 0.6666666666666666,
+          "f1-score": 0.6,
+          "support": 9.0
+        },
+        "accuracy": 0.42857142857142855,
+        "macro avg": {
+          "precision": 0.2727272727272727,
+          "recall": 0.3333333333333333,
+          "f1-score": 0.3,
+          "support": 14.0
+        },
+        "weighted avg": {
+          "precision": 0.3506493506493506,
+          "recall": 0.42857142857142855,
+          "f1-score": 0.3857142857142857,
+          "support": 14.0
+        }
+      }
+    }
+  ],
+  "best_model": {
+    "model_name": "logistic_regression",
+    "accuracy": 0.6,
+    "accuracy_std": 0.24944382578492943,
+    "balanced_accuracy": 0.55,
+    "balanced_accuracy_std": 0.291547594742265,
+    "f1_weighted": 0.5733333333333334,
+    "f1_weighted_std": 0.248014336503177,
+    "confusion_matrix_labels": [
+      "0",
+      "1"
+    ],
+    "confusion_matrix": [
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        6
+      ]
+    ]
+  }
+}

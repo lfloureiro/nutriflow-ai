@@ -18,7 +18,7 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
 )
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import StratifiedKFold
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
@@ -28,7 +28,7 @@ RESULTS_DIR = PROJECT_ROOT / "data" / "ml_results"
 
 DEFAULT_TARGET = "accepted_as_suggested"
 
-BASE_CATEGORICAL_FEATURES = [
+CORE_CATEGORICAL_FEATURES = [
     "household_id",
     "meal_type",
     "suggestion_action",
@@ -38,12 +38,55 @@ BASE_CATEGORICAL_FEATURES = [
     "suggested_adequado_refeicao",
 ]
 
-BASE_NUMERIC_FEATURES = [
+OPTIONAL_CATEGORICAL_FEATURES = [
+    "suggested_family_preference_tier",
+    "previous_suggested_categoria_alimentar",
+    "previous_suggested_proteina_principal",
+    "previous_same_meal_type_categoria_alimentar",
+    "previous_same_meal_type_proteina_principal",
+]
+
+CORE_NUMERIC_FEATURES = [
     "weekday_index",
     "is_weekend",
     "score",
     "average_rating",
     "ratings_count",
+]
+
+OPTIONAL_NUMERIC_FEATURES = [
+    "run_slot_index",
+    "week_slot_index",
+    "days_since_last_auto_plan_same_recipe",
+    "weekly_same_category_count_before_slot",
+    "weekly_same_protein_count_before_slot",
+    "weekly_meal_type_slot_count_before_slot",
+    "prior_household_recipe_seen_count",
+    "prior_household_recipe_accept_rate",
+    "prior_household_recipe_change_rate",
+    "prior_household_recipe_delete_rate",
+    "suggested_is_family_favorite",
+    "reason_family_favorite",
+    "reason_good_family_acceptance",
+    "reason_low_family_acceptance",
+    "reason_specific_meal_type",
+    "reason_unrated_neutral",
+    "reason_missing_category",
+    "reason_missing_protein",
+    "reason_recent_last_3_days",
+    "reason_recent_last_7_days",
+    "reason_recent_last_14_days",
+    "reason_recent_last_21_days",
+    "reason_already_in_plan",
+    "reason_weekly_category_balance",
+    "reason_weekly_category_overuse",
+    "reason_weekly_meat_rotation",
+    "reason_weekly_meat_overuse",
+    "reason_same_previous_category",
+    "reason_same_previous_protein",
+    "reason_recent_category_repeat",
+    "reason_three_meats_in_row",
+    "reason_recent_meat_protein_repeat",
 ]
 
 
@@ -93,6 +136,18 @@ def normalize_json_value(value: Any) -> Any:
     return value
 
 
+def safe_mean(values: list[float]) -> float:
+    if not values:
+        return 0.0
+    return float(pd.Series(values).mean())
+
+
+def safe_std(values: list[float]) -> float:
+    if len(values) <= 1:
+        return 0.0
+    return float(pd.Series(values).std(ddof=0))
+
+
 def find_latest_dataset() -> Path:
     candidates = sorted(
         DATASET_DIR.glob("*_auto_meal_plan_training_*.csv"),
@@ -124,34 +179,43 @@ def load_dataset(path: Path) -> pd.DataFrame:
 def prepare_features(
     df: pd.DataFrame,
 ) -> tuple[pd.DataFrame, list[str], list[str], list[str]]:
-    expected_columns = BASE_CATEGORICAL_FEATURES + BASE_NUMERIC_FEATURES
-    missing_columns = [column for column in expected_columns if column not in df.columns]
-    if missing_columns:
+    required_columns = CORE_CATEGORICAL_FEATURES + CORE_NUMERIC_FEATURES
+    missing_required_columns = [column for column in required_columns if column not in df.columns]
+    if missing_required_columns:
         raise ValueError(
-            "O dataset não contém todas as colunas esperadas para features. "
-            f"Em falta: {missing_columns}"
+            "O dataset não contém todas as colunas base esperadas para features. "
+            f"Em falta: {missing_required_columns}"
         )
 
-    x = df[expected_columns].copy()
+    categorical_features = list(CORE_CATEGORICAL_FEATURES)
+    numeric_features = list(CORE_NUMERIC_FEATURES)
 
-    categorical_features = list(BASE_CATEGORICAL_FEATURES)
-    numeric_features: list[str] = []
+    for column in OPTIONAL_CATEGORICAL_FEATURES:
+        if column in df.columns:
+            categorical_features.append(column)
+
+    for column in OPTIONAL_NUMERIC_FEATURES:
+        if column in df.columns:
+            numeric_features.append(column)
+
+    x = df[categorical_features + numeric_features].copy()
+
     dropped_numeric_features: list[str] = []
 
     for column in categorical_features:
         x[column] = x[column].fillna("unknown").astype(str)
 
-    for column in BASE_NUMERIC_FEATURES:
+    filtered_numeric_features: list[str] = []
+    for column in numeric_features:
         x[column] = pd.to_numeric(x[column], errors="coerce")
         if x[column].isna().all():
             dropped_numeric_features.append(column)
         else:
-            numeric_features.append(column)
+            filtered_numeric_features.append(column)
 
-    used_columns = categorical_features + numeric_features
-    x = x[used_columns].copy()
+    x = x[categorical_features + filtered_numeric_features].copy()
 
-    return x, categorical_features, numeric_features, dropped_numeric_features
+    return x, categorical_features, filtered_numeric_features, dropped_numeric_features
 
 
 def prepare_target(df: pd.DataFrame, target_column: str) -> pd.Series:
@@ -239,58 +303,107 @@ def make_models(
     }
 
 
-def evaluate_model(
+def evaluate_model_cross_validated(
+    *,
     model_name: str,
     pipeline: Pipeline,
-    x_train: pd.DataFrame,
-    x_test: pd.DataFrame,
-    y_train: pd.Series,
-    y_test: pd.Series,
+    x: pd.DataFrame,
+    y: pd.Series,
+    fold_indices: list[tuple[Any, Any]],
 ) -> dict[str, Any]:
-    pipeline.fit(x_train, y_train)
-    predictions = pipeline.predict(x_test)
+    fold_results: list[dict[str, Any]] = []
+    all_true: list[Any] = []
+    all_pred: list[Any] = []
 
-    actual_labels = get_ordered_labels(y_test, predictions)
-    display_labels = make_display_labels(actual_labels)
+    for fold_number, (train_index, test_index) in enumerate(fold_indices, start=1):
+        x_train = x.iloc[train_index].reset_index(drop=True)
+        x_test = x.iloc[test_index].reset_index(drop=True)
+        y_train = y.iloc[train_index].reset_index(drop=True)
+        y_test = y.iloc[test_index].reset_index(drop=True)
 
-    result = {
-        "model_name": model_name,
-        "accuracy": float(accuracy_score(y_test, predictions)),
-        "balanced_accuracy": float(balanced_accuracy_score(y_test, predictions)),
-        "precision_weighted": float(
+        pipeline.fit(x_train, y_train)
+        predictions = pipeline.predict(x_test)
+
+        fold_accuracy = float(accuracy_score(y_test, predictions))
+        fold_balanced_accuracy = float(balanced_accuracy_score(y_test, predictions))
+        fold_precision_weighted = float(
             precision_score(
                 y_test,
                 predictions,
                 average="weighted",
                 zero_division=0,
             )
-        ),
-        "recall_weighted": float(
+        )
+        fold_recall_weighted = float(
             recall_score(
                 y_test,
                 predictions,
                 average="weighted",
                 zero_division=0,
             )
-        ),
-        "f1_weighted": float(
+        )
+        fold_f1_weighted = float(
             f1_score(
                 y_test,
                 predictions,
                 average="weighted",
                 zero_division=0,
             )
-        ),
+        )
+
+        fold_results.append(
+            {
+                "fold": fold_number,
+                "train_size": int(len(train_index)),
+                "test_size": int(len(test_index)),
+                "accuracy": fold_accuracy,
+                "balanced_accuracy": fold_balanced_accuracy,
+                "precision_weighted": fold_precision_weighted,
+                "recall_weighted": fold_recall_weighted,
+                "f1_weighted": fold_f1_weighted,
+            }
+        )
+
+        all_true.extend([to_python_scalar(value) for value in y_test.tolist()])
+        all_pred.extend([to_python_scalar(value) for value in predictions.tolist()])
+
+    aggregated_true = pd.Series(all_true)
+    aggregated_pred = pd.Series(all_pred)
+
+    actual_labels = get_ordered_labels(aggregated_true, aggregated_pred)
+    display_labels = make_display_labels(actual_labels)
+
+    accuracy_values = [item["accuracy"] for item in fold_results]
+    balanced_accuracy_values = [item["balanced_accuracy"] for item in fold_results]
+    precision_values = [item["precision_weighted"] for item in fold_results]
+    recall_values = [item["recall_weighted"] for item in fold_results]
+    f1_values = [item["f1_weighted"] for item in fold_results]
+
+    result = {
+        "model_name": model_name,
+        "evaluation_strategy": "stratified_kfold",
+        "fold_count": len(fold_results),
+        "fold_results": fold_results,
+        "accuracy": safe_mean(accuracy_values),
+        "accuracy_std": safe_std(accuracy_values),
+        "balanced_accuracy": safe_mean(balanced_accuracy_values),
+        "balanced_accuracy_std": safe_std(balanced_accuracy_values),
+        "precision_weighted": safe_mean(precision_values),
+        "precision_weighted_std": safe_std(precision_values),
+        "recall_weighted": safe_mean(recall_values),
+        "recall_weighted_std": safe_std(recall_values),
+        "f1_weighted": safe_mean(f1_values),
+        "f1_weighted_std": safe_std(f1_values),
         "confusion_matrix_labels": display_labels,
         "confusion_matrix": confusion_matrix(
-            y_test,
-            predictions,
+            aggregated_true,
+            aggregated_pred,
             labels=actual_labels,
         ).tolist(),
         "classification_report": normalize_json_value(
             classification_report(
-                y_test,
-                predictions,
+                aggregated_true,
+                aggregated_pred,
                 labels=actual_labels,
                 output_dict=True,
                 zero_division=0,
@@ -328,6 +441,8 @@ def train_auto_meal_plan_baseline(
     test_size: float = 0.3,
     random_state: int = 42,
 ) -> tuple[Path, dict[str, Any]]:
+    del test_size
+
     resolved_dataset_path = Path(dataset_path) if dataset_path else find_latest_dataset()
     df = load_dataset(resolved_dataset_path)
 
@@ -354,9 +469,13 @@ def train_auto_meal_plan_baseline(
             for key, value in target_distribution.items()
         },
         "status": "ok",
-        "notes": [],
+        "notes": [
+            "As métricas representam média e desvio padrão por fold de validação cruzada estratificada."
+        ],
         "train_size": None,
         "test_size": None,
+        "evaluation_strategy": None,
+        "cv_n_splits": None,
         "model_results": [],
         "best_model": None,
     }
@@ -382,22 +501,33 @@ def train_auto_meal_plan_baseline(
         report["status"] = "insufficient_class_support"
         report["notes"].append(
             "Existe pelo menos uma classe com menos de 2 exemplos. "
-            "Ainda não há suporte suficiente para split estratificado."
+            "Ainda não há suporte suficiente para validação cruzada estratificada."
         )
         output_path = build_report_path(target)
         output_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
         return output_path, report
 
-    x_train, x_test, y_train, y_test = train_test_split(
-        x,
-        y,
-        test_size=test_size,
-        random_state=random_state,
-        stratify=y,
-    )
+    cv_n_splits = min(5, min_class_count)
+    if cv_n_splits < 2:
+        report["status"] = "insufficient_class_support"
+        report["notes"].append(
+            "Não foi possível determinar pelo menos 2 folds estratificados."
+        )
+        output_path = build_report_path(target)
+        output_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+        return output_path, report
 
-    report["train_size"] = int(len(x_train))
-    report["test_size"] = int(len(x_test))
+    splitter = StratifiedKFold(
+        n_splits=cv_n_splits,
+        shuffle=True,
+        random_state=random_state,
+    )
+    fold_indices = list(splitter.split(x, y))
+
+    report["evaluation_strategy"] = "stratified_kfold"
+    report["cv_n_splits"] = cv_n_splits
+    report["train_size"] = int(len(fold_indices[0][0]))
+    report["test_size"] = int(len(fold_indices[0][1]))
 
     models = make_models(
         categorical_features=categorical_features,
@@ -406,13 +536,12 @@ def train_auto_meal_plan_baseline(
     )
 
     for model_name, pipeline in models.items():
-        result = evaluate_model(
+        result = evaluate_model_cross_validated(
             model_name=model_name,
             pipeline=pipeline,
-            x_train=x_train,
-            x_test=x_test,
-            y_train=y_train,
-            y_test=y_test,
+            x=x,
+            y=y,
+            fold_indices=fold_indices,
         )
         report["model_results"].append(result)
 
@@ -421,8 +550,11 @@ def train_auto_meal_plan_baseline(
         report["best_model"] = {
             "model_name": best_model["model_name"],
             "accuracy": best_model["accuracy"],
+            "accuracy_std": best_model["accuracy_std"],
             "balanced_accuracy": best_model["balanced_accuracy"],
+            "balanced_accuracy_std": best_model["balanced_accuracy_std"],
             "f1_weighted": best_model["f1_weighted"],
+            "f1_weighted_std": best_model["f1_weighted_std"],
             "confusion_matrix_labels": best_model["confusion_matrix_labels"],
             "confusion_matrix": best_model["confusion_matrix"],
         }

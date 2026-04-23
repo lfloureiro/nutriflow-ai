@@ -38,7 +38,7 @@ def parse_args():
         "--test-size",
         type=float,
         default=0.3,
-        help="Percentagem do conjunto de teste. Por defeito: 0.3",
+        help="Mantido por compatibilidade; a avaliação passa a usar validação cruzada estratificada.",
     )
     parser.add_argument(
         "--random-state",
@@ -70,6 +70,12 @@ def main():
             + ", ".join(report["dropped_numeric_features"])
         )
 
+    if report["evaluation_strategy"]:
+        print(
+            f"Estratégia de avaliação: {report['evaluation_strategy']} "
+            f"({report['cv_n_splits']} folds)"
+        )
+
     if report["status"] != "ok":
         print(f"Treino ignorado: {report['status']}")
         if report["notes"]:
@@ -81,9 +87,9 @@ def main():
     for result in report["model_results"]:
         print(
             f"[{result['model_name']}] "
-            f"accuracy={result['accuracy']:.4f} "
-            f"balanced_accuracy={result['balanced_accuracy']:.4f} "
-            f"f1_weighted={result['f1_weighted']:.4f}"
+            f"accuracy={result['accuracy']:.4f}±{result['accuracy_std']:.4f} "
+            f"balanced_accuracy={result['balanced_accuracy']:.4f}±{result['balanced_accuracy_std']:.4f} "
+            f"f1_weighted={result['f1_weighted']:.4f}±{result['f1_weighted_std']:.4f}"
         )
         print_confusion_matrix(
             result["confusion_matrix_labels"],
@@ -94,7 +100,7 @@ def main():
         print(
             "Melhor modelo: "
             f"{report['best_model']['model_name']} "
-            f"(balanced_accuracy={report['best_model']['balanced_accuracy']:.4f})"
+            f"(balanced_accuracy={report['best_model']['balanced_accuracy']:.4f}±{report['best_model']['balanced_accuracy_std']:.4f})"
         )
         print_confusion_matrix(
             report["best_model"]["confusion_matrix_labels"],
