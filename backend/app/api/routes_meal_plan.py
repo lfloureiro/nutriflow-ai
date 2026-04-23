@@ -12,6 +12,8 @@ from backend.app.schemas.meal_plan import (
     NextMealSlotRead,
 )
 from backend.app.schemas.meal_plan_auto import (
+    AutoMealPlanAdjustedApplyRead,
+    AutoMealPlanAdjustedRequest,
     AutoMealPlanApplyRead,
     AutoMealPlanPreviewRead,
     AutoMealPlanRequest,
@@ -22,6 +24,7 @@ from backend.app.schemas.meal_plan_manage import (
     MealPlanItemUpdateScoped,
 )
 from backend.app.services.auto_meal_planner import (
+    PlannerSuggestion,
     build_auto_meal_plan_preview,
     normalize_meal_types,
 )
@@ -42,6 +45,17 @@ MEAL_SLOT_ORDER = [
     ("lanche", time(17, 0)),
     ("jantar", time(20, 0)),
 ]
+
+MEAL_TYPE_SORT_ORDER = {
+    "pequeno-almoco": 0,
+    "almoco": 1,
+    "lanche": 2,
+    "jantar": 3,
+}
+
+
+def meal_type_sort_key(value: str) -> int:
+    return MEAL_TYPE_SORT_ORDER.get(value, 99)
 
 
 def get_next_available_slot(db: Session, household_id: int) -> tuple[date, str]:
@@ -74,17 +88,38 @@ def get_next_available_slot(db: Session, household_id: int) -> tuple[date, str]:
     return fallback_date, "almoco"
 
 
-def suggestion_to_read(item) -> AutoMealPlanSuggestionRead:
-    recipe = item.recipe
-
+def build_suggestion_read(
+    *,
+    plan_date: date,
+    meal_type: str,
+    action: str,
+    recipe: Recipe | None,
+    score: float | None,
+    average_rating: float | None,
+    ratings_count: int,
+    reasons: list[str],
+) -> AutoMealPlanSuggestionRead:
     return AutoMealPlanSuggestionRead(
-        plan_date=item.plan_date,
-        meal_type=item.meal_type,
-        action=item.action,
+        plan_date=plan_date,
+        meal_type=meal_type,
+        action=action,
         recipe_id=recipe.id if recipe else None,
         recipe_name=recipe.name if recipe else None,
         categoria_alimentar=recipe.categoria_alimentar if recipe else None,
         proteina_principal=recipe.proteina_principal if recipe else None,
+        score=score,
+        average_rating=average_rating,
+        ratings_count=ratings_count,
+        reasons=reasons,
+    )
+
+
+def suggestion_to_read(item: PlannerSuggestion) -> AutoMealPlanSuggestionRead:
+    return build_suggestion_read(
+        plan_date=item.plan_date,
+        meal_type=item.meal_type,
+        action=item.action,
+        recipe=item.recipe,
         score=item.score,
         average_rating=item.average_rating,
         ratings_count=item.ratings_count,
@@ -466,4 +501,202 @@ def apply_auto_meal_plan(
         created_count=created_count,
         skipped_count=skipped_count,
         suggestions=[suggestion_to_read(item) for item in suggestions],
+    )
+
+
+@router.post("/auto-plan/apply-adjusted", response_model=AutoMealPlanAdjustedApplyRead)
+def apply_adjusted_auto_meal_plan(
+    data: AutoMealPlanAdjustedRequest,
+    db: Session = Depends(get_db),
+):
+    household = db.query(Household).filter(Household.id == data.household_id).first()
+    if not household:
+        raise HTTPException(status_code=404, detail="Agregado não encontrado.")
+
+    if not data.skip_existing:
+        raise HTTPException(
+            status_code=400,
+            detail="Nesta fase o auto-planeamento só suporta skip_existing=true.",
+        )
+
+    if not data.suggestions:
+        raise HTTPException(
+            status_code=400,
+            detail="Não existem sugestões ajustadas para aplicar.",
+        )
+
+    created_count = 0
+    skipped_count = 0
+    ignored_count = 0
+    replaced_count = 0
+
+    suggestions_for_logging: list[PlannerSuggestion] = []
+    response_suggestions: list[AutoMealPlanSuggestionRead] = []
+    apply_results: dict[tuple[date, str], ApplyExecutionResult] = {}
+
+    sorted_suggestions = sorted(
+        data.suggestions,
+        key=lambda item: (item.plan_date, meal_type_sort_key(item.meal_type)),
+    )
+
+    for item in sorted_suggestions:
+        meal_type_clean = item.meal_type.strip().lower()
+        slot_key = (item.plan_date, meal_type_clean)
+
+        original_recipe = None
+        if item.original_recipe_id is not None:
+            original_recipe = db.query(Recipe).filter(Recipe.id == item.original_recipe_id).first()
+            if not original_recipe:
+                raise HTTPException(status_code=404, detail="Receita original não encontrada.")
+
+        original_suggestion = PlannerSuggestion(
+            plan_date=item.plan_date,
+            meal_type=meal_type_clean,
+            action=item.original_action,
+            recipe=original_recipe,
+            score=item.score,
+            average_rating=item.average_rating,
+            ratings_count=item.ratings_count,
+            reasons=item.reasons,
+        )
+        suggestions_for_logging.append(original_suggestion)
+
+        if item.original_action != "suggest":
+            skipped_count += 1
+            apply_results[slot_key] = ApplyExecutionResult(
+                execution_status="skipped_non_suggest",
+                final_recipe_id=original_recipe.id if original_recipe else None,
+            )
+            response_suggestions.append(suggestion_to_read(original_suggestion))
+            continue
+
+        if item.apply_decision == "ignore":
+            ignored_count += 1
+            apply_results[slot_key] = ApplyExecutionResult(
+                execution_status="ignored_by_user",
+                final_recipe_id=None,
+            )
+            response_suggestions.append(
+                build_suggestion_read(
+                    plan_date=item.plan_date,
+                    meal_type=meal_type_clean,
+                    action="ignored",
+                    recipe=original_recipe,
+                    score=item.score,
+                    average_rating=item.average_rating,
+                    ratings_count=item.ratings_count,
+                    reasons=item.reasons,
+                )
+            )
+            continue
+
+        final_recipe = original_recipe
+        if item.apply_decision == "replace":
+            if item.adjusted_recipe_id is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Falta a receita escolhida para uma substituição.",
+                )
+
+            final_recipe = db.query(Recipe).filter(Recipe.id == item.adjusted_recipe_id).first()
+            if not final_recipe:
+                raise HTTPException(status_code=404, detail="Receita ajustada não encontrada.")
+
+            if original_recipe is None or final_recipe.id != original_recipe.id:
+                replaced_count += 1
+        else:
+            if final_recipe is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="A sugestão não tem receita original válida para manter.",
+                )
+
+        existing = (
+            db.query(MealPlanItem)
+            .filter(
+                MealPlanItem.household_id == data.household_id,
+                MealPlanItem.plan_date == item.plan_date,
+                MealPlanItem.meal_type == meal_type_clean,
+            )
+            .first()
+        )
+
+        if existing:
+            skipped_count += 1
+            apply_results[slot_key] = ApplyExecutionResult(
+                execution_status="skipped_existing",
+                meal_plan_item_id=existing.id,
+                final_recipe_id=existing.recipe_id,
+            )
+
+            existing_recipe = db.query(Recipe).filter(Recipe.id == existing.recipe_id).first()
+            response_suggestions.append(
+                build_suggestion_read(
+                    plan_date=item.plan_date,
+                    meal_type=meal_type_clean,
+                    action="skip_existing",
+                    recipe=existing_recipe,
+                    score=item.score,
+                    average_rating=item.average_rating,
+                    ratings_count=item.ratings_count,
+                    reasons=item.reasons,
+                )
+            )
+            continue
+
+        db_item = MealPlanItem(
+            household_id=data.household_id,
+            plan_date=item.plan_date,
+            meal_type=meal_type_clean,
+            notes="Auto-planeado (ajustado)" if item.apply_decision == "replace" else "Auto-planeado",
+            recipe_id=final_recipe.id,
+        )
+        db.add(db_item)
+        db.flush()
+
+        created_count += 1
+        apply_results[slot_key] = ApplyExecutionResult(
+            execution_status="created",
+            meal_plan_item_id=db_item.id,
+            final_recipe_id=db_item.recipe_id,
+        )
+
+        response_suggestions.append(
+            build_suggestion_read(
+                plan_date=item.plan_date,
+                meal_type=meal_type_clean,
+                action="adjusted_replace" if item.apply_decision == "replace" else "suggest",
+                recipe=final_recipe,
+                score=item.score,
+                average_rating=item.average_rating,
+                ratings_count=item.ratings_count,
+                reasons=item.reasons,
+            )
+        )
+
+    log_auto_meal_plan_run(
+        db=db,
+        household_id=data.household_id,
+        event_kind="apply",
+        start_date=data.start_date,
+        end_date=data.end_date,
+        meal_types=data.meal_types,
+        skip_existing=data.skip_existing,
+        suggestions=suggestions_for_logging,
+        apply_results=apply_results,
+    )
+
+    db.commit()
+
+    return AutoMealPlanAdjustedApplyRead(
+        household_id=data.household_id,
+        start_date=data.start_date,
+        end_date=data.end_date,
+        meal_types=normalize_meal_types(data.meal_types),
+        skip_existing=data.skip_existing,
+        created_count=created_count,
+        skipped_count=skipped_count,
+        ignored_count=ignored_count,
+        replaced_count=replaced_count,
+        suggestions=response_suggestions,
     )

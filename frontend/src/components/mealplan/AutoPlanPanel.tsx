@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { API_BASE_URL } from "../../config";
 import { styles } from "../styles";
+import type { Recipe } from "../types";
 
 type Suggestion = {
   plan_date: string;
@@ -25,7 +26,7 @@ type PreviewResponse = {
   suggestions: Suggestion[];
 };
 
-type ApplyResponse = {
+type ApplyAdjustedResponse = {
   household_id: number;
   start_date: string;
   end_date: string;
@@ -33,6 +34,8 @@ type ApplyResponse = {
   skip_existing: boolean;
   created_count: number;
   skipped_count: number;
+  ignored_count: number;
+  replaced_count: number;
   suggestions: Suggestion[];
 };
 
@@ -42,6 +45,12 @@ type Props = {
 };
 
 type MealTypeOption = "almoco" | "jantar";
+type ApplyDecision = "keep" | "replace" | "ignore" | "skip_existing";
+
+type EditableSuggestion = Suggestion & {
+  apply_decision: ApplyDecision;
+  adjusted_recipe_id: number | null;
+};
 
 const mealTypeLabels: Record<MealTypeOption, string> = {
   almoco: "Almoço",
@@ -97,6 +106,33 @@ function getErrorMessage(data: unknown, fallback: string) {
   return fallback;
 }
 
+function recipeFitsMealType(recipe: Recipe, mealType: string) {
+  if (!recipe.adequado_refeicao || recipe.adequado_refeicao === "ambos") {
+    return true;
+  }
+
+  return recipe.adequado_refeicao === mealType;
+}
+
+function sortRecipesByName(recipes: Recipe[]) {
+  return [...recipes].sort((a, b) => a.name.localeCompare(b.name, "pt-PT"));
+}
+
+function getDecisionLabel(value: ApplyDecision) {
+  switch (value) {
+    case "keep":
+      return "Manter";
+    case "replace":
+      return "Trocar";
+    case "ignore":
+      return "Ignorar";
+    case "skip_existing":
+      return "Já existe";
+    default:
+      return value;
+  }
+}
+
 export function AutoPlanPanel({ householdId, onApplied }: Props) {
   const initialStartDate = useMemo(() => getTodayIsoDate(), []);
   const initialEndDate = useMemo(() => addDaysIsoDate(initialStartDate, 6), [initialStartDate]);
@@ -108,11 +144,50 @@ export function AutoPlanPanel({ householdId, onApplied }: Props) {
     "jantar",
   ]);
 
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [loadingRecipes, setLoadingRecipes] = useState(false);
+
   const [preview, setPreview] = useState<PreviewResponse | null>(null);
+  const [editableSuggestions, setEditableSuggestions] = useState<EditableSuggestion[]>([]);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [applyingPlan, setApplyingPlan] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadRecipes() {
+      try {
+        setLoadingRecipes(true);
+
+        const res = await fetch(`${API_BASE_URL}/recipes/`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(getErrorMessage(data, "Não foi possível carregar as receitas."));
+        }
+
+        if (isMounted) {
+          setRecipes(sortRecipesByName(data));
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : "Erro inesperado.");
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingRecipes(false);
+        }
+      }
+    }
+
+    loadRecipes();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   function toggleMealType(mealType: MealTypeOption) {
     setSelectedMealTypes((current) => {
@@ -124,10 +199,95 @@ export function AutoPlanPanel({ householdId, onApplied }: Props) {
     });
   }
 
+  function suggestionToEditable(item: Suggestion): EditableSuggestion {
+    return {
+      ...item,
+      apply_decision: item.action === "suggest" ? "keep" : "skip_existing",
+      adjusted_recipe_id: item.recipe_id,
+    };
+  }
+
+  function compatibleRecipesForMealType(mealType: string) {
+    return recipes.filter((recipe) => recipeFitsMealType(recipe, mealType));
+  }
+
+  function getSelectedRecipe(item: EditableSuggestion) {
+    if (item.apply_decision === "ignore") {
+      return null;
+    }
+
+    const recipeId = item.adjusted_recipe_id ?? item.recipe_id;
+    if (recipeId == null) {
+      return null;
+    }
+
+    return recipes.find((recipe) => recipe.id === recipeId) ?? null;
+  }
+
+  function updateSuggestion(
+    index: number,
+    updater: (current: EditableSuggestion) => EditableSuggestion,
+  ) {
+    setEditableSuggestions((current) =>
+      current.map((item, itemIndex) => (itemIndex === index ? updater(item) : item)),
+    );
+  }
+
+  function setDecision(index: number, decision: ApplyDecision) {
+    updateSuggestion(index, (current) => {
+      if (current.action !== "suggest") {
+        return current;
+      }
+
+      if (decision === "keep") {
+        return {
+          ...current,
+          apply_decision: "keep",
+          adjusted_recipe_id: current.recipe_id,
+        };
+      }
+
+      if (decision === "ignore") {
+        return {
+          ...current,
+          apply_decision: "ignore",
+        };
+      }
+
+      const compatible = compatibleRecipesForMealType(current.meal_type);
+      const fallbackRecipeId =
+        current.adjusted_recipe_id ??
+        current.recipe_id ??
+        compatible[0]?.id ??
+        null;
+
+      return {
+        ...current,
+        apply_decision: "replace",
+        adjusted_recipe_id: fallbackRecipeId,
+      };
+    });
+  }
+
+  function setAdjustedRecipe(index: number, recipeId: string) {
+    const parsedRecipeId = recipeId ? Number(recipeId) : null;
+
+    updateSuggestion(index, (current) => {
+      const shouldKeep = parsedRecipeId !== null && parsedRecipeId === current.recipe_id;
+
+      return {
+        ...current,
+        adjusted_recipe_id: parsedRecipeId,
+        apply_decision: shouldKeep ? "keep" : "replace",
+      };
+    });
+  }
+
   async function handlePreview() {
     setMessage(null);
     setError(null);
     setPreview(null);
+    setEditableSuggestions([]);
 
     if (!householdId) {
       setError("Seleciona primeiro um agregado.");
@@ -164,13 +324,12 @@ export function AutoPlanPanel({ householdId, onApplied }: Props) {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(
-          getErrorMessage(data, "Não foi possível gerar o preview.")
-        );
+        throw new Error(getErrorMessage(data, "Não foi possível gerar o preview."));
       }
 
       setPreview(data);
-      setMessage("Preview gerado com sucesso.");
+      setEditableSuggestions(data.suggestions.map(suggestionToEditable));
+      setMessage("Preview gerado com sucesso. Revê as sugestões antes de aplicar.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado.");
     } finally {
@@ -178,7 +337,7 @@ export function AutoPlanPanel({ householdId, onApplied }: Props) {
     }
   }
 
-  async function handleApply() {
+  async function handleApplyAdjusted() {
     setMessage(null);
     setError(null);
 
@@ -187,45 +346,55 @@ export function AutoPlanPanel({ householdId, onApplied }: Props) {
       return;
     }
 
-    if (!startDate || !endDate) {
-      setError("Seleciona a data inicial e final.");
-      return;
-    }
-
-    if (selectedMealTypes.length === 0) {
-      setError("Seleciona pelo menos um tipo de refeição.");
+    if (!preview || editableSuggestions.length === 0) {
+      setError("Gera primeiro um preview.");
       return;
     }
 
     try {
       setApplyingPlan(true);
 
-      const res = await fetch(`${API_BASE_URL}/meal-plan/auto-plan/apply`, {
+      const res = await fetch(`${API_BASE_URL}/meal-plan/auto-plan/apply-adjusted`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           household_id: Number(householdId),
-          start_date: startDate,
-          end_date: endDate,
-          meal_types: selectedMealTypes,
-          skip_existing: true,
+          start_date: preview.start_date,
+          end_date: preview.end_date,
+          meal_types: preview.meal_types,
+          skip_existing: preview.skip_existing,
+          suggestions: editableSuggestions.map((item) => ({
+            plan_date: item.plan_date,
+            meal_type: item.meal_type,
+            original_action: item.action,
+            original_recipe_id: item.recipe_id,
+            adjusted_recipe_id: item.adjusted_recipe_id,
+            apply_decision: item.apply_decision,
+            score: item.score,
+            average_rating: item.average_rating,
+            ratings_count: item.ratings_count,
+            reasons: item.reasons,
+          })),
         }),
       });
 
-      const data: ApplyResponse = await res.json();
+      const data: ApplyAdjustedResponse = await res.json();
 
       if (!res.ok) {
         throw new Error(
-          getErrorMessage(data, "Não foi possível aplicar o auto-planeamento.")
+          getErrorMessage(data, "Não foi possível aplicar o plano ajustado."),
         );
       }
 
       setMessage(
-        `Plano aplicado com sucesso. ${data.created_count} refeição(ões) criadas, ${data.skipped_count} ignorada(s).`
+        `Plano aplicado com sucesso. ${data.created_count} criada(s), ` +
+          `${data.replaced_count} trocada(s) antes de aplicar, ` +
+          `${data.ignored_count} ignorada(s) e ${data.skipped_count} não aplicada(s).`,
       );
       setPreview(null);
+      setEditableSuggestions([]);
       await onApplied();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado.");
@@ -233,6 +402,21 @@ export function AutoPlanPanel({ householdId, onApplied }: Props) {
       setApplyingPlan(false);
     }
   }
+
+  const previewStats = useMemo(() => {
+    const stats = {
+      keep: 0,
+      replace: 0,
+      ignore: 0,
+      skip_existing: 0,
+    };
+
+    editableSuggestions.forEach((item) => {
+      stats[item.apply_decision] += 1;
+    });
+
+    return stats;
+  }, [editableSuggestions]);
 
   return (
     <section
@@ -246,8 +430,7 @@ export function AutoPlanPanel({ householdId, onApplied }: Props) {
         <div className="nf-kicker">Auto-planeamento</div>
         <h3 style={styles.sectionTitle}>Sugestão automática de refeições</h3>
         <p className="nf-menu-panel-text">
-          Gera um preview para almoço e jantar com base nas preferências da
-          família, rotação e histórico recente.
+          Gera um preview, revê cada slot e só depois aplica o plano final ao agregado.
         </p>
       </div>
 
@@ -313,64 +496,160 @@ export function AutoPlanPanel({ householdId, onApplied }: Props) {
           <button
             type="button"
             style={styles.button}
-            onClick={handleApply}
+            onClick={handleApplyAdjusted}
             disabled={
               applyingPlan ||
               loadingPreview ||
               !householdId ||
-              selectedMealTypes.length === 0
+              !preview ||
+              editableSuggestions.length === 0
             }
           >
-            {applyingPlan ? "A aplicar..." : "Aplicar auto-planeamento"}
+            {applyingPlan ? "A aplicar..." : "Aplicar plano ajustado"}
           </button>
         </div>
 
+        {loadingRecipes && <p className="nf-inline-note">A carregar receitas…</p>}
         {message && <p style={styles.success}>{message}</p>}
         {error && <p style={styles.error}>Erro: {error}</p>}
 
         {preview && (
-          <div className="nf-record-list">
-            {preview.suggestions.map((item, index) => (
-              <div key={`${item.plan_date}-${item.meal_type}-${index}`} className="nf-record-card">
-                <div className="nf-record-card-head">
-                  <div className="nf-record-card-main">
-                    <div className="nf-pill-row">
-                      <span className="nf-score-pill">
-                        {formatPlanDate(item.plan_date)}
-                      </span>
-                      <span className="nf-score-pill">
-                        {formatMealType(item.meal_type)}
-                      </span>
-                      <span className="nf-score-pill">{item.action}</span>
-                    </div>
+          <>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "8px",
+                marginTop: "8px",
+              }}
+            >
+              <span className="nf-score-pill">Manter: {previewStats.keep}</span>
+              <span className="nf-score-pill">Trocar: {previewStats.replace}</span>
+              <span className="nf-score-pill">Ignorar: {previewStats.ignore}</span>
+              <span className="nf-score-pill">Já existe: {previewStats.skip_existing}</span>
+            </div>
 
-                    <div className="nf-record-title">
-                      {item.recipe_name ?? "Sem sugestão"}
-                    </div>
+            <div className="nf-record-list">
+              {editableSuggestions.map((item, index) => {
+                const compatibleRecipes = compatibleRecipesForMealType(item.meal_type);
+                const selectedRecipe = getSelectedRecipe(item);
 
-                    <div className="nf-record-description">
-                      {item.categoria_alimentar || "Sem categoria"} ·{" "}
-                      {item.proteina_principal || "Sem proteína"} · Score{" "}
-                      {item.score ?? "—"}
-                    </div>
-
-                    {item.reasons.length > 0 && (
-                      <div className="nf-pill-row" style={{ marginTop: "10px" }}>
-                        {item.reasons.map((reason, reasonIndex) => (
-                          <span
-                            key={`${item.plan_date}-${item.meal_type}-reason-${reasonIndex}`}
-                            className="nf-score-pill"
-                          >
-                            {reason}
+                return (
+                  <div
+                    key={`${item.plan_date}-${item.meal_type}-${index}`}
+                    className="nf-record-card"
+                  >
+                    <div className="nf-record-card-head">
+                      <div className="nf-record-card-main">
+                        <div className="nf-pill-row">
+                          <span className="nf-score-pill">{formatPlanDate(item.plan_date)}</span>
+                          <span className="nf-score-pill">{formatMealType(item.meal_type)}</span>
+                          <span className="nf-score-pill">
+                            {getDecisionLabel(item.apply_decision)}
                           </span>
-                        ))}
+                        </div>
+
+                        <div className="nf-record-title">
+                          {selectedRecipe?.name ?? item.recipe_name ?? "Sem sugestão"}
+                        </div>
+
+                        <div className="nf-record-description">
+                          {(selectedRecipe?.categoria_alimentar ??
+                            item.categoria_alimentar ??
+                            "Sem categoria")}{" "}
+                          ·{" "}
+                          {(selectedRecipe?.proteina_principal ??
+                            item.proteina_principal ??
+                            "Sem proteína")}{" "}
+                          · Score {item.score ?? "—"}
+                        </div>
+
+                        {item.action === "suggest" ? (
+                          <>
+                            <div
+                              className="nf-filter-row"
+                              style={{ marginTop: "12px", marginBottom: "10px" }}
+                            >
+                              <button
+                                type="button"
+                                className={`nf-filter-chip${item.apply_decision === "keep" ? " nf-filter-chip--active" : ""}`}
+                                onClick={() => setDecision(index, "keep")}
+                              >
+                                Manter
+                              </button>
+
+                              <button
+                                type="button"
+                                className={`nf-filter-chip${item.apply_decision === "replace" ? " nf-filter-chip--active" : ""}`}
+                                onClick={() => setDecision(index, "replace")}
+                              >
+                                Trocar
+                              </button>
+
+                              <button
+                                type="button"
+                                className={`nf-filter-chip${item.apply_decision === "ignore" ? " nf-filter-chip--active" : ""}`}
+                                onClick={() => setDecision(index, "ignore")}
+                              >
+                                Ignorar
+                              </button>
+                            </div>
+
+                            {item.apply_decision === "replace" && (
+                              <div style={{ marginTop: "10px" }}>
+                                <label
+                                  htmlFor={`replacement-${index}`}
+                                  className="nf-field-label"
+                                >
+                                  Receita a aplicar
+                                </label>
+                                <select
+                                  id={`replacement-${index}`}
+                                  style={styles.select}
+                                  value={item.adjusted_recipe_id ?? ""}
+                                  onChange={(e) => setAdjustedRecipe(index, e.target.value)}
+                                >
+                                  {compatibleRecipes.map((recipe) => (
+                                    <option key={recipe.id} value={recipe.id}>
+                                      {recipe.name}
+                                    </option>
+                                  ))}
+                                </select>
+
+                                {item.recipe_name && item.recipe_id !== item.adjusted_recipe_id && (
+                                  <p className="nf-inline-note" style={{ marginTop: "8px" }}>
+                                    Sugestão original: {item.recipe_name}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <p className="nf-inline-note" style={{ marginTop: "12px" }}>
+                            Este slot já estava ocupado no plano e será apenas mantido como
+                            referência.
+                          </p>
+                        )}
+
+                        {item.reasons.length > 0 && (
+                          <div className="nf-pill-row" style={{ marginTop: "10px" }}>
+                            {item.reasons.map((reason, reasonIndex) => (
+                              <span
+                                key={`${item.plan_date}-${item.meal_type}-reason-${reasonIndex}`}
+                                className="nf-score-pill"
+                              >
+                                {reason}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
     </section>
