@@ -18,7 +18,7 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
 )
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import GroupKFold, StratifiedKFold
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
@@ -27,6 +27,8 @@ DATASET_DIR = PROJECT_ROOT / "data" / "ml_datasets"
 RESULTS_DIR = PROJECT_ROOT / "data" / "ml_results"
 
 DEFAULT_TARGET = "accepted_as_suggested"
+DEFAULT_EVALUATION_STRATEGY = "stratified_kfold"
+GROUPED_EVALUATION_STRATEGY = "grouped_by_suggested_recipe_id"
 
 CORE_CATEGORICAL_FEATURES = [
     "household_id",
@@ -90,6 +92,18 @@ OPTIONAL_NUMERIC_FEATURES = [
 ]
 
 INTERPRETABILITY_TOP_N = 12
+
+FEATURE_SET_WITH_SUGGESTED_RECIPE_ID = {
+    "feature_set_key": "with_suggested_recipe_id",
+    "feature_set_label": "Com suggested_recipe_id",
+    "excluded_features": [],
+}
+
+FEATURE_SET_WITHOUT_SUGGESTED_RECIPE_ID = {
+    "feature_set_key": "without_suggested_recipe_id",
+    "feature_set_label": "Sem suggested_recipe_id",
+    "excluded_features": ["suggested_recipe_id"],
+}
 
 
 def to_python_scalar(value: Any) -> Any:
@@ -272,10 +286,41 @@ def load_dataset(path: Path) -> pd.DataFrame:
     return df
 
 
+def build_feature_set_variants(
+    *,
+    compare_suggested_recipe_id: bool,
+    include_suggested_recipe_id: bool,
+) -> list[dict[str, Any]]:
+    primary_variant = (
+        FEATURE_SET_WITH_SUGGESTED_RECIPE_ID
+        if include_suggested_recipe_id
+        else FEATURE_SET_WITHOUT_SUGGESTED_RECIPE_ID
+    )
+
+    if not compare_suggested_recipe_id:
+        return [primary_variant]
+
+    secondary_variant = (
+        FEATURE_SET_WITHOUT_SUGGESTED_RECIPE_ID
+        if include_suggested_recipe_id
+        else FEATURE_SET_WITH_SUGGESTED_RECIPE_ID
+    )
+
+    return [primary_variant, secondary_variant]
+
+
 def prepare_features(
     df: pd.DataFrame,
+    *,
+    excluded_features: list[str] | None = None,
 ) -> tuple[pd.DataFrame, list[str], list[str], list[str]]:
-    required_columns = CORE_CATEGORICAL_FEATURES + CORE_NUMERIC_FEATURES
+    excluded_feature_set = set(excluded_features or [])
+
+    required_columns = [
+        column
+        for column in CORE_CATEGORICAL_FEATURES + CORE_NUMERIC_FEATURES
+        if column not in excluded_feature_set
+    ]
     missing_required_columns = [column for column in required_columns if column not in df.columns]
     if missing_required_columns:
         raise ValueError(
@@ -283,15 +328,19 @@ def prepare_features(
             f"Em falta: {missing_required_columns}"
         )
 
-    categorical_features = list(CORE_CATEGORICAL_FEATURES)
-    numeric_features = list(CORE_NUMERIC_FEATURES)
+    categorical_features = [
+        column for column in CORE_CATEGORICAL_FEATURES if column not in excluded_feature_set
+    ]
+    numeric_features = [
+        column for column in CORE_NUMERIC_FEATURES if column not in excluded_feature_set
+    ]
 
     for column in OPTIONAL_CATEGORICAL_FEATURES:
-        if column in df.columns:
+        if column in df.columns and column not in excluded_feature_set:
             categorical_features.append(column)
 
     for column in OPTIONAL_NUMERIC_FEATURES:
-        if column in df.columns:
+        if column in df.columns and column not in excluded_feature_set:
             numeric_features.append(column)
 
     x = df[categorical_features + numeric_features].copy()
@@ -376,6 +425,7 @@ def make_models(
                 (
                     "model",
                     LogisticRegression(
+                        solver="liblinear",
                         max_iter=1000,
                         class_weight="balanced",
                         random_state=random_state,
@@ -399,6 +449,136 @@ def make_models(
     }
 
 
+def build_stratified_kfold_plan(
+    *,
+    x: pd.DataFrame,
+    y: pd.Series,
+    random_state: int,
+) -> dict[str, Any]:
+    min_class_count = int(pd.Series(y).value_counts(dropna=False).min())
+    cv_n_splits = min(5, min_class_count)
+
+    if cv_n_splits < 2:
+        raise ValueError(
+            "Não foi possível determinar pelo menos 2 folds estratificados."
+        )
+
+    splitter = StratifiedKFold(
+        n_splits=cv_n_splits,
+        shuffle=True,
+        random_state=random_state,
+    )
+    fold_indices = list(splitter.split(x, y))
+    fold_contexts = [{} for _ in fold_indices]
+
+    return {
+        "evaluation_strategy": DEFAULT_EVALUATION_STRATEGY,
+        "cv_n_splits": cv_n_splits,
+        "fold_indices": fold_indices,
+        "fold_contexts": fold_contexts,
+        "grouping_feature": None,
+        "group_count": None,
+    }
+
+
+def has_at_least_two_classes(y: pd.Series, indices: Any) -> bool:
+    return pd.Series(y).iloc[indices].nunique(dropna=False) >= 2
+
+
+def build_grouped_by_recipe_plan(
+    *,
+    x: pd.DataFrame,
+    df: pd.DataFrame,
+    y: pd.Series,
+) -> dict[str, Any]:
+    if "suggested_recipe_id" not in df.columns:
+        raise ValueError(
+            "A coluna 'suggested_recipe_id' não existe no dataset, "
+            "por isso não é possível usar avaliação agrupada por receita."
+        )
+
+    groups = df["suggested_recipe_id"].fillna("missing").astype(str).reset_index(drop=True)
+    unique_group_count = int(groups.nunique())
+
+    if unique_group_count < 2:
+        raise ValueError(
+            "Não existem grupos suficientes em suggested_recipe_id para avaliação agrupada."
+        )
+
+    max_splits = min(5, unique_group_count)
+
+    for candidate_splits in range(max_splits, 1, -1):
+        splitter = GroupKFold(n_splits=candidate_splits)
+        candidate_fold_indices = list(splitter.split(x, y, groups=groups))
+
+        valid_candidate = True
+        for train_index, test_index in candidate_fold_indices:
+            if not has_at_least_two_classes(y, train_index):
+                valid_candidate = False
+                break
+            if not has_at_least_two_classes(y, test_index):
+                valid_candidate = False
+                break
+
+        if not valid_candidate:
+            continue
+
+        fold_contexts: list[dict[str, Any]] = []
+        for train_index, test_index in candidate_fold_indices:
+            train_groups = sorted(pd.Series(groups.iloc[train_index]).unique().tolist())
+            test_groups = sorted(pd.Series(groups.iloc[test_index]).unique().tolist())
+
+            fold_contexts.append(
+                {
+                    "train_group_count": len(train_groups),
+                    "test_group_count": len(test_groups),
+                    "train_groups": [str(item) for item in train_groups],
+                    "test_groups": [str(item) for item in test_groups],
+                }
+            )
+
+        return {
+            "evaluation_strategy": GROUPED_EVALUATION_STRATEGY,
+            "cv_n_splits": candidate_splits,
+            "fold_indices": candidate_fold_indices,
+            "fold_contexts": fold_contexts,
+            "grouping_feature": "suggested_recipe_id",
+            "group_count": unique_group_count,
+        }
+
+    raise ValueError(
+        "Não foi possível construir folds agrupados por suggested_recipe_id "
+        "com pelo menos duas classes nos conjuntos de treino e de teste."
+    )
+
+
+def build_cross_validation_plan(
+    *,
+    x: pd.DataFrame,
+    df: pd.DataFrame,
+    y: pd.Series,
+    evaluation_strategy: str,
+    random_state: int,
+) -> dict[str, Any]:
+    if evaluation_strategy == DEFAULT_EVALUATION_STRATEGY:
+        return build_stratified_kfold_plan(
+            x=x,
+            y=y,
+            random_state=random_state,
+        )
+
+    if evaluation_strategy == GROUPED_EVALUATION_STRATEGY:
+        return build_grouped_by_recipe_plan(
+            x=x,
+            df=df,
+            y=y,
+        )
+
+    raise ValueError(
+        f"Estratégia de avaliação desconhecida: {evaluation_strategy}"
+    )
+
+
 def evaluate_model_cross_validated(
     *,
     model_name: str,
@@ -406,10 +586,13 @@ def evaluate_model_cross_validated(
     x: pd.DataFrame,
     y: pd.Series,
     fold_indices: list[tuple[Any, Any]],
+    fold_contexts: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     fold_results: list[dict[str, Any]] = []
     all_true: list[Any] = []
     all_pred: list[Any] = []
+
+    fold_contexts = fold_contexts or [{} for _ in fold_indices]
 
     for fold_number, (train_index, test_index) in enumerate(fold_indices, start=1):
         x_train = x.iloc[train_index].reset_index(drop=True)
@@ -447,18 +630,19 @@ def evaluate_model_cross_validated(
             )
         )
 
-        fold_results.append(
-            {
-                "fold": fold_number,
-                "train_size": int(len(train_index)),
-                "test_size": int(len(test_index)),
-                "accuracy": fold_accuracy,
-                "balanced_accuracy": fold_balanced_accuracy,
-                "precision_weighted": fold_precision_weighted,
-                "recall_weighted": fold_recall_weighted,
-                "f1_weighted": fold_f1_weighted,
-            }
-        )
+        fold_result = {
+            "fold": fold_number,
+            "train_size": int(len(train_index)),
+            "test_size": int(len(test_index)),
+            "accuracy": fold_accuracy,
+            "balanced_accuracy": fold_balanced_accuracy,
+            "precision_weighted": fold_precision_weighted,
+            "recall_weighted": fold_recall_weighted,
+            "f1_weighted": fold_f1_weighted,
+        }
+        fold_result.update(fold_contexts[fold_number - 1])
+
+        fold_results.append(fold_result)
 
         all_true.extend([to_python_scalar(value) for value in y_test.tolist()])
         all_pred.extend([to_python_scalar(value) for value in predictions.tolist()])
@@ -475,9 +659,8 @@ def evaluate_model_cross_validated(
     recall_values = [item["recall_weighted"] for item in fold_results]
     f1_values = [item["f1_weighted"] for item in fold_results]
 
-    result = {
+    return {
         "model_name": model_name,
-        "evaluation_strategy": "stratified_kfold",
         "fold_count": len(fold_results),
         "fold_results": fold_results,
         "accuracy": safe_mean(accuracy_values),
@@ -508,20 +691,11 @@ def evaluate_model_cross_validated(
         "interpretability": None,
     }
 
-    full_fit_pipeline = make_models(
-        categorical_features=[],
-        numeric_features=[],
-        random_state=0,
-    )
-    del full_fit_pipeline
 
-    return result
-
-
-def build_report_path(target: str) -> Path:
+def build_report_path(target: str, evaluation_strategy: str) -> Path:
     ensure_results_dir()
     timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%SZ")
-    return RESULTS_DIR / f"{timestamp}_auto_meal_plan_baseline_{target}.json"
+    return RESULTS_DIR / f"{timestamp}_auto_meal_plan_baseline_{target}_{evaluation_strategy}.json"
 
 
 def select_best_model(model_results: list[dict[str, Any]]) -> dict[str, Any] | None:
@@ -538,101 +712,31 @@ def select_best_model(model_results: list[dict[str, Any]]) -> dict[str, Any] | N
     )
 
 
-def train_auto_meal_plan_baseline(
+def build_feature_set_report(
     *,
-    dataset_path: str | None = None,
-    target: str = DEFAULT_TARGET,
-    test_size: float = 0.3,
-    random_state: int = 42,
-) -> tuple[Path, dict[str, Any]]:
-    del test_size
-
-    resolved_dataset_path = Path(dataset_path) if dataset_path else find_latest_dataset()
-    df = load_dataset(resolved_dataset_path)
-
-    target_distribution = (
-        df[target].value_counts(dropna=False).to_dict() if target in df.columns else {}
+    df: pd.DataFrame,
+    y: pd.Series,
+    feature_set_variant: dict[str, Any],
+    fold_indices: list[tuple[Any, Any]],
+    fold_contexts: list[dict[str, Any]],
+    random_state: int,
+) -> dict[str, Any]:
+    x, categorical_features, numeric_features, dropped_numeric_features = prepare_features(
+        df,
+        excluded_features=feature_set_variant["excluded_features"],
     )
 
-    x, categorical_features, numeric_features, dropped_numeric_features = prepare_features(df)
-    y = prepare_target(df, target)
-
-    unique_classes = pd.Series(y).value_counts(dropna=False)
-
-    report: dict[str, Any] = {
-        "dataset_path": str(resolved_dataset_path),
-        "generated_at_utc": datetime.now(UTC).isoformat(),
-        "row_count": int(len(df)),
-        "target_column": target,
+    feature_set_report: dict[str, Any] = {
+        "feature_set_key": feature_set_variant["feature_set_key"],
+        "feature_set_label": feature_set_variant["feature_set_label"],
+        "excluded_features": list(feature_set_variant["excluded_features"]),
         "feature_columns_used": categorical_features + numeric_features,
         "categorical_features_used": categorical_features,
         "numeric_features_used": numeric_features,
         "dropped_numeric_features": dropped_numeric_features,
-        "target_distribution": {
-            str(key): int(value)
-            for key, value in target_distribution.items()
-        },
-        "status": "ok",
-        "notes": [
-            "As métricas representam média e desvio padrão por fold de validação cruzada estratificada.",
-            "A interpretabilidade é calculada ajustando o modelo em todo o dataset apenas para inspeção exploratória.",
-        ],
-        "train_size": None,
-        "test_size": None,
-        "evaluation_strategy": None,
-        "cv_n_splits": None,
         "model_results": [],
         "best_model": None,
     }
-
-    if dropped_numeric_features:
-        report["notes"].append(
-            "Foram removidas features numéricas totalmente vazias: "
-            + ", ".join(dropped_numeric_features)
-        )
-
-    if len(unique_classes) < 2:
-        report["status"] = "not_enough_classes"
-        report["notes"].append(
-            "O dataset só contém uma classe no target. "
-            "Ainda não é possível treinar um modelo supervisionado útil."
-        )
-        output_path = build_report_path(target)
-        output_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-        return output_path, report
-
-    min_class_count = int(unique_classes.min())
-    if min_class_count < 2:
-        report["status"] = "insufficient_class_support"
-        report["notes"].append(
-            "Existe pelo menos uma classe com menos de 2 exemplos. "
-            "Ainda não há suporte suficiente para validação cruzada estratificada."
-        )
-        output_path = build_report_path(target)
-        output_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-        return output_path, report
-
-    cv_n_splits = min(5, min_class_count)
-    if cv_n_splits < 2:
-        report["status"] = "insufficient_class_support"
-        report["notes"].append(
-            "Não foi possível determinar pelo menos 2 folds estratificados."
-        )
-        output_path = build_report_path(target)
-        output_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-        return output_path, report
-
-    splitter = StratifiedKFold(
-        n_splits=cv_n_splits,
-        shuffle=True,
-        random_state=random_state,
-    )
-    fold_indices = list(splitter.split(x, y))
-
-    report["evaluation_strategy"] = "stratified_kfold"
-    report["cv_n_splits"] = cv_n_splits
-    report["train_size"] = int(len(fold_indices[0][0]))
-    report["test_size"] = int(len(fold_indices[0][1]))
 
     models = make_models(
         categorical_features=categorical_features,
@@ -647,6 +751,7 @@ def train_auto_meal_plan_baseline(
             x=x,
             y=y,
             fold_indices=fold_indices,
+            fold_contexts=fold_contexts,
         )
 
         fitted_pipeline = make_models(
@@ -657,11 +762,11 @@ def train_auto_meal_plan_baseline(
         fitted_pipeline.fit(x, y)
         result["interpretability"] = extract_interpretability_from_pipeline(fitted_pipeline)
 
-        report["model_results"].append(result)
+        feature_set_report["model_results"].append(result)
 
-    best_model = select_best_model(report["model_results"])
+    best_model = select_best_model(feature_set_report["model_results"])
     if best_model:
-        report["best_model"] = {
+        feature_set_report["best_model"] = {
             "model_name": best_model["model_name"],
             "accuracy": best_model["accuracy"],
             "accuracy_std": best_model["accuracy_std"],
@@ -674,6 +779,237 @@ def train_auto_meal_plan_baseline(
             "interpretability": best_model["interpretability"],
         }
 
-    output_path = build_report_path(target)
+    return feature_set_report
+
+
+def apply_primary_feature_set_to_top_level_report(
+    report: dict[str, Any],
+    primary_feature_set_report: dict[str, Any],
+) -> None:
+    report["feature_set_key_primary"] = primary_feature_set_report["feature_set_key"]
+    report["feature_set_label_primary"] = primary_feature_set_report["feature_set_label"]
+    report["excluded_features_primary"] = primary_feature_set_report["excluded_features"]
+    report["feature_columns_used"] = primary_feature_set_report["feature_columns_used"]
+    report["categorical_features_used"] = primary_feature_set_report["categorical_features_used"]
+    report["numeric_features_used"] = primary_feature_set_report["numeric_features_used"]
+    report["dropped_numeric_features"] = primary_feature_set_report[
+        "dropped_numeric_features"
+    ]
+    report["model_results"] = primary_feature_set_report["model_results"]
+    report["best_model"] = primary_feature_set_report["best_model"]
+
+
+def build_comparison_summary(
+    feature_set_reports: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    if len(feature_set_reports) < 2:
+        return None
+
+    variants: list[dict[str, Any]] = []
+    for feature_set_report in feature_set_reports:
+        best_model = feature_set_report.get("best_model")
+        if best_model is None:
+            continue
+
+        variants.append(
+            {
+                "feature_set_key": feature_set_report["feature_set_key"],
+                "feature_set_label": feature_set_report["feature_set_label"],
+                "excluded_features": feature_set_report["excluded_features"],
+                "feature_count": len(feature_set_report["feature_columns_used"]),
+                "best_model_name": best_model["model_name"],
+                "best_balanced_accuracy": best_model["balanced_accuracy"],
+                "best_balanced_accuracy_std": best_model["balanced_accuracy_std"],
+                "best_f1_weighted": best_model["f1_weighted"],
+                "best_f1_weighted_std": best_model["f1_weighted_std"],
+            }
+        )
+
+    if not variants:
+        return None
+
+    best_variant = max(
+        variants,
+        key=lambda item: (
+            item["best_balanced_accuracy"],
+            item["best_f1_weighted"],
+        ),
+    )
+
+    return {
+        "compared_feature": "suggested_recipe_id",
+        "variants": variants,
+        "best_variant": best_variant,
+    }
+
+
+def train_auto_meal_plan_baseline(
+    *,
+    dataset_path: str | None = None,
+    target: str = DEFAULT_TARGET,
+    test_size: float = 0.3,
+    random_state: int = 42,
+    include_suggested_recipe_id: bool = True,
+    compare_suggested_recipe_id: bool = False,
+    evaluation_strategy: str = DEFAULT_EVALUATION_STRATEGY,
+) -> tuple[Path, dict[str, Any]]:
+    del test_size
+
+    resolved_dataset_path = Path(dataset_path) if dataset_path else find_latest_dataset()
+    df = load_dataset(resolved_dataset_path)
+
+    target_distribution = (
+        df[target].value_counts(dropna=False).to_dict() if target in df.columns else {}
+    )
+
+    y = prepare_target(df, target)
+    feature_set_variants = build_feature_set_variants(
+        compare_suggested_recipe_id=compare_suggested_recipe_id,
+        include_suggested_recipe_id=include_suggested_recipe_id,
+    )
+
+    primary_feature_set_report = {
+        "feature_set_key": feature_set_variants[0]["feature_set_key"],
+        "feature_set_label": feature_set_variants[0]["feature_set_label"],
+        "excluded_features": list(feature_set_variants[0]["excluded_features"]),
+        "feature_columns_used": [],
+        "categorical_features_used": [],
+        "numeric_features_used": [],
+        "dropped_numeric_features": [],
+        "model_results": [],
+        "best_model": None,
+    }
+
+    primary_x, primary_categorical_features, primary_numeric_features, primary_dropped_numeric_features = (
+        prepare_features(
+            df,
+            excluded_features=feature_set_variants[0]["excluded_features"],
+        )
+    )
+
+    unique_classes = pd.Series(y).value_counts(dropna=False)
+
+    report: dict[str, Any] = {
+        "dataset_path": str(resolved_dataset_path),
+        "generated_at_utc": datetime.now(UTC).isoformat(),
+        "row_count": int(len(df)),
+        "target_column": target,
+        "evaluation_strategy": evaluation_strategy,
+        "grouping_feature": None,
+        "group_count": None,
+        "comparison_requested": compare_suggested_recipe_id,
+        "comparison_target_feature": "suggested_recipe_id",
+        "feature_set_variants_requested": [
+            variant["feature_set_key"] for variant in feature_set_variants
+        ],
+        "status": "ok",
+        "notes": [
+            "As métricas representam média e desvio padrão por fold de validação cruzada.",
+            "A interpretabilidade é calculada ajustando o modelo em todo o dataset apenas para inspeção exploratória.",
+        ],
+        "target_distribution": {
+            str(key): int(value)
+            for key, value in target_distribution.items()
+        },
+        "train_size": None,
+        "test_size": None,
+        "cv_n_splits": None,
+        "feature_set_reports": [],
+        "comparison_summary": None,
+        "feature_set_key_primary": primary_feature_set_report["feature_set_key"],
+        "feature_set_label_primary": primary_feature_set_report["feature_set_label"],
+        "excluded_features_primary": primary_feature_set_report["excluded_features"],
+        "feature_columns_used": primary_categorical_features + primary_numeric_features,
+        "categorical_features_used": primary_categorical_features,
+        "numeric_features_used": primary_numeric_features,
+        "dropped_numeric_features": primary_dropped_numeric_features,
+        "model_results": [],
+        "best_model": None,
+    }
+
+    if report["dropped_numeric_features"]:
+        report["notes"].append(
+            "Foram removidas features numéricas totalmente vazias no feature set primário: "
+            + ", ".join(report["dropped_numeric_features"])
+        )
+
+    if len(unique_classes) < 2:
+        report["status"] = "not_enough_classes"
+        report["notes"].append(
+            "O dataset só contém uma classe no target. "
+            "Ainda não é possível treinar um modelo supervisionado útil."
+        )
+        output_path = build_report_path(target, evaluation_strategy)
+        output_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+        return output_path, report
+
+    min_class_count = int(unique_classes.min())
+    if min_class_count < 2:
+        report["status"] = "insufficient_class_support"
+        report["notes"].append(
+            "Existe pelo menos uma classe com menos de 2 exemplos. "
+            "Ainda não há suporte suficiente para validação cruzada."
+        )
+        output_path = build_report_path(target, evaluation_strategy)
+        output_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+        return output_path, report
+
+    try:
+        cv_plan = build_cross_validation_plan(
+            x=primary_x,
+            df=df,
+            y=y,
+            evaluation_strategy=evaluation_strategy,
+            random_state=random_state,
+        )
+    except ValueError as exc:
+        report["status"] = "insufficient_evaluation_support"
+        report["notes"].append(str(exc))
+        output_path = build_report_path(target, evaluation_strategy)
+        output_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+        return output_path, report
+
+    report["evaluation_strategy"] = cv_plan["evaluation_strategy"]
+    report["cv_n_splits"] = cv_plan["cv_n_splits"]
+    report["train_size"] = int(len(cv_plan["fold_indices"][0][0]))
+    report["test_size"] = int(len(cv_plan["fold_indices"][0][1]))
+    report["grouping_feature"] = cv_plan["grouping_feature"]
+    report["group_count"] = cv_plan["group_count"]
+
+    if report["evaluation_strategy"] == GROUPED_EVALUATION_STRATEGY:
+        report["notes"].append(
+            "Nesta avaliação, os folds são agrupados por suggested_recipe_id para testar generalização para receitas não vistas no treino."
+        )
+        report["notes"].append(
+            "Os folds agrupados foram escolhidos de modo a garantir pelo menos duas classes nos conjuntos de treino e de teste."
+        )
+
+    for feature_set_variant in feature_set_variants:
+        feature_set_report = build_feature_set_report(
+            df=df,
+            y=y,
+            feature_set_variant=feature_set_variant,
+            fold_indices=cv_plan["fold_indices"],
+            fold_contexts=cv_plan["fold_contexts"],
+            random_state=random_state,
+        )
+        report["feature_set_reports"].append(feature_set_report)
+
+        if feature_set_report["dropped_numeric_features"]:
+            report["notes"].append(
+                "Foram removidas features numéricas totalmente vazias em "
+                f"{feature_set_report['feature_set_label']}: "
+                + ", ".join(feature_set_report["dropped_numeric_features"])
+            )
+
+        if (
+            feature_set_report["feature_set_key"]
+            == report["feature_set_key_primary"]
+        ):
+            apply_primary_feature_set_to_top_level_report(report, feature_set_report)
+
+    report["comparison_summary"] = build_comparison_summary(report["feature_set_reports"])
+
+    output_path = build_report_path(target, evaluation_strategy)
     output_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     return output_path, report

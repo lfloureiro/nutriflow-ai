@@ -1,0 +1,2104 @@
+{
+  "dataset_path": "D:\\Python\\NutriFlow AI\\nutriflow-ai\\data\\ml_datasets\\20260423_112824Z_auto_meal_plan_training_all_households.csv",
+  "generated_at_utc": "2026-04-23T13:32:54.202688+00:00",
+  "row_count": 28,
+  "target_column": "outcome_label",
+  "evaluation_strategy": "grouped_by_suggested_recipe_id",
+  "grouping_feature": "suggested_recipe_id",
+  "group_count": 20,
+  "comparison_requested": false,
+  "comparison_target_feature": "suggested_recipe_id",
+  "feature_set_variants_requested": [
+    "without_suggested_recipe_id"
+  ],
+  "status": "ok",
+  "notes": [
+    "As métricas representam média e desvio padrão por fold de validação cruzada.",
+    "A interpretabilidade é calculada ajustando o modelo em todo o dataset apenas para inspeção exploratória.",
+    "Nesta avaliação, os folds são agrupados por suggested_recipe_id para testar generalização para receitas não vistas no treino."
+  ],
+  "target_distribution": {
+    "accepted_as_suggested": 18,
+    "accepted_with_recipe_change": 10
+  },
+  "train_size": 22,
+  "test_size": 6,
+  "cv_n_splits": 5,
+  "feature_set_reports": [
+    {
+      "feature_set_key": "without_suggested_recipe_id",
+      "feature_set_label": "Sem suggested_recipe_id",
+      "excluded_features": [
+        "suggested_recipe_id"
+      ],
+      "feature_columns_used": [
+        "household_id",
+        "meal_type",
+        "suggestion_action",
+        "suggested_categoria_alimentar",
+        "suggested_proteina_principal",
+        "suggested_adequado_refeicao",
+        "weekday_index",
+        "is_weekend",
+        "score",
+        "average_rating",
+        "ratings_count"
+      ],
+      "categorical_features_used": [
+        "household_id",
+        "meal_type",
+        "suggestion_action",
+        "suggested_categoria_alimentar",
+        "suggested_proteina_principal",
+        "suggested_adequado_refeicao"
+      ],
+      "numeric_features_used": [
+        "weekday_index",
+        "is_weekend",
+        "score",
+        "average_rating",
+        "ratings_count"
+      ],
+      "dropped_numeric_features": [],
+      "model_results": [
+        {
+          "model_name": "dummy_most_frequent",
+          "fold_count": 5,
+          "fold_results": [
+            {
+              "fold": 1,
+              "train_size": 22,
+              "test_size": 6,
+              "accuracy": 0.8333333333333334,
+              "balanced_accuracy": 0.5,
+              "precision_weighted": 0.6944444444444445,
+              "recall_weighted": 0.8333333333333334,
+              "f1_weighted": 0.7575757575757575,
+              "train_group_count": 16,
+              "test_group_count": 4,
+              "train_groups": [
+                "10",
+                "13",
+                "16",
+                "17",
+                "19",
+                "2",
+                "25",
+                "26",
+                "28",
+                "3",
+                "34",
+                "38",
+                "4",
+                "42",
+                "5",
+                "7"
+              ],
+              "test_groups": [
+                "11",
+                "15",
+                "23",
+                "43"
+              ]
+            },
+            {
+              "fold": 2,
+              "train_size": 22,
+              "test_size": 6,
+              "accuracy": 1.0,
+              "balanced_accuracy": 1.0,
+              "precision_weighted": 1.0,
+              "recall_weighted": 1.0,
+              "f1_weighted": 1.0,
+              "train_group_count": 16,
+              "test_group_count": 4,
+              "train_groups": [
+                "10",
+                "11",
+                "15",
+                "16",
+                "17",
+                "19",
+                "23",
+                "25",
+                "28",
+                "3",
+                "34",
+                "38",
+                "42",
+                "43",
+                "5",
+                "7"
+              ],
+              "test_groups": [
+                "13",
+                "2",
+                "26",
+                "4"
+              ]
+            },
+            {
+              "fold": 3,
+              "train_size": 22,
+              "test_size": 6,
+              "accuracy": 0.3333333333333333,
+              "balanced_accuracy": 0.5,
+              "precision_weighted": 0.1111111111111111,
+              "recall_weighted": 0.3333333333333333,
+              "f1_weighted": 0.16666666666666666,
+              "train_group_count": 16,
+              "test_group_count": 4,
+              "train_groups": [
+                "11",
+                "13",
+                "15",
+                "16",
+                "17",
+                "19",
+                "2",
+                "23",
+                "26",
+                "3",
+                "34",
+                "4",
+                "42",
+                "43",
+                "5",
+                "7"
+              ],
+              "test_groups": [
+                "10",
+                "25",
+                "28",
+                "38"
+              ]
+            },
+            {
+              "fold": 4,
+              "train_size": 23,
+              "test_size": 5,
+              "accuracy": 0.0,
+              "balanced_accuracy": 0.0,
+              "precision_weighted": 0.0,
+              "recall_weighted": 0.0,
+              "f1_weighted": 0.0,
+              "train_group_count": 16,
+              "test_group_count": 4,
+              "train_groups": [
+                "10",
+                "11",
+                "13",
+                "15",
+                "16",
+                "17",
+                "2",
+                "23",
+                "25",
+                "26",
+                "28",
+                "34",
+                "38",
+                "4",
+                "43",
+                "5"
+              ],
+              "test_groups": [
+                "19",
+                "3",
+                "42",
+                "7"
+              ]
+            },
+            {
+              "fold": 5,
+              "train_size": 23,
+              "test_size": 5,
+              "accuracy": 1.0,
+              "balanced_accuracy": 1.0,
+              "precision_weighted": 1.0,
+              "recall_weighted": 1.0,
+              "f1_weighted": 1.0,
+              "train_group_count": 16,
+              "test_group_count": 4,
+              "train_groups": [
+                "10",
+                "11",
+                "13",
+                "15",
+                "19",
+                "2",
+                "23",
+                "25",
+                "26",
+                "28",
+                "3",
+                "38",
+                "4",
+                "42",
+                "43",
+                "7"
+              ],
+              "test_groups": [
+                "16",
+                "17",
+                "34",
+                "5"
+              ]
+            }
+          ],
+          "accuracy": 0.6333333333333334,
+          "accuracy_std": 0.4,
+          "balanced_accuracy": 0.6,
+          "balanced_accuracy_std": 0.37416573867739417,
+          "precision_weighted": 0.5611111111111111,
+          "precision_weighted_std": 0.4290385461401739,
+          "recall_weighted": 0.6333333333333334,
+          "recall_weighted_std": 0.4,
+          "f1_weighted": 0.5848484848484847,
+          "f1_weighted_std": 0.4222463866266753,
+          "confusion_matrix_labels": [
+            "accepted_as_suggested",
+            "accepted_with_recipe_change"
+          ],
+          "confusion_matrix": [
+            [
+              18,
+              0
+            ],
+            [
+              10,
+              0
+            ]
+          ],
+          "classification_report": {
+            "accepted_as_suggested": {
+              "precision": 0.6428571428571429,
+              "recall": 1.0,
+              "f1-score": 0.782608695652174,
+              "support": 18.0
+            },
+            "accepted_with_recipe_change": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 10.0
+            },
+            "accuracy": 0.6428571428571429,
+            "macro avg": {
+              "precision": 0.32142857142857145,
+              "recall": 0.5,
+              "f1-score": 0.391304347826087,
+              "support": 28.0
+            },
+            "weighted avg": {
+              "precision": 0.41326530612244905,
+              "recall": 0.6428571428571429,
+              "f1-score": 0.5031055900621119,
+              "support": 28.0
+            }
+          },
+          "interpretability": null
+        },
+        {
+          "model_name": "logistic_regression",
+          "fold_count": 5,
+          "fold_results": [
+            {
+              "fold": 1,
+              "train_size": 22,
+              "test_size": 6,
+              "accuracy": 0.8333333333333334,
+              "balanced_accuracy": 0.5,
+              "precision_weighted": 0.6944444444444445,
+              "recall_weighted": 0.8333333333333334,
+              "f1_weighted": 0.7575757575757575,
+              "train_group_count": 16,
+              "test_group_count": 4,
+              "train_groups": [
+                "10",
+                "13",
+                "16",
+                "17",
+                "19",
+                "2",
+                "25",
+                "26",
+                "28",
+                "3",
+                "34",
+                "38",
+                "4",
+                "42",
+                "5",
+                "7"
+              ],
+              "test_groups": [
+                "11",
+                "15",
+                "23",
+                "43"
+              ]
+            },
+            {
+              "fold": 2,
+              "train_size": 22,
+              "test_size": 6,
+              "accuracy": 0.8333333333333334,
+              "balanced_accuracy": 0.8333333333333334,
+              "precision_weighted": 1.0,
+              "recall_weighted": 0.8333333333333334,
+              "f1_weighted": 0.9090909090909091,
+              "train_group_count": 16,
+              "test_group_count": 4,
+              "train_groups": [
+                "10",
+                "11",
+                "15",
+                "16",
+                "17",
+                "19",
+                "23",
+                "25",
+                "28",
+                "3",
+                "34",
+                "38",
+                "42",
+                "43",
+                "5",
+                "7"
+              ],
+              "test_groups": [
+                "13",
+                "2",
+                "26",
+                "4"
+              ]
+            },
+            {
+              "fold": 3,
+              "train_size": 22,
+              "test_size": 6,
+              "accuracy": 0.5,
+              "balanced_accuracy": 0.5,
+              "precision_weighted": 0.5555555555555555,
+              "recall_weighted": 0.5,
+              "f1_weighted": 0.5142857142857142,
+              "train_group_count": 16,
+              "test_group_count": 4,
+              "train_groups": [
+                "11",
+                "13",
+                "15",
+                "16",
+                "17",
+                "19",
+                "2",
+                "23",
+                "26",
+                "3",
+                "34",
+                "4",
+                "42",
+                "43",
+                "5",
+                "7"
+              ],
+              "test_groups": [
+                "10",
+                "25",
+                "28",
+                "38"
+              ]
+            },
+            {
+              "fold": 4,
+              "train_size": 23,
+              "test_size": 5,
+              "accuracy": 1.0,
+              "balanced_accuracy": 1.0,
+              "precision_weighted": 1.0,
+              "recall_weighted": 1.0,
+              "f1_weighted": 1.0,
+              "train_group_count": 16,
+              "test_group_count": 4,
+              "train_groups": [
+                "10",
+                "11",
+                "13",
+                "15",
+                "16",
+                "17",
+                "2",
+                "23",
+                "25",
+                "26",
+                "28",
+                "34",
+                "38",
+                "4",
+                "43",
+                "5"
+              ],
+              "test_groups": [
+                "19",
+                "3",
+                "42",
+                "7"
+              ]
+            },
+            {
+              "fold": 5,
+              "train_size": 23,
+              "test_size": 5,
+              "accuracy": 0.8,
+              "balanced_accuracy": 0.8,
+              "precision_weighted": 1.0,
+              "recall_weighted": 0.8,
+              "f1_weighted": 0.888888888888889,
+              "train_group_count": 16,
+              "test_group_count": 4,
+              "train_groups": [
+                "10",
+                "11",
+                "13",
+                "15",
+                "19",
+                "2",
+                "23",
+                "25",
+                "26",
+                "28",
+                "3",
+                "38",
+                "4",
+                "42",
+                "43",
+                "7"
+              ],
+              "test_groups": [
+                "16",
+                "17",
+                "34",
+                "5"
+              ]
+            }
+          ],
+          "accuracy": 0.7933333333333333,
+          "accuracy_std": 0.16248076809271922,
+          "balanced_accuracy": 0.7266666666666668,
+          "balanced_accuracy_std": 0.19708993998792643,
+          "precision_weighted": 0.85,
+          "precision_weighted_std": 0.1888888888888889,
+          "recall_weighted": 0.7933333333333333,
+          "recall_weighted_std": 0.16248076809271922,
+          "f1_weighted": 0.8139682539682539,
+          "f1_weighted_std": 0.16867659578380723,
+          "confusion_matrix_labels": [
+            "accepted_as_suggested",
+            "accepted_with_recipe_change"
+          ],
+          "confusion_matrix": [
+            [
+              15,
+              3
+            ],
+            [
+              3,
+              7
+            ]
+          ],
+          "classification_report": {
+            "accepted_as_suggested": {
+              "precision": 0.8333333333333334,
+              "recall": 0.8333333333333334,
+              "f1-score": 0.8333333333333334,
+              "support": 18.0
+            },
+            "accepted_with_recipe_change": {
+              "precision": 0.7,
+              "recall": 0.7,
+              "f1-score": 0.7,
+              "support": 10.0
+            },
+            "accuracy": 0.7857142857142857,
+            "macro avg": {
+              "precision": 0.7666666666666666,
+              "recall": 0.7666666666666666,
+              "f1-score": 0.7666666666666666,
+              "support": 28.0
+            },
+            "weighted avg": {
+              "precision": 0.7857142857142857,
+              "recall": 0.7857142857142857,
+              "f1-score": 0.7857142857142857,
+              "support": 28.0
+            }
+          },
+          "interpretability": {
+            "type": "logistic_regression_coefficients",
+            "mode": "binary",
+            "positive_class": "accepted_with_recipe_change",
+            "negative_class": "accepted_as_suggested",
+            "top_positive_features": [
+              {
+                "feature": "categorical__suggested_proteina_principal_ovos",
+                "value": 0.9294369224645732
+              },
+              {
+                "feature": "categorical__suggested_proteina_principal_vaca",
+                "value": 0.39506728287086657
+              },
+              {
+                "feature": "categorical__suggested_proteina_principal_porco",
+                "value": 0.3551402965873499
+              },
+              {
+                "feature": "numeric__is_weekend",
+                "value": 0.309734729787146
+              },
+              {
+                "feature": "categorical__suggested_categoria_alimentar_carne",
+                "value": 0.04756143340941546
+              },
+              {
+                "feature": "numeric__score",
+                "value": 0.0027074756510730284
+              },
+              {
+                "feature": "categorical__household_id_1",
+                "value": -8.191779245049578e-05
+              },
+              {
+                "feature": "categorical__meal_type_jantar",
+                "value": -8.191779245049578e-05
+              },
+              {
+                "feature": "categorical__suggestion_action_suggest",
+                "value": -8.191779245049578e-05
+              },
+              {
+                "feature": "categorical__suggested_adequado_refeicao_ambos",
+                "value": -8.191779245049578e-05
+              },
+              {
+                "feature": "categorical__suggested_categoria_alimentar_peixe",
+                "value": -0.04764335120186614
+              },
+              {
+                "feature": "categorical__suggested_proteina_principal_peixe",
+                "value": -0.04764335120186614
+              }
+            ],
+            "top_negative_features": [
+              {
+                "feature": "numeric__average_rating",
+                "value": -1.3183960351490265
+              },
+              {
+                "feature": "categorical__suggested_proteina_principal_unknown",
+                "value": -0.7142827829161178
+              },
+              {
+                "feature": "categorical__suggested_proteina_principal_frango",
+                "value": -0.46238507038119087
+              },
+              {
+                "feature": "categorical__suggested_proteina_principal_queijo_lacticinios",
+                "value": -0.45541521521606404
+              },
+              {
+                "feature": "numeric__weekday_index",
+                "value": -0.38550116757319575
+              },
+              {
+                "feature": "numeric__ratings_count",
+                "value": -0.2049856882964134
+              },
+              {
+                "feature": "categorical__suggested_categoria_alimentar_peixe",
+                "value": -0.04764335120186614
+              },
+              {
+                "feature": "categorical__suggested_proteina_principal_peixe",
+                "value": -0.04764335120186614
+              },
+              {
+                "feature": "categorical__household_id_1",
+                "value": -8.191779245049578e-05
+              },
+              {
+                "feature": "categorical__meal_type_jantar",
+                "value": -8.191779245049578e-05
+              },
+              {
+                "feature": "categorical__suggestion_action_suggest",
+                "value": -8.191779245049578e-05
+              },
+              {
+                "feature": "categorical__suggested_adequado_refeicao_ambos",
+                "value": -8.191779245049578e-05
+              }
+            ]
+          }
+        },
+        {
+          "model_name": "random_forest",
+          "fold_count": 5,
+          "fold_results": [
+            {
+              "fold": 1,
+              "train_size": 22,
+              "test_size": 6,
+              "accuracy": 0.8333333333333334,
+              "balanced_accuracy": 0.5,
+              "precision_weighted": 0.6944444444444445,
+              "recall_weighted": 0.8333333333333334,
+              "f1_weighted": 0.7575757575757575,
+              "train_group_count": 16,
+              "test_group_count": 4,
+              "train_groups": [
+                "10",
+                "13",
+                "16",
+                "17",
+                "19",
+                "2",
+                "25",
+                "26",
+                "28",
+                "3",
+                "34",
+                "38",
+                "4",
+                "42",
+                "5",
+                "7"
+              ],
+              "test_groups": [
+                "11",
+                "15",
+                "23",
+                "43"
+              ]
+            },
+            {
+              "fold": 2,
+              "train_size": 22,
+              "test_size": 6,
+              "accuracy": 0.5,
+              "balanced_accuracy": 0.5,
+              "precision_weighted": 1.0,
+              "recall_weighted": 0.5,
+              "f1_weighted": 0.6666666666666666,
+              "train_group_count": 16,
+              "test_group_count": 4,
+              "train_groups": [
+                "10",
+                "11",
+                "15",
+                "16",
+                "17",
+                "19",
+                "23",
+                "25",
+                "28",
+                "3",
+                "34",
+                "38",
+                "42",
+                "43",
+                "5",
+                "7"
+              ],
+              "test_groups": [
+                "13",
+                "2",
+                "26",
+                "4"
+              ]
+            },
+            {
+              "fold": 3,
+              "train_size": 22,
+              "test_size": 6,
+              "accuracy": 0.3333333333333333,
+              "balanced_accuracy": 0.375,
+              "precision_weighted": 0.4166666666666667,
+              "recall_weighted": 0.3333333333333333,
+              "f1_weighted": 0.3333333333333333,
+              "train_group_count": 16,
+              "test_group_count": 4,
+              "train_groups": [
+                "11",
+                "13",
+                "15",
+                "16",
+                "17",
+                "19",
+                "2",
+                "23",
+                "26",
+                "3",
+                "34",
+                "4",
+                "42",
+                "43",
+                "5",
+                "7"
+              ],
+              "test_groups": [
+                "10",
+                "25",
+                "28",
+                "38"
+              ]
+            },
+            {
+              "fold": 4,
+              "train_size": 23,
+              "test_size": 5,
+              "accuracy": 0.2,
+              "balanced_accuracy": 0.2,
+              "precision_weighted": 1.0,
+              "recall_weighted": 0.2,
+              "f1_weighted": 0.3333333333333333,
+              "train_group_count": 16,
+              "test_group_count": 4,
+              "train_groups": [
+                "10",
+                "11",
+                "13",
+                "15",
+                "16",
+                "17",
+                "2",
+                "23",
+                "25",
+                "26",
+                "28",
+                "34",
+                "38",
+                "4",
+                "43",
+                "5"
+              ],
+              "test_groups": [
+                "19",
+                "3",
+                "42",
+                "7"
+              ]
+            },
+            {
+              "fold": 5,
+              "train_size": 23,
+              "test_size": 5,
+              "accuracy": 0.6,
+              "balanced_accuracy": 0.6,
+              "precision_weighted": 1.0,
+              "recall_weighted": 0.6,
+              "f1_weighted": 0.75,
+              "train_group_count": 16,
+              "test_group_count": 4,
+              "train_groups": [
+                "10",
+                "11",
+                "13",
+                "15",
+                "19",
+                "2",
+                "23",
+                "25",
+                "26",
+                "28",
+                "3",
+                "38",
+                "4",
+                "42",
+                "43",
+                "7"
+              ],
+              "test_groups": [
+                "16",
+                "17",
+                "34",
+                "5"
+              ]
+            }
+          ],
+          "accuracy": 0.49333333333333335,
+          "accuracy_std": 0.21847959477565254,
+          "balanced_accuracy": 0.43499999999999994,
+          "balanced_accuracy_std": 0.1374772708486752,
+          "precision_weighted": 0.8222222222222222,
+          "precision_weighted_std": 0.23478385121239376,
+          "recall_weighted": 0.49333333333333335,
+          "recall_weighted_std": 0.21847959477565254,
+          "f1_weighted": 0.5681818181818181,
+          "f1_weighted_std": 0.19438868412084392,
+          "confusion_matrix_labels": [
+            "accepted_as_suggested",
+            "accepted_with_recipe_change"
+          ],
+          "confusion_matrix": [
+            [
+              12,
+              6
+            ],
+            [
+              8,
+              2
+            ]
+          ],
+          "classification_report": {
+            "accepted_as_suggested": {
+              "precision": 0.6,
+              "recall": 0.6666666666666666,
+              "f1-score": 0.631578947368421,
+              "support": 18.0
+            },
+            "accepted_with_recipe_change": {
+              "precision": 0.25,
+              "recall": 0.2,
+              "f1-score": 0.2222222222222222,
+              "support": 10.0
+            },
+            "accuracy": 0.5,
+            "macro avg": {
+              "precision": 0.425,
+              "recall": 0.43333333333333335,
+              "f1-score": 0.4269005847953216,
+              "support": 28.0
+            },
+            "weighted avg": {
+              "precision": 0.475,
+              "recall": 0.5,
+              "f1-score": 0.4853801169590643,
+              "support": 28.0
+            }
+          },
+          "interpretability": {
+            "type": "random_forest_feature_importances",
+            "top_feature_importances": [
+              {
+                "feature": "numeric__weekday_index",
+                "value": 0.25071599067121
+              },
+              {
+                "feature": "numeric__score",
+                "value": 0.1949415634607532
+              },
+              {
+                "feature": "numeric__average_rating",
+                "value": 0.168525150719321
+              },
+              {
+                "feature": "categorical__suggested_proteina_principal_ovos",
+                "value": 0.07084497794704192
+              },
+              {
+                "feature": "categorical__suggested_proteina_principal_unknown",
+                "value": 0.0621361286329477
+              },
+              {
+                "feature": "numeric__is_weekend",
+                "value": 0.051708243369305136
+              },
+              {
+                "feature": "categorical__suggested_proteina_principal_porco",
+                "value": 0.035757787865158486
+              },
+              {
+                "feature": "numeric__ratings_count",
+                "value": 0.02998655440354311
+              },
+              {
+                "feature": "categorical__suggested_categoria_alimentar_carne",
+                "value": 0.028389414252375966
+              },
+              {
+                "feature": "categorical__suggested_proteina_principal_frango",
+                "value": 0.026849196504190848
+              },
+              {
+                "feature": "categorical__suggested_proteina_principal_peixe",
+                "value": 0.021852501289881896
+              },
+              {
+                "feature": "categorical__suggested_categoria_alimentar_peixe",
+                "value": 0.021319181594478594
+              }
+            ]
+          }
+        }
+      ],
+      "best_model": {
+        "model_name": "logistic_regression",
+        "accuracy": 0.7933333333333333,
+        "accuracy_std": 0.16248076809271922,
+        "balanced_accuracy": 0.7266666666666668,
+        "balanced_accuracy_std": 0.19708993998792643,
+        "f1_weighted": 0.8139682539682539,
+        "f1_weighted_std": 0.16867659578380723,
+        "confusion_matrix_labels": [
+          "accepted_as_suggested",
+          "accepted_with_recipe_change"
+        ],
+        "confusion_matrix": [
+          [
+            15,
+            3
+          ],
+          [
+            3,
+            7
+          ]
+        ],
+        "interpretability": {
+          "type": "logistic_regression_coefficients",
+          "mode": "binary",
+          "positive_class": "accepted_with_recipe_change",
+          "negative_class": "accepted_as_suggested",
+          "top_positive_features": [
+            {
+              "feature": "categorical__suggested_proteina_principal_ovos",
+              "value": 0.9294369224645732
+            },
+            {
+              "feature": "categorical__suggested_proteina_principal_vaca",
+              "value": 0.39506728287086657
+            },
+            {
+              "feature": "categorical__suggested_proteina_principal_porco",
+              "value": 0.3551402965873499
+            },
+            {
+              "feature": "numeric__is_weekend",
+              "value": 0.309734729787146
+            },
+            {
+              "feature": "categorical__suggested_categoria_alimentar_carne",
+              "value": 0.04756143340941546
+            },
+            {
+              "feature": "numeric__score",
+              "value": 0.0027074756510730284
+            },
+            {
+              "feature": "categorical__household_id_1",
+              "value": -8.191779245049578e-05
+            },
+            {
+              "feature": "categorical__meal_type_jantar",
+              "value": -8.191779245049578e-05
+            },
+            {
+              "feature": "categorical__suggestion_action_suggest",
+              "value": -8.191779245049578e-05
+            },
+            {
+              "feature": "categorical__suggested_adequado_refeicao_ambos",
+              "value": -8.191779245049578e-05
+            },
+            {
+              "feature": "categorical__suggested_categoria_alimentar_peixe",
+              "value": -0.04764335120186614
+            },
+            {
+              "feature": "categorical__suggested_proteina_principal_peixe",
+              "value": -0.04764335120186614
+            }
+          ],
+          "top_negative_features": [
+            {
+              "feature": "numeric__average_rating",
+              "value": -1.3183960351490265
+            },
+            {
+              "feature": "categorical__suggested_proteina_principal_unknown",
+              "value": -0.7142827829161178
+            },
+            {
+              "feature": "categorical__suggested_proteina_principal_frango",
+              "value": -0.46238507038119087
+            },
+            {
+              "feature": "categorical__suggested_proteina_principal_queijo_lacticinios",
+              "value": -0.45541521521606404
+            },
+            {
+              "feature": "numeric__weekday_index",
+              "value": -0.38550116757319575
+            },
+            {
+              "feature": "numeric__ratings_count",
+              "value": -0.2049856882964134
+            },
+            {
+              "feature": "categorical__suggested_categoria_alimentar_peixe",
+              "value": -0.04764335120186614
+            },
+            {
+              "feature": "categorical__suggested_proteina_principal_peixe",
+              "value": -0.04764335120186614
+            },
+            {
+              "feature": "categorical__household_id_1",
+              "value": -8.191779245049578e-05
+            },
+            {
+              "feature": "categorical__meal_type_jantar",
+              "value": -8.191779245049578e-05
+            },
+            {
+              "feature": "categorical__suggestion_action_suggest",
+              "value": -8.191779245049578e-05
+            },
+            {
+              "feature": "categorical__suggested_adequado_refeicao_ambos",
+              "value": -8.191779245049578e-05
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "comparison_summary": null,
+  "feature_set_key_primary": "without_suggested_recipe_id",
+  "feature_set_label_primary": "Sem suggested_recipe_id",
+  "excluded_features_primary": [
+    "suggested_recipe_id"
+  ],
+  "feature_columns_used": [
+    "household_id",
+    "meal_type",
+    "suggestion_action",
+    "suggested_categoria_alimentar",
+    "suggested_proteina_principal",
+    "suggested_adequado_refeicao",
+    "weekday_index",
+    "is_weekend",
+    "score",
+    "average_rating",
+    "ratings_count"
+  ],
+  "categorical_features_used": [
+    "household_id",
+    "meal_type",
+    "suggestion_action",
+    "suggested_categoria_alimentar",
+    "suggested_proteina_principal",
+    "suggested_adequado_refeicao"
+  ],
+  "numeric_features_used": [
+    "weekday_index",
+    "is_weekend",
+    "score",
+    "average_rating",
+    "ratings_count"
+  ],
+  "dropped_numeric_features": [],
+  "model_results": [
+    {
+      "model_name": "dummy_most_frequent",
+      "fold_count": 5,
+      "fold_results": [
+        {
+          "fold": 1,
+          "train_size": 22,
+          "test_size": 6,
+          "accuracy": 0.8333333333333334,
+          "balanced_accuracy": 0.5,
+          "precision_weighted": 0.6944444444444445,
+          "recall_weighted": 0.8333333333333334,
+          "f1_weighted": 0.7575757575757575,
+          "train_group_count": 16,
+          "test_group_count": 4,
+          "train_groups": [
+            "10",
+            "13",
+            "16",
+            "17",
+            "19",
+            "2",
+            "25",
+            "26",
+            "28",
+            "3",
+            "34",
+            "38",
+            "4",
+            "42",
+            "5",
+            "7"
+          ],
+          "test_groups": [
+            "11",
+            "15",
+            "23",
+            "43"
+          ]
+        },
+        {
+          "fold": 2,
+          "train_size": 22,
+          "test_size": 6,
+          "accuracy": 1.0,
+          "balanced_accuracy": 1.0,
+          "precision_weighted": 1.0,
+          "recall_weighted": 1.0,
+          "f1_weighted": 1.0,
+          "train_group_count": 16,
+          "test_group_count": 4,
+          "train_groups": [
+            "10",
+            "11",
+            "15",
+            "16",
+            "17",
+            "19",
+            "23",
+            "25",
+            "28",
+            "3",
+            "34",
+            "38",
+            "42",
+            "43",
+            "5",
+            "7"
+          ],
+          "test_groups": [
+            "13",
+            "2",
+            "26",
+            "4"
+          ]
+        },
+        {
+          "fold": 3,
+          "train_size": 22,
+          "test_size": 6,
+          "accuracy": 0.3333333333333333,
+          "balanced_accuracy": 0.5,
+          "precision_weighted": 0.1111111111111111,
+          "recall_weighted": 0.3333333333333333,
+          "f1_weighted": 0.16666666666666666,
+          "train_group_count": 16,
+          "test_group_count": 4,
+          "train_groups": [
+            "11",
+            "13",
+            "15",
+            "16",
+            "17",
+            "19",
+            "2",
+            "23",
+            "26",
+            "3",
+            "34",
+            "4",
+            "42",
+            "43",
+            "5",
+            "7"
+          ],
+          "test_groups": [
+            "10",
+            "25",
+            "28",
+            "38"
+          ]
+        },
+        {
+          "fold": 4,
+          "train_size": 23,
+          "test_size": 5,
+          "accuracy": 0.0,
+          "balanced_accuracy": 0.0,
+          "precision_weighted": 0.0,
+          "recall_weighted": 0.0,
+          "f1_weighted": 0.0,
+          "train_group_count": 16,
+          "test_group_count": 4,
+          "train_groups": [
+            "10",
+            "11",
+            "13",
+            "15",
+            "16",
+            "17",
+            "2",
+            "23",
+            "25",
+            "26",
+            "28",
+            "34",
+            "38",
+            "4",
+            "43",
+            "5"
+          ],
+          "test_groups": [
+            "19",
+            "3",
+            "42",
+            "7"
+          ]
+        },
+        {
+          "fold": 5,
+          "train_size": 23,
+          "test_size": 5,
+          "accuracy": 1.0,
+          "balanced_accuracy": 1.0,
+          "precision_weighted": 1.0,
+          "recall_weighted": 1.0,
+          "f1_weighted": 1.0,
+          "train_group_count": 16,
+          "test_group_count": 4,
+          "train_groups": [
+            "10",
+            "11",
+            "13",
+            "15",
+            "19",
+            "2",
+            "23",
+            "25",
+            "26",
+            "28",
+            "3",
+            "38",
+            "4",
+            "42",
+            "43",
+            "7"
+          ],
+          "test_groups": [
+            "16",
+            "17",
+            "34",
+            "5"
+          ]
+        }
+      ],
+      "accuracy": 0.6333333333333334,
+      "accuracy_std": 0.4,
+      "balanced_accuracy": 0.6,
+      "balanced_accuracy_std": 0.37416573867739417,
+      "precision_weighted": 0.5611111111111111,
+      "precision_weighted_std": 0.4290385461401739,
+      "recall_weighted": 0.6333333333333334,
+      "recall_weighted_std": 0.4,
+      "f1_weighted": 0.5848484848484847,
+      "f1_weighted_std": 0.4222463866266753,
+      "confusion_matrix_labels": [
+        "accepted_as_suggested",
+        "accepted_with_recipe_change"
+      ],
+      "confusion_matrix": [
+        [
+          18,
+          0
+        ],
+        [
+          10,
+          0
+        ]
+      ],
+      "classification_report": {
+        "accepted_as_suggested": {
+          "precision": 0.6428571428571429,
+          "recall": 1.0,
+          "f1-score": 0.782608695652174,
+          "support": 18.0
+        },
+        "accepted_with_recipe_change": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 10.0
+        },
+        "accuracy": 0.6428571428571429,
+        "macro avg": {
+          "precision": 0.32142857142857145,
+          "recall": 0.5,
+          "f1-score": 0.391304347826087,
+          "support": 28.0
+        },
+        "weighted avg": {
+          "precision": 0.41326530612244905,
+          "recall": 0.6428571428571429,
+          "f1-score": 0.5031055900621119,
+          "support": 28.0
+        }
+      },
+      "interpretability": null
+    },
+    {
+      "model_name": "logistic_regression",
+      "fold_count": 5,
+      "fold_results": [
+        {
+          "fold": 1,
+          "train_size": 22,
+          "test_size": 6,
+          "accuracy": 0.8333333333333334,
+          "balanced_accuracy": 0.5,
+          "precision_weighted": 0.6944444444444445,
+          "recall_weighted": 0.8333333333333334,
+          "f1_weighted": 0.7575757575757575,
+          "train_group_count": 16,
+          "test_group_count": 4,
+          "train_groups": [
+            "10",
+            "13",
+            "16",
+            "17",
+            "19",
+            "2",
+            "25",
+            "26",
+            "28",
+            "3",
+            "34",
+            "38",
+            "4",
+            "42",
+            "5",
+            "7"
+          ],
+          "test_groups": [
+            "11",
+            "15",
+            "23",
+            "43"
+          ]
+        },
+        {
+          "fold": 2,
+          "train_size": 22,
+          "test_size": 6,
+          "accuracy": 0.8333333333333334,
+          "balanced_accuracy": 0.8333333333333334,
+          "precision_weighted": 1.0,
+          "recall_weighted": 0.8333333333333334,
+          "f1_weighted": 0.9090909090909091,
+          "train_group_count": 16,
+          "test_group_count": 4,
+          "train_groups": [
+            "10",
+            "11",
+            "15",
+            "16",
+            "17",
+            "19",
+            "23",
+            "25",
+            "28",
+            "3",
+            "34",
+            "38",
+            "42",
+            "43",
+            "5",
+            "7"
+          ],
+          "test_groups": [
+            "13",
+            "2",
+            "26",
+            "4"
+          ]
+        },
+        {
+          "fold": 3,
+          "train_size": 22,
+          "test_size": 6,
+          "accuracy": 0.5,
+          "balanced_accuracy": 0.5,
+          "precision_weighted": 0.5555555555555555,
+          "recall_weighted": 0.5,
+          "f1_weighted": 0.5142857142857142,
+          "train_group_count": 16,
+          "test_group_count": 4,
+          "train_groups": [
+            "11",
+            "13",
+            "15",
+            "16",
+            "17",
+            "19",
+            "2",
+            "23",
+            "26",
+            "3",
+            "34",
+            "4",
+            "42",
+            "43",
+            "5",
+            "7"
+          ],
+          "test_groups": [
+            "10",
+            "25",
+            "28",
+            "38"
+          ]
+        },
+        {
+          "fold": 4,
+          "train_size": 23,
+          "test_size": 5,
+          "accuracy": 1.0,
+          "balanced_accuracy": 1.0,
+          "precision_weighted": 1.0,
+          "recall_weighted": 1.0,
+          "f1_weighted": 1.0,
+          "train_group_count": 16,
+          "test_group_count": 4,
+          "train_groups": [
+            "10",
+            "11",
+            "13",
+            "15",
+            "16",
+            "17",
+            "2",
+            "23",
+            "25",
+            "26",
+            "28",
+            "34",
+            "38",
+            "4",
+            "43",
+            "5"
+          ],
+          "test_groups": [
+            "19",
+            "3",
+            "42",
+            "7"
+          ]
+        },
+        {
+          "fold": 5,
+          "train_size": 23,
+          "test_size": 5,
+          "accuracy": 0.8,
+          "balanced_accuracy": 0.8,
+          "precision_weighted": 1.0,
+          "recall_weighted": 0.8,
+          "f1_weighted": 0.888888888888889,
+          "train_group_count": 16,
+          "test_group_count": 4,
+          "train_groups": [
+            "10",
+            "11",
+            "13",
+            "15",
+            "19",
+            "2",
+            "23",
+            "25",
+            "26",
+            "28",
+            "3",
+            "38",
+            "4",
+            "42",
+            "43",
+            "7"
+          ],
+          "test_groups": [
+            "16",
+            "17",
+            "34",
+            "5"
+          ]
+        }
+      ],
+      "accuracy": 0.7933333333333333,
+      "accuracy_std": 0.16248076809271922,
+      "balanced_accuracy": 0.7266666666666668,
+      "balanced_accuracy_std": 0.19708993998792643,
+      "precision_weighted": 0.85,
+      "precision_weighted_std": 0.1888888888888889,
+      "recall_weighted": 0.7933333333333333,
+      "recall_weighted_std": 0.16248076809271922,
+      "f1_weighted": 0.8139682539682539,
+      "f1_weighted_std": 0.16867659578380723,
+      "confusion_matrix_labels": [
+        "accepted_as_suggested",
+        "accepted_with_recipe_change"
+      ],
+      "confusion_matrix": [
+        [
+          15,
+          3
+        ],
+        [
+          3,
+          7
+        ]
+      ],
+      "classification_report": {
+        "accepted_as_suggested": {
+          "precision": 0.8333333333333334,
+          "recall": 0.8333333333333334,
+          "f1-score": 0.8333333333333334,
+          "support": 18.0
+        },
+        "accepted_with_recipe_change": {
+          "precision": 0.7,
+          "recall": 0.7,
+          "f1-score": 0.7,
+          "support": 10.0
+        },
+        "accuracy": 0.7857142857142857,
+        "macro avg": {
+          "precision": 0.7666666666666666,
+          "recall": 0.7666666666666666,
+          "f1-score": 0.7666666666666666,
+          "support": 28.0
+        },
+        "weighted avg": {
+          "precision": 0.7857142857142857,
+          "recall": 0.7857142857142857,
+          "f1-score": 0.7857142857142857,
+          "support": 28.0
+        }
+      },
+      "interpretability": {
+        "type": "logistic_regression_coefficients",
+        "mode": "binary",
+        "positive_class": "accepted_with_recipe_change",
+        "negative_class": "accepted_as_suggested",
+        "top_positive_features": [
+          {
+            "feature": "categorical__suggested_proteina_principal_ovos",
+            "value": 0.9294369224645732
+          },
+          {
+            "feature": "categorical__suggested_proteina_principal_vaca",
+            "value": 0.39506728287086657
+          },
+          {
+            "feature": "categorical__suggested_proteina_principal_porco",
+            "value": 0.3551402965873499
+          },
+          {
+            "feature": "numeric__is_weekend",
+            "value": 0.309734729787146
+          },
+          {
+            "feature": "categorical__suggested_categoria_alimentar_carne",
+            "value": 0.04756143340941546
+          },
+          {
+            "feature": "numeric__score",
+            "value": 0.0027074756510730284
+          },
+          {
+            "feature": "categorical__household_id_1",
+            "value": -8.191779245049578e-05
+          },
+          {
+            "feature": "categorical__meal_type_jantar",
+            "value": -8.191779245049578e-05
+          },
+          {
+            "feature": "categorical__suggestion_action_suggest",
+            "value": -8.191779245049578e-05
+          },
+          {
+            "feature": "categorical__suggested_adequado_refeicao_ambos",
+            "value": -8.191779245049578e-05
+          },
+          {
+            "feature": "categorical__suggested_categoria_alimentar_peixe",
+            "value": -0.04764335120186614
+          },
+          {
+            "feature": "categorical__suggested_proteina_principal_peixe",
+            "value": -0.04764335120186614
+          }
+        ],
+        "top_negative_features": [
+          {
+            "feature": "numeric__average_rating",
+            "value": -1.3183960351490265
+          },
+          {
+            "feature": "categorical__suggested_proteina_principal_unknown",
+            "value": -0.7142827829161178
+          },
+          {
+            "feature": "categorical__suggested_proteina_principal_frango",
+            "value": -0.46238507038119087
+          },
+          {
+            "feature": "categorical__suggested_proteina_principal_queijo_lacticinios",
+            "value": -0.45541521521606404
+          },
+          {
+            "feature": "numeric__weekday_index",
+            "value": -0.38550116757319575
+          },
+          {
+            "feature": "numeric__ratings_count",
+            "value": -0.2049856882964134
+          },
+          {
+            "feature": "categorical__suggested_categoria_alimentar_peixe",
+            "value": -0.04764335120186614
+          },
+          {
+            "feature": "categorical__suggested_proteina_principal_peixe",
+            "value": -0.04764335120186614
+          },
+          {
+            "feature": "categorical__household_id_1",
+            "value": -8.191779245049578e-05
+          },
+          {
+            "feature": "categorical__meal_type_jantar",
+            "value": -8.191779245049578e-05
+          },
+          {
+            "feature": "categorical__suggestion_action_suggest",
+            "value": -8.191779245049578e-05
+          },
+          {
+            "feature": "categorical__suggested_adequado_refeicao_ambos",
+            "value": -8.191779245049578e-05
+          }
+        ]
+      }
+    },
+    {
+      "model_name": "random_forest",
+      "fold_count": 5,
+      "fold_results": [
+        {
+          "fold": 1,
+          "train_size": 22,
+          "test_size": 6,
+          "accuracy": 0.8333333333333334,
+          "balanced_accuracy": 0.5,
+          "precision_weighted": 0.6944444444444445,
+          "recall_weighted": 0.8333333333333334,
+          "f1_weighted": 0.7575757575757575,
+          "train_group_count": 16,
+          "test_group_count": 4,
+          "train_groups": [
+            "10",
+            "13",
+            "16",
+            "17",
+            "19",
+            "2",
+            "25",
+            "26",
+            "28",
+            "3",
+            "34",
+            "38",
+            "4",
+            "42",
+            "5",
+            "7"
+          ],
+          "test_groups": [
+            "11",
+            "15",
+            "23",
+            "43"
+          ]
+        },
+        {
+          "fold": 2,
+          "train_size": 22,
+          "test_size": 6,
+          "accuracy": 0.5,
+          "balanced_accuracy": 0.5,
+          "precision_weighted": 1.0,
+          "recall_weighted": 0.5,
+          "f1_weighted": 0.6666666666666666,
+          "train_group_count": 16,
+          "test_group_count": 4,
+          "train_groups": [
+            "10",
+            "11",
+            "15",
+            "16",
+            "17",
+            "19",
+            "23",
+            "25",
+            "28",
+            "3",
+            "34",
+            "38",
+            "42",
+            "43",
+            "5",
+            "7"
+          ],
+          "test_groups": [
+            "13",
+            "2",
+            "26",
+            "4"
+          ]
+        },
+        {
+          "fold": 3,
+          "train_size": 22,
+          "test_size": 6,
+          "accuracy": 0.3333333333333333,
+          "balanced_accuracy": 0.375,
+          "precision_weighted": 0.4166666666666667,
+          "recall_weighted": 0.3333333333333333,
+          "f1_weighted": 0.3333333333333333,
+          "train_group_count": 16,
+          "test_group_count": 4,
+          "train_groups": [
+            "11",
+            "13",
+            "15",
+            "16",
+            "17",
+            "19",
+            "2",
+            "23",
+            "26",
+            "3",
+            "34",
+            "4",
+            "42",
+            "43",
+            "5",
+            "7"
+          ],
+          "test_groups": [
+            "10",
+            "25",
+            "28",
+            "38"
+          ]
+        },
+        {
+          "fold": 4,
+          "train_size": 23,
+          "test_size": 5,
+          "accuracy": 0.2,
+          "balanced_accuracy": 0.2,
+          "precision_weighted": 1.0,
+          "recall_weighted": 0.2,
+          "f1_weighted": 0.3333333333333333,
+          "train_group_count": 16,
+          "test_group_count": 4,
+          "train_groups": [
+            "10",
+            "11",
+            "13",
+            "15",
+            "16",
+            "17",
+            "2",
+            "23",
+            "25",
+            "26",
+            "28",
+            "34",
+            "38",
+            "4",
+            "43",
+            "5"
+          ],
+          "test_groups": [
+            "19",
+            "3",
+            "42",
+            "7"
+          ]
+        },
+        {
+          "fold": 5,
+          "train_size": 23,
+          "test_size": 5,
+          "accuracy": 0.6,
+          "balanced_accuracy": 0.6,
+          "precision_weighted": 1.0,
+          "recall_weighted": 0.6,
+          "f1_weighted": 0.75,
+          "train_group_count": 16,
+          "test_group_count": 4,
+          "train_groups": [
+            "10",
+            "11",
+            "13",
+            "15",
+            "19",
+            "2",
+            "23",
+            "25",
+            "26",
+            "28",
+            "3",
+            "38",
+            "4",
+            "42",
+            "43",
+            "7"
+          ],
+          "test_groups": [
+            "16",
+            "17",
+            "34",
+            "5"
+          ]
+        }
+      ],
+      "accuracy": 0.49333333333333335,
+      "accuracy_std": 0.21847959477565254,
+      "balanced_accuracy": 0.43499999999999994,
+      "balanced_accuracy_std": 0.1374772708486752,
+      "precision_weighted": 0.8222222222222222,
+      "precision_weighted_std": 0.23478385121239376,
+      "recall_weighted": 0.49333333333333335,
+      "recall_weighted_std": 0.21847959477565254,
+      "f1_weighted": 0.5681818181818181,
+      "f1_weighted_std": 0.19438868412084392,
+      "confusion_matrix_labels": [
+        "accepted_as_suggested",
+        "accepted_with_recipe_change"
+      ],
+      "confusion_matrix": [
+        [
+          12,
+          6
+        ],
+        [
+          8,
+          2
+        ]
+      ],
+      "classification_report": {
+        "accepted_as_suggested": {
+          "precision": 0.6,
+          "recall": 0.6666666666666666,
+          "f1-score": 0.631578947368421,
+          "support": 18.0
+        },
+        "accepted_with_recipe_change": {
+          "precision": 0.25,
+          "recall": 0.2,
+          "f1-score": 0.2222222222222222,
+          "support": 10.0
+        },
+        "accuracy": 0.5,
+        "macro avg": {
+          "precision": 0.425,
+          "recall": 0.43333333333333335,
+          "f1-score": 0.4269005847953216,
+          "support": 28.0
+        },
+        "weighted avg": {
+          "precision": 0.475,
+          "recall": 0.5,
+          "f1-score": 0.4853801169590643,
+          "support": 28.0
+        }
+      },
+      "interpretability": {
+        "type": "random_forest_feature_importances",
+        "top_feature_importances": [
+          {
+            "feature": "numeric__weekday_index",
+            "value": 0.25071599067121
+          },
+          {
+            "feature": "numeric__score",
+            "value": 0.1949415634607532
+          },
+          {
+            "feature": "numeric__average_rating",
+            "value": 0.168525150719321
+          },
+          {
+            "feature": "categorical__suggested_proteina_principal_ovos",
+            "value": 0.07084497794704192
+          },
+          {
+            "feature": "categorical__suggested_proteina_principal_unknown",
+            "value": 0.0621361286329477
+          },
+          {
+            "feature": "numeric__is_weekend",
+            "value": 0.051708243369305136
+          },
+          {
+            "feature": "categorical__suggested_proteina_principal_porco",
+            "value": 0.035757787865158486
+          },
+          {
+            "feature": "numeric__ratings_count",
+            "value": 0.02998655440354311
+          },
+          {
+            "feature": "categorical__suggested_categoria_alimentar_carne",
+            "value": 0.028389414252375966
+          },
+          {
+            "feature": "categorical__suggested_proteina_principal_frango",
+            "value": 0.026849196504190848
+          },
+          {
+            "feature": "categorical__suggested_proteina_principal_peixe",
+            "value": 0.021852501289881896
+          },
+          {
+            "feature": "categorical__suggested_categoria_alimentar_peixe",
+            "value": 0.021319181594478594
+          }
+        ]
+      }
+    }
+  ],
+  "best_model": {
+    "model_name": "logistic_regression",
+    "accuracy": 0.7933333333333333,
+    "accuracy_std": 0.16248076809271922,
+    "balanced_accuracy": 0.7266666666666668,
+    "balanced_accuracy_std": 0.19708993998792643,
+    "f1_weighted": 0.8139682539682539,
+    "f1_weighted_std": 0.16867659578380723,
+    "confusion_matrix_labels": [
+      "accepted_as_suggested",
+      "accepted_with_recipe_change"
+    ],
+    "confusion_matrix": [
+      [
+        15,
+        3
+      ],
+      [
+        3,
+        7
+      ]
+    ],
+    "interpretability": {
+      "type": "logistic_regression_coefficients",
+      "mode": "binary",
+      "positive_class": "accepted_with_recipe_change",
+      "negative_class": "accepted_as_suggested",
+      "top_positive_features": [
+        {
+          "feature": "categorical__suggested_proteina_principal_ovos",
+          "value": 0.9294369224645732
+        },
+        {
+          "feature": "categorical__suggested_proteina_principal_vaca",
+          "value": 0.39506728287086657
+        },
+        {
+          "feature": "categorical__suggested_proteina_principal_porco",
+          "value": 0.3551402965873499
+        },
+        {
+          "feature": "numeric__is_weekend",
+          "value": 0.309734729787146
+        },
+        {
+          "feature": "categorical__suggested_categoria_alimentar_carne",
+          "value": 0.04756143340941546
+        },
+        {
+          "feature": "numeric__score",
+          "value": 0.0027074756510730284
+        },
+        {
+          "feature": "categorical__household_id_1",
+          "value": -8.191779245049578e-05
+        },
+        {
+          "feature": "categorical__meal_type_jantar",
+          "value": -8.191779245049578e-05
+        },
+        {
+          "feature": "categorical__suggestion_action_suggest",
+          "value": -8.191779245049578e-05
+        },
+        {
+          "feature": "categorical__suggested_adequado_refeicao_ambos",
+          "value": -8.191779245049578e-05
+        },
+        {
+          "feature": "categorical__suggested_categoria_alimentar_peixe",
+          "value": -0.04764335120186614
+        },
+        {
+          "feature": "categorical__suggested_proteina_principal_peixe",
+          "value": -0.04764335120186614
+        }
+      ],
+      "top_negative_features": [
+        {
+          "feature": "numeric__average_rating",
+          "value": -1.3183960351490265
+        },
+        {
+          "feature": "categorical__suggested_proteina_principal_unknown",
+          "value": -0.7142827829161178
+        },
+        {
+          "feature": "categorical__suggested_proteina_principal_frango",
+          "value": -0.46238507038119087
+        },
+        {
+          "feature": "categorical__suggested_proteina_principal_queijo_lacticinios",
+          "value": -0.45541521521606404
+        },
+        {
+          "feature": "numeric__weekday_index",
+          "value": -0.38550116757319575
+        },
+        {
+          "feature": "numeric__ratings_count",
+          "value": -0.2049856882964134
+        },
+        {
+          "feature": "categorical__suggested_categoria_alimentar_peixe",
+          "value": -0.04764335120186614
+        },
+        {
+          "feature": "categorical__suggested_proteina_principal_peixe",
+          "value": -0.04764335120186614
+        },
+        {
+          "feature": "categorical__household_id_1",
+          "value": -8.191779245049578e-05
+        },
+        {
+          "feature": "categorical__meal_type_jantar",
+          "value": -8.191779245049578e-05
+        },
+        {
+          "feature": "categorical__suggestion_action_suggest",
+          "value": -8.191779245049578e-05
+        },
+        {
+          "feature": "categorical__suggested_adequado_refeicao_ambos",
+          "value": -8.191779245049578e-05
+        }
+      ]
+    }
+  }
+}
