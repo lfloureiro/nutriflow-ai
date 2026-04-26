@@ -13,6 +13,9 @@ from backend.app.schemas.recipe_preference import (
     RecipePreferenceSummaryRead,
     RecipePreferenceUpsert,
 )
+from backend.app.services.recipe_preference_scoring import (
+    build_recipe_preference_score_summary,
+)
 
 router = APIRouter(prefix="/recipe-preferences", tags=["recipe-preferences"])
 
@@ -42,6 +45,32 @@ def _validate_household_member_and_recipe(
         raise HTTPException(status_code=404, detail="Receita não encontrada.")
 
     return household, member, recipe
+
+
+def _build_recipe_preference_summary_read(
+    *,
+    household_id: int,
+    recipe: Recipe,
+    preferences: list[RecipePreference],
+) -> RecipePreferenceSummaryRead:
+    score_summary = build_recipe_preference_score_summary(preferences)
+
+    return RecipePreferenceSummaryRead(
+        household_id=household_id,
+        recipe_id=recipe.id,
+        recipe_name=recipe.name,
+        ratings_count=score_summary.ratings_count,
+        average_rating=score_summary.effective_rating,
+        simple_average_rating=score_summary.average_rating,
+        median_rating=score_summary.median_rating,
+        lowest_rating=score_summary.lowest_rating,
+        highest_rating=score_summary.highest_rating,
+        base_rating=score_summary.base_rating,
+        disagreement_penalty=score_summary.disagreement_penalty,
+        disagreement_spread=score_summary.disagreement_spread,
+        conflict_flag=score_summary.conflict_flag,
+        ratings=preferences,
+    )
 
 
 @router.get(
@@ -180,20 +209,10 @@ def get_recipe_preference_summary(
         .all()
     )
 
-    ratings_count = len(preferences)
-    average_rating = (
-        round(sum(item.rating for item in preferences) / ratings_count, 2)
-        if ratings_count > 0
-        else 0.0
-    )
-
-    return RecipePreferenceSummaryRead(
+    return _build_recipe_preference_summary_read(
         household_id=household_id,
-        recipe_id=recipe.id,
-        recipe_name=recipe.name,
-        ratings_count=ratings_count,
-        average_rating=average_rating,
-        ratings=preferences,
+        recipe=recipe,
+        preferences=preferences,
     )
 
 
@@ -225,21 +244,11 @@ def list_household_recipe_summaries(
             .all()
         )
 
-        ratings_count = len(preferences)
-        average_rating = (
-            round(sum(item.rating for item in preferences) / ratings_count, 2)
-            if ratings_count > 0
-            else 0.0
-        )
-
         result.append(
-            RecipePreferenceSummaryRead(
+            _build_recipe_preference_summary_read(
                 household_id=household_id,
-                recipe_id=recipe.id,
-                recipe_name=recipe.name,
-                ratings_count=ratings_count,
-                average_rating=average_rating,
-                ratings=preferences,
+                recipe=recipe,
+                preferences=preferences,
             )
         )
 

@@ -34,6 +34,14 @@ class RecipePreferenceSummaryRead(BaseModel):
     recipe_name: str
     ratings_count: int
     average_rating: float
+    simple_average_rating: float
+    median_rating: float
+    lowest_rating: float
+    highest_rating: float
+    base_rating: float
+    disagreement_penalty: float
+    disagreement_spread: float
+    conflict_flag: bool
     ratings: list[RecipePreferenceRead]
 
     model_config = ConfigDict(from_attributes=True)

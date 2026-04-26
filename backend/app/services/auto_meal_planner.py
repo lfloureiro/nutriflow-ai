@@ -3,14 +3,15 @@ from dataclasses import dataclass, field
 from datetime import date, timedelta
 from typing import Iterable
 
-from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
 from backend.app.models.meal_plan_item import MealPlanItem
 from backend.app.models.recipe import Recipe
 from backend.app.models.recipe_preference import RecipePreference
 from backend.app.services.auto_meal_plan_model_runtime import build_auto_meal_plan_model_scorer
-
+from backend.app.services.recipe_preference_scoring import (
+    build_recipe_preference_score_summary,
+)
 
 DEFAULT_MEAL_TYPES = ["almoco", "jantar"]
 BALANCE_CATEGORIES = ["carne", "peixe", "vegetariano_leguminosas"]
@@ -116,22 +117,25 @@ def protein_key(recipe: Recipe) -> str:
 
 
 def build_preference_map(db: Session, household_id: int) -> dict[int, dict]:
-    rows = (
-        db.query(
-            RecipePreference.recipe_id,
-            func.avg(RecipePreference.rating),
-            func.count(RecipePreference.id),
-        )
+    preference_rows = (
+        db.query(RecipePreference)
         .filter(RecipePreference.household_id == household_id)
-        .group_by(RecipePreference.recipe_id)
+        .order_by(RecipePreference.recipe_id.asc(), RecipePreference.family_member_id.asc())
         .all()
     )
 
+    grouped_preferences: dict[int, list[RecipePreference]] = defaultdict(list)
+    for preference in preference_rows:
+        grouped_preferences[int(preference.recipe_id)].append(preference)
+
     result: dict[int, dict] = {}
-    for recipe_id, average_rating, ratings_count in rows:
-        result[int(recipe_id)] = {
-            "average_rating": round(float(average_rating), 2),
-            "ratings_count": int(ratings_count),
+    for recipe_id, preferences in grouped_preferences.items():
+        score_summary = build_recipe_preference_score_summary(preferences)
+        result[recipe_id] = {
+            "average_rating": score_summary.effective_rating,
+            "ratings_count": score_summary.ratings_count,
+            "simple_average_rating": score_summary.average_rating,
+            "conflict_flag": score_summary.conflict_flag,
         }
 
     return result
@@ -281,6 +285,9 @@ def score_recipe_for_slot(
         elif average_rating <= FAMILY_LOW_THRESHOLD:
             score -= FAMILY_LOW_PENALTY
             reasons.append("aceitação familiar fraca")
+
+        if preference.get("conflict_flag"):
+            reasons.append("há algum desacordo relevante entre os membros da família")
     else:
         score += NO_PREFERENCE_BONUS
         reasons.append("sem avaliações, tratada como opção neutra")
