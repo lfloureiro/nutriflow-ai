@@ -945,7 +945,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
   const editingItem =
     editingId !== null ? visibleMealPlan.find((item) => item.id === editingId) ?? null : null;
 
-  const navControlHeight = "40px";
+  const navControlHeight = "42px";
 
   return (
     <>
@@ -984,21 +984,22 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "40px minmax(132px, 1fr) 40px",
+              gridTemplateColumns: "42px minmax(0, 168px) 42px",
               gap: "8px",
               alignItems: "center",
-              width: "min(100%, 260px)",
+              width: "min(100%, 268px)",
+              flex: "0 0 auto",
             }}
           >
             <button
               type="button"
               style={{
                 ...styles.button,
-                width: "40px",
-                minWidth: "40px",
+                width: "42px",
+                minWidth: "42px",
                 height: navControlHeight,
                 padding: 0,
-                fontSize: "0.94rem",
+                fontSize: "0.9rem",
                 lineHeight: 1,
                 display: "flex",
                 alignItems: "center",
@@ -1020,9 +1021,11 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
                 ...styles.input,
                 width: "100%",
                 minWidth: 0,
+                minHeight: navControlHeight,
                 height: navControlHeight,
-                padding: "0 10px",
+                padding: "0 12px",
                 fontSize: "0.8rem",
+                lineHeight: 1,
                 borderRadius: "10px",
                 boxSizing: "border-box",
               }}
@@ -1035,11 +1038,11 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
               type="button"
               style={{
                 ...styles.button,
-                width: "40px",
-                minWidth: "40px",
+                width: "42px",
+                minWidth: "42px",
                 height: navControlHeight,
                 padding: 0,
-                fontSize: "0.94rem",
+                fontSize: "0.9rem",
                 lineHeight: 1,
                 display: "flex",
                 alignItems: "center",
