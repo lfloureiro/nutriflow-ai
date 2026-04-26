@@ -725,7 +725,8 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
             overflowY: "auto",
             borderRadius: "22px",
             border: "1px solid rgba(96, 165, 250, 0.2)",
-            background: "linear-gradient(180deg, rgba(2,6,23,0.98) 0%, rgba(15,23,42,0.96) 100%)",
+            background:
+              "linear-gradient(180deg, rgba(2,6,23,0.98) 0%, rgba(15,23,42,0.96) 100%)",
             boxShadow: "0 24px 80px rgba(2, 6, 23, 0.5)",
             padding: "22px",
             boxSizing: "border-box",
@@ -945,7 +946,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
   const editingItem =
     editingId !== null ? visibleMealPlan.find((item) => item.id === editingId) ?? null : null;
 
-  const navControlHeight = "42px";
+  const navControlHeight = "38px";
 
   return (
     <>
@@ -984,10 +985,10 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "42px minmax(0, 168px) 42px",
-              gap: "8px",
+              gridTemplateColumns: "38px minmax(0, 168px) 44px",
+              columnGap: "10px",
               alignItems: "center",
-              width: "min(100%, 268px)",
+              width: "min(100%, 280px)",
               flex: "0 0 auto",
             }}
           >
@@ -995,9 +996,12 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
               type="button"
               style={{
                 ...styles.button,
-                width: "42px",
-                minWidth: "42px",
+                width: "38px",
+                minWidth: "38px",
+                maxWidth: "38px",
                 height: navControlHeight,
+                minHeight: navControlHeight,
+                maxHeight: navControlHeight,
                 padding: 0,
                 fontSize: "0.9rem",
                 lineHeight: 1,
@@ -1005,7 +1009,9 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
                 alignItems: "center",
                 justifyContent: "center",
                 borderRadius: "10px",
+                aspectRatio: "1 / 1",
                 boxSizing: "border-box",
+                flexShrink: 0,
               }}
               onClick={() => shiftWindowByWeeks(-1)}
               disabled={!windowStartDate}
@@ -1021,42 +1027,60 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
                 ...styles.input,
                 width: "100%",
                 minWidth: 0,
-                minHeight: navControlHeight,
                 height: navControlHeight,
+                minHeight: navControlHeight,
+                maxHeight: navControlHeight,
                 padding: "0 12px",
                 fontSize: "0.8rem",
                 lineHeight: 1,
                 borderRadius: "10px",
                 boxSizing: "border-box",
+                display: "block",
               }}
               value={windowStartDate}
               onChange={(e) => handleWindowDateChange(e.target.value)}
               disabled={!windowStartDate}
             />
 
-            <button
-              type="button"
+            <div
               style={{
-                ...styles.button,
-                width: "42px",
-                minWidth: "42px",
-                height: navControlHeight,
-                padding: 0,
-                fontSize: "0.9rem",
-                lineHeight: 1,
+                width: "44px",
+                minWidth: "44px",
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: "10px",
+                justifyContent: "flex-end",
+                paddingLeft: "6px",
                 boxSizing: "border-box",
               }}
-              onClick={() => shiftWindowByWeeks(1)}
-              disabled={!windowStartDate}
-              title="Semana seguinte"
-              aria-label="Semana seguinte"
             >
-              →
-            </button>
+              <button
+                type="button"
+                style={{
+                  ...styles.button,
+                  width: "38px",
+                  minWidth: "38px",
+                  maxWidth: "38px",
+                  height: navControlHeight,
+                  minHeight: navControlHeight,
+                  maxHeight: navControlHeight,
+                  padding: 0,
+                  fontSize: "0.9rem",
+                  lineHeight: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: "10px",
+                  aspectRatio: "1 / 1",
+                  boxSizing: "border-box",
+                  flexShrink: 0,
+                }}
+                onClick={() => shiftWindowByWeeks(1)}
+                disabled={!windowStartDate}
+                title="Semana seguinte"
+                aria-label="Semana seguinte"
+              >
+                →
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1292,7 +1316,8 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
               overflowY: "auto",
               borderRadius: "24px",
               border: "1px solid rgba(96, 165, 250, 0.18)",
-              background: "linear-gradient(180deg, rgba(2,6,23,0.98) 0%, rgba(15,23,42,0.96) 100%)",
+              background:
+                "linear-gradient(180deg, rgba(2,6,23,0.98) 0%, rgba(15,23,42,0.96) 100%)",
               boxShadow: "0 28px 90px rgba(2, 6, 23, 0.5)",
               boxSizing: "border-box",
             }}
