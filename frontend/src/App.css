@@ -876,3 +876,139 @@
     justify-content: center;
   }
 }
+
+/* Theme variable overrides */
+.nf-kicker,
+.nf-inline-note,
+.nf-card-kicker {
+  color: var(--nf-accent-soft);
+}
+
+.nf-header-badge,
+.nf-context-meta-chip,
+.nf-context-stat,
+.nf-select-card,
+.nf-entity-row,
+.nf-rating-card,
+.nf-score-card,
+.nf-score-pill,
+.nf-record-card,
+.nf-shopping-card,
+.nf-filter-chip {
+  border-color: var(--nf-border);
+  background: var(--nf-card-bg-soft);
+  color: var(--nf-text);
+}
+
+.nf-utility-action,
+.nf-rating-chip {
+  border-color: var(--nf-border);
+  background: var(--nf-pill-bg);
+  color: var(--nf-text);
+}
+
+.nf-utility-action:hover,
+.nf-context-stat:hover,
+.nf-select-card:hover,
+.nf-entity-row:hover,
+.nf-clickable-card:hover {
+  border-color: var(--nf-border-strong);
+  background: var(--nf-card-bg-hover);
+  box-shadow: 0 14px 28px var(--nf-shadow);
+}
+
+.nf-status-banner,
+.nf-date-group-head,
+.nf-modal-card,
+.nf-modal-header {
+  border-color: var(--nf-border);
+}
+
+.nf-status-banner--info {
+  background: var(--nf-info-bg);
+  color: var(--nf-info-text);
+}
+
+.nf-status-banner--success,
+.nf-rating-chip--saved,
+.nf-shopping-card--in-cart {
+  background: var(--nf-success-bg);
+  border-color: var(--nf-success-border);
+  color: var(--nf-success-text);
+}
+
+.nf-status-banner--error {
+  background: var(--nf-error-bg);
+  border-color: var(--nf-error-border);
+  color: var(--nf-error-text);
+}
+
+.nf-clickable-card,
+.nf-header-badge,
+.nf-context-stat,
+.nf-select-card,
+.nf-entity-row,
+.nf-rating-card,
+.nf-score-card,
+.nf-record-card,
+.nf-shopping-card {
+  background: var(--nf-card-bg);
+  border-color: var(--nf-border);
+}
+
+.nf-clickable-card--disabled:hover,
+.nf-context-stat--disabled:hover {
+  background: var(--nf-card-bg);
+  border-color: var(--nf-border);
+}
+
+.nf-context-stat-label,
+.nf-entity-row-meta,
+.nf-header-badge-label {
+  color: var(--nf-text-soft);
+}
+
+.nf-context-stat-value,
+.nf-card-title,
+.nf-entity-row-title,
+.nf-score-value,
+.nf-record-title,
+.nf-shopping-quantity {
+  color: var(--nf-text-strong);
+}
+
+.nf-card-body,
+.nf-field-label,
+.nf-menu-panel-text,
+.nf-record-description {
+  color: var(--nf-text);
+}
+
+.nf-filter-chip--active,
+.nf-select-card--active,
+.nf-entity-row--active {
+  border-color: var(--nf-accent);
+  background: var(--nf-info-bg);
+  color: var(--nf-text-strong);
+}
+
+.nf-modal-shell {
+  background: var(--nf-overlay-bg);
+}
+
+.nf-modal-card {
+  background: var(--nf-modal-bg);
+  box-shadow: 0 24px 60px var(--nf-shadow);
+}
+
+.nf-modal-header {
+  background: var(--nf-modal-header-bg);
+}
+
+.nf-shopping-state {
+  color: var(--nf-warning-text);
+}
+
+.nf-shopping-state--done {
+  color: var(--nf-success-text);
+}

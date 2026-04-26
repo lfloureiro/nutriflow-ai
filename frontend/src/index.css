@@ -11,8 +11,79 @@
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 
-  background: #020617;
-  color: #e5e7eb;
+  --nf-page-bg: #020617;
+  --nf-page-gradient-top: rgba(30, 41, 59, 0.9);
+  --nf-page-gradient-bottom-start: #08101f;
+  --nf-page-gradient-bottom-end: #020617;
+  --nf-text: #e5e7eb;
+  --nf-text-strong: #f8fafc;
+  --nf-text-muted: #b8c1cc;
+  --nf-text-soft: #94a3b8;
+  --nf-accent: #60a5fa;
+  --nf-accent-soft: #93c5fd;
+  --nf-card-bg: #111827;
+  --nf-card-bg-soft: #0b1220;
+  --nf-card-bg-hover: #131d2c;
+  --nf-panel-bg: rgba(15, 23, 42, 0.55);
+  --nf-border: #243041;
+  --nf-border-strong: #334155;
+  --nf-input-bg: #0b1220;
+  --nf-button-bg: #0f172a;
+  --nf-button-text: #f8fafc;
+  --nf-pill-bg: #111827;
+  --nf-modal-bg: #0b1220;
+  --nf-modal-header-bg: rgba(11, 18, 32, 0.96);
+  --nf-overlay-bg: rgba(2, 6, 23, 0.76);
+  --nf-shadow: rgba(2, 6, 23, 0.24);
+  --nf-success-bg: rgba(20, 83, 45, 0.25);
+  --nf-success-border: rgba(34, 197, 94, 0.35);
+  --nf-success-text: #bbf7d0;
+  --nf-error-bg: rgba(127, 29, 29, 0.2);
+  --nf-error-border: rgba(244, 63, 94, 0.35);
+  --nf-error-text: #fecdd3;
+  --nf-warning-text: #fbbf24;
+  --nf-info-bg: rgba(30, 41, 59, 0.9);
+  --nf-info-text: #93c5fd;
+
+  background: var(--nf-page-bg);
+  color: var(--nf-text);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --nf-page-bg: #f6f7fb;
+  --nf-page-gradient-top: rgba(219, 234, 254, 0.9);
+  --nf-page-gradient-bottom-start: #f8fafc;
+  --nf-page-gradient-bottom-end: #eef2f7;
+  --nf-text: #334155;
+  --nf-text-strong: #0f172a;
+  --nf-text-muted: #475569;
+  --nf-text-soft: #64748b;
+  --nf-accent: #2563eb;
+  --nf-accent-soft: #1d4ed8;
+  --nf-card-bg: #ffffff;
+  --nf-card-bg-soft: #f8fafc;
+  --nf-card-bg-hover: #f1f5f9;
+  --nf-panel-bg: rgba(255, 255, 255, 0.74);
+  --nf-border: #d9e2ef;
+  --nf-border-strong: #cbd5e1;
+  --nf-input-bg: #ffffff;
+  --nf-button-bg: #0f172a;
+  --nf-button-text: #ffffff;
+  --nf-pill-bg: #f8fafc;
+  --nf-modal-bg: #ffffff;
+  --nf-modal-header-bg: rgba(255, 255, 255, 0.96);
+  --nf-overlay-bg: rgba(15, 23, 42, 0.42);
+  --nf-shadow: rgba(15, 23, 42, 0.13);
+  --nf-success-bg: rgba(220, 252, 231, 0.9);
+  --nf-success-border: rgba(34, 197, 94, 0.38);
+  --nf-success-text: #166534;
+  --nf-error-bg: rgba(254, 226, 226, 0.9);
+  --nf-error-border: rgba(248, 113, 113, 0.45);
+  --nf-error-text: #991b1b;
+  --nf-warning-text: #92400e;
+  --nf-info-bg: rgba(219, 234, 254, 0.92);
+  --nf-info-text: #1d4ed8;
 }
 
 * {
@@ -30,9 +101,13 @@ body,
 body {
   margin: 0;
   background:
-    radial-gradient(circle at top, rgba(30, 41, 59, 0.9), transparent 42%),
-    linear-gradient(180deg, #08101f 0%, #020617 100%);
-  color: #e5e7eb;
+    radial-gradient(circle at top, var(--nf-page-gradient-top), transparent 42%),
+    linear-gradient(
+      180deg,
+      var(--nf-page-gradient-bottom-start) 0%,
+      var(--nf-page-gradient-bottom-end) 100%
+    );
+  color: var(--nf-text);
 }
 
 #root {
@@ -67,16 +142,16 @@ body::-webkit-scrollbar,
 
 body::-webkit-scrollbar-track,
 .nf-modal-content::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.9);
+  background: var(--nf-card-bg);
 }
 
 body::-webkit-scrollbar-thumb,
 .nf-modal-content::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: var(--nf-border-strong);
   border-radius: 999px;
 }
 
 body::-webkit-scrollbar-thumb:hover,
 .nf-modal-content::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: var(--nf-text-soft);
 }

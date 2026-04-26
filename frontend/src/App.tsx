@@ -56,6 +56,8 @@ type ActiveModal =
   | "data-restore"
   | "data-import";
 
+type ColorScheme = "light" | "dark";
+
 type DashboardTile = {
   id: string;
   title: string;
@@ -81,6 +83,10 @@ function App() {
 
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
   const [selectedHouseholdId, setSelectedHouseholdId] = useState<string>("");
+  const [colorScheme, setColorScheme] = useState<ColorScheme>(() => {
+    const stored = window.localStorage.getItem("nutriflow-color-scheme");
+    return stored === "light" || stored === "dark" ? stored : "dark";
+  });
 
   const householdScopedRequestRef = useRef(0);
 
@@ -210,8 +216,18 @@ function App() {
   }
 
   useEffect(() => {
+    document.documentElement.dataset.theme = colorScheme;
+    document.documentElement.style.colorScheme = colorScheme;
+    window.localStorage.setItem("nutriflow-color-scheme", colorScheme);
+  }, [colorScheme]);
+
+  useEffect(() => {
     loadData();
   }, []);
+
+  function toggleColorScheme() {
+    setColorScheme((current) => (current === "dark" ? "light" : "dark"));
+  }
 
   function openModal(modal: ActiveModal) {
     setFormMessage(null);
@@ -305,6 +321,21 @@ function App() {
                     : "Pronto"}
               </strong>
             </div>
+
+            <button
+              type="button"
+              className="nf-utility-action"
+              aria-label={colorScheme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
+              title={colorScheme === "dark" ? "Tema claro" : "Tema escuro"}
+              onClick={toggleColorScheme}
+            >
+              <span className="nf-utility-action-icon">
+                {colorScheme === "dark" ? "☀" : "🌙"}
+              </span>
+              <span className="nf-utility-action-text">
+                {colorScheme === "dark" ? "Tema claro" : "Tema escuro"}
+              </span>
+            </button>
 
             <div
               className="nf-utility-action"

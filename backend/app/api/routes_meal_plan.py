@@ -412,6 +412,7 @@ def preview_auto_meal_plan(
         end_date=data.end_date,
         meal_types=data.meal_types,
         skip_existing=data.skip_existing,
+        protein_balance_mode=data.protein_balance_mode,
     )
 
     log_auto_meal_plan_run(
@@ -458,6 +459,7 @@ def apply_auto_meal_plan(
         end_date=data.end_date,
         meal_types=data.meal_types,
         skip_existing=data.skip_existing,
+        protein_balance_mode=data.protein_balance_mode,
     )
 
     created_count = 0

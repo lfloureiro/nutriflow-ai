@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { API_BASE_URL } from "../../config";
+import { Modal } from "../Modal";
 import { styles } from "../styles";
 import type { Recipe } from "../types";
 
@@ -50,6 +51,7 @@ type Props = {
 
 type MealTypeOption = "almoco" | "jantar";
 type ApplyDecision = "keep" | "replace" | "ignore" | "skip_existing";
+type ProteinBalanceMode = "free" | "ratio_1_1" | "ratio_2_1" | "ratio_3_1";
 
 type EditableSuggestion = Suggestion & {
   apply_decision: ApplyDecision;
@@ -59,6 +61,13 @@ type EditableSuggestion = Suggestion & {
 const mealTypeLabels: Record<MealTypeOption, string> = {
   almoco: "Almoço",
   jantar: "Jantar",
+};
+
+const proteinBalanceModeLabels: Record<ProteinBalanceMode, string> = {
+  free: "Livre",
+  ratio_1_1: "1 carne : 1 peixe",
+  ratio_2_1: "2 carnes : 1 peixe",
+  ratio_3_1: "3 carnes : 1 peixe",
 };
 
 function getTodayIsoDate() {
@@ -240,6 +249,9 @@ export function AutoPlanPanel({ householdId, onApplied }: Props) {
     "almoco",
     "jantar",
   ]);
+  const [proteinBalanceMode, setProteinBalanceMode] =
+    useState<ProteinBalanceMode>("free");
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loadingRecipes, setLoadingRecipes] = useState(false);
@@ -415,6 +427,7 @@ export function AutoPlanPanel({ householdId, onApplied }: Props) {
           end_date: endDate,
           meal_types: selectedMealTypes,
           skip_existing: true,
+          protein_balance_mode: proteinBalanceMode,
         }),
       });
 
@@ -520,7 +533,8 @@ export function AutoPlanPanel({ householdId, onApplied }: Props) {
   }, [editableSuggestions]);
 
   return (
-    <section
+    <>
+      <section
       style={{
         ...styles.card,
         marginTop: "16px",
@@ -584,6 +598,23 @@ export function AutoPlanPanel({ householdId, onApplied }: Props) {
           </div>
         </div>
 
+        <div>
+          <div className="nf-field-label">Regras ativas</div>
+          <div className="nf-pill-row" style={{ alignItems: "center" }}>
+            <span className="nf-score-pill">
+              Carne/peixe: {proteinBalanceModeLabels[proteinBalanceMode]}
+            </span>
+            <button
+              type="button"
+              className="nf-utility-action"
+              onClick={() => setAdvancedOpen(true)}
+            >
+              <span className="nf-utility-action-icon">⚙</span>
+              <span className="nf-utility-action-text">Regras avançadas</span>
+            </button>
+          </div>
+        </div>
+
         <div className="nf-actions-inline">
           <button
             type="button"
@@ -624,6 +655,9 @@ export function AutoPlanPanel({ householdId, onApplied }: Props) {
                 marginTop: "8px",
               }}
             >
+              <span className="nf-score-pill">
+                Regra carne/peixe: {proteinBalanceModeLabels[proteinBalanceMode]}
+              </span>
               <span className="nf-score-pill">Manter: {previewStats.keep}</span>
               <span className="nf-score-pill">Trocar: {previewStats.replace}</span>
               <span className="nf-score-pill">Ignorar: {previewStats.ignore}</span>
@@ -777,6 +811,52 @@ export function AutoPlanPanel({ householdId, onApplied }: Props) {
           </>
         )}
       </div>
-    </section>
+      </section>
+
+      {advancedOpen && (
+        <Modal title="Regras avançadas de geração" onClose={() => setAdvancedOpen(false)}>
+          <div className="nf-panel-stack">
+            <div>
+              <label htmlFor="protein-balance-mode" className="nf-field-label">
+                Padrão carne / peixe
+              </label>
+              <select
+                id="protein-balance-mode"
+                style={styles.select}
+                value={proteinBalanceMode}
+                onChange={(e) => setProteinBalanceMode(e.target.value as ProteinBalanceMode)}
+              >
+                <option value="free">Livre</option>
+                <option value="ratio_1_1">1 carne : 1 peixe</option>
+                <option value="ratio_2_1">2 carnes : 1 peixe</option>
+                <option value="ratio_3_1">3 carnes : 1 peixe</option>
+              </select>
+            </div>
+
+            <div className="nf-pill-row">
+              <span className="nf-score-pill">
+                Seleção atual: {proteinBalanceModeLabels[proteinBalanceMode]}
+              </span>
+            </div>
+
+            <p className="nf-inline-note" style={{ lineHeight: 1.6, margin: 0 }}>
+              Estas regras influenciam o próximo preview. A lógica tenta respeitar o
+              padrão carne/peixe escolhido e continua a rodar os tipos de carne para
+              evitar repetições do mesmo tipo de proteína.
+            </p>
+
+            <div className="nf-actions-inline" style={{ marginTop: "4px" }}>
+              <button
+                type="button"
+                style={styles.button}
+                onClick={() => setAdvancedOpen(false)}
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+    </>
   );
 }

@@ -16,6 +16,25 @@ from backend.app.services.recipe_preference_scoring import (
 DEFAULT_MEAL_TYPES = ["almoco", "jantar"]
 BALANCE_CATEGORIES = ["carne", "peixe", "vegetariano_leguminosas"]
 MEAT_PROTEINS = ["frango", "vaca", "porco", "peru", "enchidos_processados"]
+VALID_PROTEIN_BALANCE_MODES = {"free", "ratio_1_1", "ratio_2_1", "ratio_3_1"}
+
+PROTEIN_BALANCE_RULES = {
+    "ratio_1_1": {
+        "label": "1:1",
+        "sequence": ["carne", "peixe"],
+        "max_streaks": {"carne": 1, "peixe": 1},
+    },
+    "ratio_2_1": {
+        "label": "2:1",
+        "sequence": ["carne", "carne", "peixe"],
+        "max_streaks": {"carne": 2, "peixe": 1},
+    },
+    "ratio_3_1": {
+        "label": "3:1",
+        "sequence": ["carne", "carne", "carne", "peixe"],
+        "max_streaks": {"carne": 3, "peixe": 1},
+    },
+}
 
 RECENT_HISTORY_LOOKBACK_DAYS = 28
 WEEK_BALANCE_LOOKBACK_DAYS = 14
@@ -61,6 +80,10 @@ THREE_MEATS_IN_A_ROW_PENALTY = 28
 MEAT_PROTEIN_RECENT_WINDOW = 4
 MEAT_PROTEIN_REPEAT_PENALTY = 14
 
+PROTEIN_BALANCE_MATCH_BONUS = 24
+PROTEIN_BALANCE_MISMATCH_PENALTY = 16
+PROTEIN_BALANCE_STREAK_PENALTY = 22
+
 
 @dataclass
 class PlannerSuggestion:
@@ -89,6 +112,13 @@ def normalize_meal_types(meal_types: list[str] | None) -> list[str]:
             normalized.append(cleaned)
 
     return normalized or DEFAULT_MEAL_TYPES.copy()
+
+
+def normalize_protein_balance_mode(mode: str | None) -> str:
+    cleaned = (mode or "free").strip().lower()
+    if cleaned in VALID_PROTEIN_BALANCE_MODES:
+        return cleaned
+    return "free"
 
 
 def daterange(start_date: date, end_date: date) -> Iterable[date]:
@@ -246,6 +276,79 @@ def get_recent_same_meal_type_entries(
     ]
 
 
+def get_recent_meat_fish_sequence(
+    meal_type_history: dict[str, list[tuple[date, str, str, int]]],
+    meal_type: str,
+    slot_date: date,
+) -> list[str]:
+    return [
+        entry[1]
+        for entry in get_recent_same_meal_type_entries(
+            meal_type_history=meal_type_history,
+            meal_type=meal_type,
+            slot_date=slot_date,
+        )
+        if entry[1] in {"carne", "peixe"}
+    ]
+
+
+def trailing_category_streak(categories: list[str], category: str) -> int:
+    streak = 0
+    for value in reversed(categories):
+        if value != category:
+            break
+        streak += 1
+    return streak
+
+
+def score_protein_balance_rule(
+    category: str,
+    meal_type: str,
+    slot_date: date,
+    meal_type_history: dict[str, list[tuple[date, str, str, int]]],
+    protein_balance_mode: str,
+) -> tuple[float, list[str]]:
+    normalized_mode = normalize_protein_balance_mode(protein_balance_mode)
+    if normalized_mode == "free" or category not in {"carne", "peixe"}:
+        return 0.0, []
+
+    rule = PROTEIN_BALANCE_RULES[normalized_mode]
+    recent_sequence = get_recent_meat_fish_sequence(
+        meal_type_history=meal_type_history,
+        meal_type=meal_type,
+        slot_date=slot_date,
+    )
+
+    reasons: list[str] = []
+    score = 0.0
+
+    target_sequence = rule["sequence"]
+    expected_category = target_sequence[len(recent_sequence) % len(target_sequence)]
+    ratio_label = rule["label"]
+
+    if category == expected_category:
+        score += PROTEIN_BALANCE_MATCH_BONUS
+        reasons.append(
+            f"alinha com o padrão carne/peixe {ratio_label} definido nas regras avançadas"
+        )
+    else:
+        score -= PROTEIN_BALANCE_MISMATCH_PENALTY
+        reasons.append(
+            f"afasta-se do padrão carne/peixe {ratio_label} definido nas regras avançadas"
+        )
+
+    max_streak = rule["max_streaks"].get(category)
+    if max_streak is not None:
+        current_streak = trailing_category_streak(recent_sequence, category)
+        if current_streak >= max_streak:
+            score -= PROTEIN_BALANCE_STREAK_PENALTY
+            reasons.append(
+                f"ultrapassa a sequência prevista para {category} no padrão {ratio_label}"
+            )
+
+    return score, reasons
+
+
 def score_recipe_for_slot(
     recipe: Recipe,
     meal_type: str,
@@ -258,6 +361,7 @@ def score_recipe_for_slot(
     planned_recipe_ids: set[int],
     last_category: str | None,
     last_protein: str | None,
+    protein_balance_mode: str = "free",
 ) -> tuple[float, list[str], float | None, int, int]:
     score = BASE_SCORE
     reasons: list[str] = []
@@ -356,6 +460,16 @@ def score_recipe_for_slot(
             score -= CATEGORY_OVERUSE_PENALTY
             reasons.append("categoria já está acima do equilíbrio desta semana")
 
+    protein_balance_score, protein_balance_reasons = score_protein_balance_rule(
+        category=category,
+        meal_type=meal_type,
+        slot_date=slot_date,
+        meal_type_history=meal_type_history,
+        protein_balance_mode=protein_balance_mode,
+    )
+    score += protein_balance_score
+    reasons.extend(protein_balance_reasons)
+
     if last_category is not None and category == last_category:
         score -= SAME_PREVIOUS_CATEGORY_PENALTY
         reasons.append("evita repetir a mesma categoria na refeição anterior")
@@ -417,11 +531,13 @@ def build_auto_meal_plan_preview(
     end_date: date,
     meal_types: list[str] | None = None,
     skip_existing: bool = True,
+    protein_balance_mode: str = "free",
 ) -> list[PlannerSuggestion]:
     if end_date < start_date:
         raise ValueError("A data final não pode ser anterior à data inicial.")
 
     normalized_meal_types = normalize_meal_types(meal_types)
+    normalized_protein_balance_mode = normalize_protein_balance_mode(protein_balance_mode)
 
     eligible_recipes = (
         db.query(Recipe)
@@ -532,6 +648,7 @@ def build_auto_meal_plan_preview(
                     planned_recipe_ids=planned_recipe_ids,
                     last_category=last_category,
                     last_protein=last_protein,
+                    protein_balance_mode=normalized_protein_balance_mode,
                 )
 
                 final_score = heuristic_score

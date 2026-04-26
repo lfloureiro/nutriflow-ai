@@ -4,12 +4,16 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 
+ProteinBalanceMode = Literal["free", "ratio_1_1", "ratio_2_1", "ratio_3_1"]
+
+
 class AutoMealPlanRequest(BaseModel):
     household_id: int
     start_date: date
     end_date: date
     meal_types: list[str] = Field(default_factory=lambda: ["almoco", "jantar"])
     skip_existing: bool = True
+    protein_balance_mode: ProteinBalanceMode = "free"
 
 
 class AutoMealPlanSuggestionRead(BaseModel):
