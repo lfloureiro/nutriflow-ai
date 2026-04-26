@@ -21,6 +21,8 @@ const visibleMealTypes = [
   { value: "jantar", label: "Jantar" },
 ] as const;
 
+const MOBILE_LAYOUT_BREAKPOINT = 920;
+
 function parseDate(value: string) {
   return new Date(`${value}T00:00:00`);
 }
@@ -89,6 +91,19 @@ function buildNormalizedCalendarDates(dates: string[]) {
   }
 
   return buildDateRange(toIsoDate(start), toIsoDate(end));
+}
+
+function buildOneWeekWindowDates(startDate: string) {
+  const start = parseDate(startDate);
+
+  if (Number.isNaN(start.getTime())) {
+    return [];
+  }
+
+  const anchoredStart = startOfWeekSunday(start);
+  const end = addDays(anchoredStart, 6);
+
+  return buildDateRange(toIsoDate(anchoredStart), toIsoDate(end));
 }
 
 function buildTwoWeekWindowDates(startDate: string) {
@@ -191,7 +206,33 @@ function getCompactRecipeLabel(items: MealPlanItem[]) {
   return `${truncateText(items[0].recipe.name, 18)} +${items.length - 1}`;
 }
 
+function useViewportWidth() {
+  const getWidth = () => {
+    if (typeof window === "undefined") {
+      return 1280;
+    }
+
+    return window.innerWidth;
+  };
+
+  const [viewportWidth, setViewportWidth] = useState<number>(getWidth);
+
+  useEffect(() => {
+    const handleResize = () => setViewportWidth(getWidth());
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return viewportWidth;
+}
+
 export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
+  const viewportWidth = useViewportWidth();
+  const isMobileLayout = viewportWidth < MOBILE_LAYOUT_BREAKPOINT;
+
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [hoveredDate, setHoveredDate] = useState<string | null>(null);
   const [windowStartDate, setWindowStartDate] = useState<string>("");
@@ -235,8 +276,10 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
       return [];
     }
 
-    return buildTwoWeekWindowDates(windowStartDate);
-  }, [windowStartDate]);
+    return isMobileLayout
+      ? buildOneWeekWindowDates(windowStartDate)
+      : buildTwoWeekWindowDates(windowStartDate);
+  }, [isMobileLayout, windowStartDate]);
 
   const mealMap = useMemo(() => {
     const nextMap = new Map<string, MealPlanItem[]>();
@@ -534,7 +577,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
       >
         <div
           style={{
-            fontSize: "0.94rem",
+            fontSize: "1rem",
             fontWeight: 700,
             color: "#f8fafc",
             lineHeight: 1.25,
@@ -857,7 +900,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
                 style={{
                   ...styles.button,
                   padding: "10px 14px",
-                  fontSize: "0.8rem",
+                  fontSize: "0.82rem",
                 }}
                 onClick={() => handleSave(item.id)}
                 disabled={isBusy}
@@ -1019,6 +1062,93 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
 
         {visibleWindowDates.length === 0 ? (
           <p style={styles.empty}>Sem almoços ou jantares no plano.</p>
+        ) : isMobileLayout ? (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+              width: "100%",
+              boxSizing: "border-box",
+            }}
+          >
+            {visibleWindowDates.map((date) => {
+              const almocoItems = mealMap.get(`${date}__almoco`) ?? [];
+              const jantarItems = mealMap.get(`${date}__jantar`) ?? [];
+              const totalItems = almocoItems.length + jantarItems.length;
+
+              return (
+                <button
+                  key={date}
+                  type="button"
+                  onClick={() => openDay(date)}
+                  style={{
+                    width: "100%",
+                    padding: "14px",
+                    borderRadius: "14px",
+                    border: "1px solid rgba(148, 163, 184, 0.18)",
+                    background: "rgba(15, 23, 42, 0.26)",
+                    color: "inherit",
+                    textAlign: "left",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                    boxSizing: "border-box",
+                    cursor: "pointer",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      gap: "10px",
+                    }}
+                  >
+                    <div style={{ minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: "0.7rem",
+                          fontWeight: 700,
+                          letterSpacing: "0.08em",
+                          textTransform: "uppercase",
+                          color: "#93c5fd",
+                        }}
+                      >
+                        {formatWeekday(date)}
+                      </div>
+
+                      <div
+                        style={{
+                          marginTop: "4px",
+                          fontSize: "1rem",
+                          fontWeight: 700,
+                          color: "#f8fafc",
+                        }}
+                      >
+                        {formatDay(date)}
+                      </div>
+                    </div>
+
+                    <span
+                      style={{
+                        fontSize: "0.74rem",
+                        color: totalItems > 0 ? "#cbd5e1" : "#64748b",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {totalItems > 0 ? "Ver detalhe" : "Sem refeições"}
+                    </span>
+                  </div>
+
+                  <div style={{ display: "grid", gap: "8px" }}>
+                    {renderCompactMeal(date, visibleMealTypes[0], false)}
+                    {renderCompactMeal(date, visibleMealTypes[1], false)}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         ) : (
           <div
             style={{
