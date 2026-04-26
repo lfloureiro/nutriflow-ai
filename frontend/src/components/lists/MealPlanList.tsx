@@ -22,6 +22,7 @@ const visibleMealTypes = [
 ] as const;
 
 const MOBILE_LAYOUT_BREAKPOINT = 920;
+const LARGE_DESKTOP_TWO_WEEK_BREAKPOINT = 1380;
 
 function parseDate(value: string) {
   return new Date(`${value}T00:00:00`);
@@ -159,6 +160,20 @@ function formatFullDate(value: string) {
   });
 }
 
+function formatNavDate(value: string) {
+  const date = parseDate(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString("pt-PT", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
 async function readJsonSafe(response: Response) {
   const text = await response.text();
 
@@ -232,6 +247,8 @@ function useViewportWidth() {
 export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
   const viewportWidth = useViewportWidth();
   const isMobileLayout = viewportWidth < MOBILE_LAYOUT_BREAKPOINT;
+  const isLargeDesktopLayout = viewportWidth >= LARGE_DESKTOP_TWO_WEEK_BREAKPOINT;
+  const useTwoWeekDesktopLayout = !isMobileLayout && isLargeDesktopLayout;
 
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [hoveredDate, setHoveredDate] = useState<string | null>(null);
@@ -276,10 +293,16 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
       return [];
     }
 
-    return isMobileLayout
-      ? buildOneWeekWindowDates(windowStartDate)
-      : buildTwoWeekWindowDates(windowStartDate);
-  }, [isMobileLayout, windowStartDate]);
+    if (isMobileLayout) {
+      return buildOneWeekWindowDates(windowStartDate);
+    }
+
+    if (useTwoWeekDesktopLayout) {
+      return buildTwoWeekWindowDates(windowStartDate);
+    }
+
+    return buildOneWeekWindowDates(windowStartDate);
+  }, [isMobileLayout, useTwoWeekDesktopLayout, windowStartDate]);
 
   const mealMap = useMemo(() => {
     const nextMap = new Map<string, MealPlanItem[]>();
@@ -518,7 +541,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
           display: "grid",
           gridTemplateRows: "auto 1fr",
           gap: "4px",
-          minHeight: "58px",
+          minHeight: isMobileLayout ? "52px" : "58px",
           boxSizing: "border-box",
           transition: "border-color 160ms ease, background 160ms ease, box-shadow 160ms ease",
         }}
@@ -543,11 +566,11 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
             fontStyle: hasItems ? "normal" : "italic",
             color: hasItems ? "#e5e7eb" : "#64748b",
             lineHeight: 1.16,
-            minHeight: "30px",
-            maxHeight: "30px",
+            minHeight: isMobileLayout ? "24px" : "30px",
+            maxHeight: isMobileLayout ? "24px" : "30px",
             overflow: "hidden",
             display: "-webkit-box",
-            WebkitLineClamp: 2,
+            WebkitLineClamp: isMobileLayout ? 1 : 2,
             WebkitBoxOrient: "vertical",
             wordBreak: "break-word",
           }}
@@ -946,7 +969,8 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
   const editingItem =
     editingId !== null ? visibleMealPlan.find((item) => item.id === editingId) ?? null : null;
 
-  const navControlHeight = "38px";
+  const navButtonSize = isMobileLayout ? 44 : 40;
+  const navControlHeight = `${navButtonSize}px`;
 
   return (
     <>
@@ -963,7 +987,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
             display: "flex",
             flexWrap: "wrap",
             gap: "12px",
-            alignItems: "center",
+            alignItems: isMobileLayout ? "stretch" : "center",
             justifyContent: "space-between",
           }}
         >
@@ -974,8 +998,9 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
               gap: "10px",
               alignItems: "center",
               color: "#cbd5e1",
-              fontSize: "0.8rem",
+              fontSize: isMobileLayout ? "0.76rem" : "0.8rem",
               minWidth: 0,
+              flex: "1 1 320px",
             }}
           >
             <span style={{ fontWeight: 700 }}>{visibleWindowItemCount} item(ns) visíveis</span>
@@ -985,31 +1010,31 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "38px minmax(0, 168px) 44px",
-              columnGap: "10px",
+              gridTemplateColumns: `${navButtonSize}px minmax(0, 1fr) ${navButtonSize}px`,
+              columnGap: isMobileLayout ? "12px" : "10px",
               alignItems: "center",
-              width: "min(100%, 280px)",
+              width: isMobileLayout ? "100%" : "min(100%, 252px)",
+              maxWidth: isMobileLayout ? "100%" : "252px",
               flex: "0 0 auto",
+              boxSizing: "border-box",
             }}
           >
             <button
               type="button"
               style={{
                 ...styles.button,
-                width: "38px",
-                minWidth: "38px",
-                maxWidth: "38px",
+                width: `${navButtonSize}px`,
+                minWidth: `${navButtonSize}px`,
                 height: navControlHeight,
                 minHeight: navControlHeight,
                 maxHeight: navControlHeight,
                 padding: 0,
-                fontSize: "0.9rem",
+                fontSize: "0.95rem",
                 lineHeight: 1,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 borderRadius: "10px",
-                aspectRatio: "1 / 1",
                 boxSizing: "border-box",
                 flexShrink: 0,
               }}
@@ -1021,66 +1046,84 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
               ←
             </button>
 
-            <input
-              type="date"
+            <div
               style={{
-                ...styles.input,
+                position: "relative",
                 width: "100%",
                 minWidth: 0,
                 height: navControlHeight,
-                minHeight: navControlHeight,
-                maxHeight: navControlHeight,
-                padding: "0 12px",
-                fontSize: "0.8rem",
-                lineHeight: 1,
-                borderRadius: "10px",
-                boxSizing: "border-box",
-                display: "block",
-              }}
-              value={windowStartDate}
-              onChange={(e) => handleWindowDateChange(e.target.value)}
-              disabled={!windowStartDate}
-            />
-
-            <div
-              style={{
-                width: "44px",
-                minWidth: "44px",
-                display: "flex",
-                justifyContent: "flex-end",
-                paddingLeft: "6px",
-                boxSizing: "border-box",
               }}
             >
-              <button
-                type="button"
+              <div
                 style={{
-                  ...styles.button,
-                  width: "38px",
-                  minWidth: "38px",
-                  maxWidth: "38px",
+                  ...styles.input,
+                  width: "100%",
+                  minWidth: 0,
                   height: navControlHeight,
                   minHeight: navControlHeight,
                   maxHeight: navControlHeight,
-                  padding: 0,
-                  fontSize: "0.9rem",
+                  padding: isMobileLayout ? "0 14px" : "0 12px",
+                  fontSize: isMobileLayout ? "0.9rem" : "0.8rem",
                   lineHeight: 1,
+                  borderRadius: "10px",
+                  boxSizing: "border-box",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  borderRadius: "10px",
-                  aspectRatio: "1 / 1",
-                  boxSizing: "border-box",
-                  flexShrink: 0,
+                  color: "#f8fafc",
+                  pointerEvents: "none",
+                  textAlign: "center",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
                 }}
-                onClick={() => shiftWindowByWeeks(1)}
-                disabled={!windowStartDate}
-                title="Semana seguinte"
-                aria-label="Semana seguinte"
               >
-                →
-              </button>
+                {windowStartDate ? formatNavDate(windowStartDate) : "Selecionar data"}
+              </div>
+
+              <input
+                type="date"
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  opacity: 0,
+                  cursor: windowStartDate ? "pointer" : "default",
+                  boxSizing: "border-box",
+                }}
+                value={windowStartDate}
+                onChange={(e) => handleWindowDateChange(e.target.value)}
+                disabled={!windowStartDate}
+              />
             </div>
+
+            <button
+              type="button"
+              style={{
+                ...styles.button,
+                width: `${navButtonSize}px`,
+                minWidth: `${navButtonSize}px`,
+                height: navControlHeight,
+                minHeight: navControlHeight,
+                maxHeight: navControlHeight,
+                padding: 0,
+                fontSize: "0.95rem",
+                lineHeight: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "10px",
+                boxSizing: "border-box",
+                flexShrink: 0,
+              }}
+              onClick={() => shiftWindowByWeeks(1)}
+              disabled={!windowStartDate}
+              title="Semana seguinte"
+              aria-label="Semana seguinte"
+            >
+              →
+            </button>
           </div>
         </div>
 
@@ -1111,7 +1154,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
                   onClick={() => openDay(date)}
                   style={{
                     width: "100%",
-                    padding: "14px",
+                    padding: "12px",
                     borderRadius: "14px",
                     border: "1px solid rgba(148, 163, 184, 0.18)",
                     background: "rgba(15, 23, 42, 0.26)",
@@ -1119,7 +1162,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
                     textAlign: "left",
                     display: "flex",
                     flexDirection: "column",
-                    gap: "10px",
+                    gap: "8px",
                     boxSizing: "border-box",
                     cursor: "pointer",
                   }}
@@ -1168,7 +1211,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
                     </span>
                   </div>
 
-                  <div style={{ display: "grid", gap: "8px" }}>
+                  <div style={{ display: "grid", gap: "6px" }}>
                     {renderCompactMeal(date, visibleMealTypes[0], false)}
                     {renderCompactMeal(date, visibleMealTypes[1], false)}
                   </div>
