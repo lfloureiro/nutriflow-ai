@@ -8,6 +8,8 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 
   background: #020617;
   color: #e5e7eb;
@@ -21,6 +23,8 @@ html,
 body,
 #root {
   min-height: 100dvh;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 body {
