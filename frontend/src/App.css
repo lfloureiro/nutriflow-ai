@@ -1,25 +1,3 @@
-.nf-shell,
-.nf-header,
-.nf-title-block,
-.nf-context-panel,
-.nf-context-panel-head,
-.nf-context-grid,
-.nf-context-selector-block,
-.nf-context-summary,
-.nf-section-block,
-.nf-section-header,
-.nf-menu-panel,
-.nf-panel-stack,
-.nf-record-card,
-.nf-record-card-head,
-.nf-record-card-main,
-.nf-shopping-card,
-.nf-shopping-card-head,
-.nf-modal-card,
-.nf-modal-content {
-  min-width: 0;
-}
-
 .nf-shell {
   display: flex;
   flex-direction: column;
@@ -253,7 +231,7 @@
 }
 
 .nf-context-stat-value {
-  font-size: clamp(24px, 3vw, 28px);
+  font-size: 28px;
   line-height: 1;
   color: #f8fafc;
 }
@@ -339,7 +317,7 @@
 }
 
 .nf-card-title {
-  font-size: clamp(18px, 2.4vw, 20px);
+  font-size: 20px;
   font-weight: 700;
   line-height: 1.2;
   color: #f8fafc;
@@ -379,7 +357,7 @@
 
 .nf-menu-panel-text {
   margin: 0;
-  font-size: clamp(13px, 1.6vw, 14px);
+  font-size: 14px;
   line-height: 1.5;
   color: #cbd5e1;
 }
@@ -577,7 +555,7 @@
 }
 
 .nf-score-value {
-  font-size: clamp(22px, 3vw, 26px);
+  font-size: 26px;
   font-weight: 800;
   line-height: 1;
   color: #f8fafc;
@@ -634,14 +612,14 @@
 }
 
 .nf-record-title {
-  font-size: clamp(16px, 2.2vw, 18px);
+  font-size: 18px;
   font-weight: 700;
   line-height: 1.2;
   color: #f8fafc;
 }
 
 .nf-record-description {
-  font-size: clamp(13px, 1.6vw, 14px);
+  font-size: 14px;
   line-height: 1.5;
   color: #cbd5e1;
 }
@@ -765,15 +743,17 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
+  overflow: hidden;
   background: rgba(2, 6, 23, 0.76);
   backdrop-filter: blur(4px);
 }
 
 .nf-modal-card {
-  width: min(1080px, 100%);
-  min-width: 0;
+  width: min(1080px, calc(100vw - 32px));
   max-height: calc(100dvh - 32px);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   border-radius: 20px;
   border: 1px solid #243041;
   background: #0b1220;
@@ -798,6 +778,8 @@
 }
 
 .nf-modal-content {
+  flex: 1 1 auto;
+  min-height: 0;
   max-height: calc(100dvh - 120px);
   overflow-y: auto;
   overflow-x: hidden;
@@ -866,6 +848,7 @@
   .nf-modal-shell {
     align-items: flex-end;
     padding: 8px;
+    overflow: hidden;
   }
 
   .nf-modal-card {
@@ -891,15 +874,5 @@
     padding: 10px;
     min-width: 42px;
     justify-content: center;
-  }
-}
-
-@media (max-width: 1100px) {
-  .nf-header-badge {
-    min-width: 0;
-  }
-
-  .nf-context-grid {
-    grid-template-columns: 1fr;
   }
 }

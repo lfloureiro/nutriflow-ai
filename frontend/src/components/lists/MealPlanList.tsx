@@ -21,8 +21,6 @@ const visibleMealTypes = [
   { value: "jantar", label: "Jantar" },
 ] as const;
 
-const MOBILE_LAYOUT_BREAKPOINT = 920;
-
 function parseDate(value: string) {
   return new Date(`${value}T00:00:00`);
 }
@@ -91,19 +89,6 @@ function buildNormalizedCalendarDates(dates: string[]) {
   }
 
   return buildDateRange(toIsoDate(start), toIsoDate(end));
-}
-
-function buildOneWeekWindowDates(startDate: string) {
-  const start = parseDate(startDate);
-
-  if (Number.isNaN(start.getTime())) {
-    return [];
-  }
-
-  const anchoredStart = startOfWeekSunday(start);
-  const end = addDays(anchoredStart, 6);
-
-  return buildDateRange(toIsoDate(anchoredStart), toIsoDate(end));
 }
 
 function buildTwoWeekWindowDates(startDate: string) {
@@ -206,33 +191,7 @@ function getCompactRecipeLabel(items: MealPlanItem[]) {
   return `${truncateText(items[0].recipe.name, 18)} +${items.length - 1}`;
 }
 
-function useViewportWidth() {
-  const getWidth = () => {
-    if (typeof window === "undefined") {
-      return 1280;
-    }
-
-    return window.innerWidth;
-  };
-
-  const [viewportWidth, setViewportWidth] = useState<number>(getWidth);
-
-  useEffect(() => {
-    const handleResize = () => setViewportWidth(getWidth());
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  return viewportWidth;
-}
-
 export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
-  const viewportWidth = useViewportWidth();
-  const isMobileLayout = viewportWidth < MOBILE_LAYOUT_BREAKPOINT;
-
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [hoveredDate, setHoveredDate] = useState<string | null>(null);
   const [windowStartDate, setWindowStartDate] = useState<string>("");
@@ -276,10 +235,8 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
       return [];
     }
 
-    return isMobileLayout
-      ? buildOneWeekWindowDates(windowStartDate)
-      : buildTwoWeekWindowDates(windowStartDate);
-  }, [isMobileLayout, windowStartDate]);
+    return buildTwoWeekWindowDates(windowStartDate);
+  }, [windowStartDate]);
 
   const mealMap = useMemo(() => {
     const nextMap = new Map<string, MealPlanItem[]>();
@@ -508,7 +465,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
     return (
       <div
         style={{
-          padding: isMobileLayout ? "10px 12px" : "8px 10px",
+          padding: "8px 10px",
           border: highlighted
             ? "1px solid rgba(96, 165, 250, 0.22)"
             : "1px solid rgba(148, 163, 184, 0.12)",
@@ -518,14 +475,14 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
           display: "grid",
           gridTemplateRows: "auto 1fr",
           gap: "4px",
-          minHeight: isMobileLayout ? "68px" : "58px",
+          minHeight: "58px",
           boxSizing: "border-box",
           transition: "border-color 160ms ease, background 160ms ease, box-shadow 160ms ease",
         }}
       >
         <div
           style={{
-            fontSize: isMobileLayout ? "0.74rem" : "0.66rem",
+            fontSize: "0.66rem",
             fontWeight: 700,
             letterSpacing: "0.08em",
             textTransform: "uppercase",
@@ -538,15 +495,16 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
         <div
           title={hasItems ? items.map((item) => item.recipe.name).join(" | ") : "Sem refeição"}
           style={{
-            fontSize: hasItems ? (isMobileLayout ? "0.96rem" : "0.79rem") : isMobileLayout ? "0.86rem" : "0.73rem",
+            fontSize: hasItems ? "0.79rem" : "0.73rem",
             fontWeight: hasItems ? 600 : 400,
             fontStyle: hasItems ? "normal" : "italic",
             color: hasItems ? "#e5e7eb" : "#64748b",
-            lineHeight: 1.2,
-            minHeight: isMobileLayout ? "34px" : "30px",
+            lineHeight: 1.16,
+            minHeight: "30px",
+            maxHeight: "30px",
             overflow: "hidden",
             display: "-webkit-box",
-            WebkitLineClamp: isMobileLayout ? 3 : 2,
+            WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical",
             wordBreak: "break-word",
           }}
@@ -576,7 +534,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
       >
         <div
           style={{
-            fontSize: "clamp(0.96rem, 2vw, 1rem)",
+            fontSize: "0.94rem",
             fontWeight: 700,
             color: "#f8fafc",
             lineHeight: 1.25,
@@ -653,7 +611,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
     return (
       <div
         style={{
-          padding: isMobileLayout ? "14px" : "16px",
+          padding: "16px",
           borderRadius: "16px",
           border: highlighted
             ? "1px solid rgba(96, 165, 250, 0.24)"
@@ -695,92 +653,6 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
     );
   }
 
-  function renderMobileDayCard(date: string) {
-    const almocoItems = mealMap.get(`${date}__almoco`) ?? [];
-    const jantarItems = mealMap.get(`${date}__jantar`) ?? [];
-    const dayItemCount = almocoItems.length + jantarItems.length;
-
-    return (
-      <button
-        key={date}
-        type="button"
-        onClick={() => openDay(date)}
-        style={{
-          width: "100%",
-          textAlign: "left",
-          border: "1px solid rgba(148, 163, 184, 0.16)",
-          borderRadius: "16px",
-          background: "rgba(15, 23, 42, 0.24)",
-          padding: "14px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "12px",
-          cursor: "pointer",
-          minWidth: 0,
-          boxShadow: "0 8px 24px rgba(2, 6, 23, 0.14)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "10px",
-            minWidth: 0,
-          }}
-        >
-          <div style={{ minWidth: 0 }}>
-            <div
-              style={{
-                fontSize: "0.72rem",
-                fontWeight: 700,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: "#93c5fd",
-              }}
-            >
-              {formatWeekday(date)}
-            </div>
-            <div
-              style={{
-                marginTop: "3px",
-                fontSize: "1.02rem",
-                fontWeight: 700,
-                color: "#f8fafc",
-              }}
-            >
-              {formatDay(date)}
-            </div>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "flex-end",
-              gap: "4px",
-              flexShrink: 0,
-            }}
-          >
-            <span className="nf-score-pill">{dayItemCount} refeição(ões)</span>
-            <span
-              style={{
-                fontSize: "0.78rem",
-                fontWeight: 600,
-                color: "#93c5fd",
-              }}
-            >
-              Abrir detalhe
-            </span>
-          </div>
-        </div>
-
-        {renderCompactMeal(date, visibleMealTypes[0], false)}
-        {renderCompactMeal(date, visibleMealTypes[1], false)}
-      </button>
-    );
-  }
-
   function renderEditingMeal(item: MealPlanItem) {
     const isSaving = savingId === item.id;
     const isDeleting = deletingId === item.id;
@@ -793,9 +665,9 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
           inset: 0,
           zIndex: 1400,
           display: "flex",
-          alignItems: isMobileLayout ? "flex-end" : "center",
+          alignItems: "center",
           justifyContent: "center",
-          padding: isMobileLayout ? "8px" : "24px",
+          padding: "24px",
           background: "rgba(2, 6, 23, 0.62)",
           backdropFilter: "blur(8px)",
           boxSizing: "border-box",
@@ -805,14 +677,14 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
         <div
           onClick={(event) => event.stopPropagation()}
           style={{
-            width: isMobileLayout ? "100%" : "min(760px, 92vw)",
-            maxHeight: isMobileLayout ? "calc(100dvh - 8px)" : "85vh",
+            width: "min(760px, 92vw)",
+            maxHeight: "85vh",
             overflowY: "auto",
-            borderRadius: isMobileLayout ? "20px 20px 0 0" : "22px",
+            borderRadius: "22px",
             border: "1px solid rgba(96, 165, 250, 0.2)",
             background: "linear-gradient(180deg, rgba(2,6,23,0.98) 0%, rgba(15,23,42,0.96) 100%)",
             boxShadow: "0 24px 80px rgba(2, 6, 23, 0.5)",
-            padding: isMobileLayout ? "16px" : "22px",
+            padding: "22px",
             boxSizing: "border-box",
           }}
         >
@@ -823,7 +695,6 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
               justifyContent: "space-between",
               gap: "16px",
               marginBottom: "18px",
-              flexDirection: isMobileLayout ? "column" : "row",
             }}
           >
             <div style={{ minWidth: 0 }}>
@@ -842,7 +713,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
               <div
                 style={{
                   marginTop: "6px",
-                  fontSize: "clamp(1.05rem, 2.6vw, 1.2rem)",
+                  fontSize: "1.2rem",
                   fontWeight: 700,
                   color: "#f8fafc",
                   lineHeight: 1.25,
@@ -873,7 +744,6 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
                 fontSize: "0.78rem",
                 padding: "8px 12px",
                 cursor: "pointer",
-                width: isMobileLayout ? "100%" : "auto",
               }}
             >
               Fechar
@@ -883,7 +753,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: isMobileLayout ? "1fr" : "1fr 1fr",
+              gridTemplateColumns: "1fr 1fr",
               gap: "10px",
             }}
           >
@@ -980,7 +850,6 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
                 gap: "10px",
                 flexWrap: "wrap",
                 marginTop: "4px",
-                flexDirection: isMobileLayout ? "column" : "row",
               }}
             >
               <button
@@ -988,7 +857,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
                 style={{
                   ...styles.button,
                   padding: "10px 14px",
-                  fontSize: "0.82rem",
+                  fontSize: "0.8rem",
                 }}
                 onClick={() => handleSave(item.id)}
                 disabled={isBusy}
@@ -1033,7 +902,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
   const editingItem =
     editingId !== null ? visibleMealPlan.find((item) => item.id === editingId) ?? null : null;
 
-  const navControlHeight = isMobileLayout ? "44px" : "46px";
+  const navControlHeight = "40px";
 
   return (
     <>
@@ -1042,7 +911,6 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
           padding: 0,
           width: "100%",
           boxSizing: "border-box",
-          minWidth: 0,
         }}
       >
         <div
@@ -1051,9 +919,8 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
             display: "flex",
             flexWrap: "wrap",
             gap: "12px",
-            alignItems: isMobileLayout ? "stretch" : "center",
+            alignItems: "center",
             justifyContent: "space-between",
-            minWidth: 0,
           }}
         >
           <div
@@ -1063,41 +930,37 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
               gap: "10px",
               alignItems: "center",
               color: "#cbd5e1",
-              fontSize: "clamp(0.78rem, 1.5vw, 0.86rem)",
+              fontSize: "0.8rem",
               minWidth: 0,
-              flex: "1 1 280px",
             }}
           >
             <span style={{ fontWeight: 700 }}>{visibleWindowItemCount} item(ns) visíveis</span>
             {dateRangeLabel ? <span>{dateRangeLabel}</span> : null}
-            <span className="nf-inline-note" style={{ marginTop: 0 }}>
-              {isMobileLayout ? "Modo mobile: lista semanal" : "Modo desktop: mapa de 2 semanas"}
-            </span>
           </div>
 
           <div
             style={{
-              display: "flex",
-              flexWrap: isMobileLayout ? "wrap" : "nowrap",
+              display: "grid",
+              gridTemplateColumns: "40px minmax(132px, 1fr) 40px",
               gap: "8px",
               alignItems: "center",
-              width: isMobileLayout ? "100%" : "auto",
-              minWidth: 0,
+              width: "min(100%, 260px)",
             }}
           >
             <button
               type="button"
               style={{
                 ...styles.button,
-                width: isMobileLayout ? "calc(50% - 4px)" : "46px",
-                minWidth: isMobileLayout ? "120px" : "46px",
+                width: "40px",
+                minWidth: "40px",
                 height: navControlHeight,
                 padding: 0,
-                fontSize: "1rem",
+                fontSize: "0.94rem",
                 lineHeight: 1,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                borderRadius: "10px",
                 boxSizing: "border-box",
               }}
               onClick={() => shiftWindowByWeeks(-1)}
@@ -1112,12 +975,12 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
               type="date"
               style={{
                 ...styles.input,
-                flex: isMobileLayout ? "1 1 100%" : "0 0 180px",
-                width: isMobileLayout ? "100%" : "180px",
+                width: "100%",
                 minWidth: 0,
                 height: navControlHeight,
                 padding: "0 10px",
-                fontSize: "0.82rem",
+                fontSize: "0.8rem",
+                borderRadius: "10px",
                 boxSizing: "border-box",
               }}
               value={windowStartDate}
@@ -1129,15 +992,16 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
               type="button"
               style={{
                 ...styles.button,
-                width: isMobileLayout ? "calc(50% - 4px)" : "46px",
-                minWidth: isMobileLayout ? "120px" : "46px",
+                width: "40px",
+                minWidth: "40px",
                 height: navControlHeight,
                 padding: 0,
-                fontSize: "1rem",
+                fontSize: "0.94rem",
                 lineHeight: 1,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                borderRadius: "10px",
                 boxSizing: "border-box",
               }}
               onClick={() => shiftWindowByWeeks(1)}
@@ -1155,28 +1019,15 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
 
         {visibleWindowDates.length === 0 ? (
           <p style={styles.empty}>Sem almoços ou jantares no plano.</p>
-        ) : isMobileLayout ? (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "12px",
-              width: "100%",
-              minWidth: 0,
-            }}
-          >
-            {visibleWindowDates.map((date) => renderMobileDayCard(date))}
-          </div>
         ) : (
           <div
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
-              gap: viewportWidth < 1180 ? "8px" : "10px",
+              gap: "10px",
               alignItems: "start",
               width: "100%",
               boxSizing: "border-box",
-              minWidth: 0,
             }}
           >
             {visibleWindowDates.map((date) => {
@@ -1204,7 +1055,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
                     minWidth: 0,
                     boxSizing: "border-box",
                     cursor: "pointer",
-                    minHeight: viewportWidth < 1180 ? "162px" : "178px",
+                    minHeight: "178px",
                     display: "grid",
                     gridTemplateRows: "58px auto",
                     transform: isHovered ? "translateY(-2px)" : "translateY(0)",
@@ -1214,7 +1065,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
                 >
                   <div
                     style={{
-                      padding: viewportWidth < 1180 ? "8px" : "8px 10px",
+                      padding: "8px 10px",
                       borderBottom: "1px solid rgba(148, 163, 184, 0.14)",
                       background: isHovered ? "rgba(15, 23, 42, 0.42)" : "rgba(15, 23, 42, 0.34)",
                       minWidth: 0,
@@ -1229,7 +1080,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
                     <div style={{ minWidth: 0 }}>
                       <div
                         style={{
-                          fontSize: viewportWidth < 1180 ? "0.62rem" : "0.68rem",
+                          fontSize: "0.68rem",
                           fontWeight: 700,
                           letterSpacing: "0.08em",
                           textTransform: "uppercase",
@@ -1242,7 +1093,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
                       <div
                         style={{
                           marginTop: "2px",
-                          fontSize: viewportWidth < 1180 ? "0.88rem" : "0.96rem",
+                          fontSize: "0.96rem",
                           fontWeight: 700,
                           color: "#f8fafc",
                         }}
@@ -1254,7 +1105,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
                     {isHovered ? (
                       <div
                         style={{
-                          fontSize: "0.62rem",
+                          fontSize: "0.65rem",
                           fontWeight: 600,
                           color: "#93c5fd",
                           whiteSpace: "nowrap",
@@ -1267,7 +1118,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
 
                   <div
                     style={{
-                      padding: viewportWidth < 1180 ? "8px 7px" : "8px",
+                      padding: "8px",
                       display: "flex",
                       flexDirection: "column",
                       gap: "8px",
@@ -1291,9 +1142,9 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
             inset: 0,
             zIndex: 1300,
             display: "flex",
-            alignItems: isMobileLayout ? "flex-end" : "center",
+            alignItems: "center",
             justifyContent: "center",
-            padding: isMobileLayout ? "8px" : "24px",
+            padding: "24px",
             background: "rgba(2, 6, 23, 0.54)",
             backdropFilter: "blur(7px)",
             boxSizing: "border-box",
@@ -1303,10 +1154,10 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
           <div
             onClick={(event) => event.stopPropagation()}
             style={{
-              width: isMobileLayout ? "100%" : "min(1080px, 94vw)",
-              maxHeight: isMobileLayout ? "calc(100dvh - 8px)" : "86vh",
+              width: "min(1080px, 94vw)",
+              maxHeight: "86vh",
               overflowY: "auto",
-              borderRadius: isMobileLayout ? "20px 20px 0 0" : "24px",
+              borderRadius: "24px",
               border: "1px solid rgba(96, 165, 250, 0.18)",
               background: "linear-gradient(180deg, rgba(2,6,23,0.98) 0%, rgba(15,23,42,0.96) 100%)",
               boxShadow: "0 28px 90px rgba(2, 6, 23, 0.5)",
@@ -1319,9 +1170,8 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
                 alignItems: "flex-start",
                 justifyContent: "space-between",
                 gap: "16px",
-                padding: isMobileLayout ? "18px 16px 14px 16px" : "24px 26px 18px 26px",
+                padding: "24px 26px 18px 26px",
                 borderBottom: "1px solid rgba(148, 163, 184, 0.12)",
-                flexDirection: isMobileLayout ? "column" : "row",
               }}
             >
               <div style={{ minWidth: 0 }}>
@@ -1340,7 +1190,7 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
                 <div
                   style={{
                     marginTop: "6px",
-                    fontSize: "clamp(1.08rem, 2.8vw, 1.35rem)",
+                    fontSize: "1.35rem",
                     fontWeight: 700,
                     color: "#f8fafc",
                     lineHeight: 1.22,
@@ -1361,7 +1211,6 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
                   fontSize: "0.8rem",
                   padding: "10px 14px",
                   cursor: editingId === null ? "pointer" : "default",
-                  width: isMobileLayout ? "100%" : "auto",
                 }}
                 disabled={editingId !== null}
               >
@@ -1371,9 +1220,9 @@ export function MealPlanList({ mealPlan, recipes, onSuccess }: Props) {
 
             <div
               style={{
-                padding: isMobileLayout ? "16px" : "22px 26px 26px 26px",
+                padding: "22px 26px 26px 26px",
                 display: "grid",
-                gridTemplateColumns: isMobileLayout ? "1fr" : "repeat(auto-fit, minmax(320px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
                 gap: "16px",
               }}
             >
